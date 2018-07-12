@@ -15,7 +15,7 @@ from django.utils import timezone
 class Project(models.Model):
     project_name = models.CharField(max_length=200)
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, primary_key=False)
-    benefactors = models.ManyToManyField(Benefactor, on_delete=models.DO_NOTHING, primary_key=False)
+    benefactors = models.ManyToManyField(Benefactor, primary_key=False)
     description = models.CharField(max_length=2000)
     project_state = models.CharField(max_length=50)
 
@@ -47,7 +47,7 @@ class Ability(models.Model):
 
 class Requirement(models.Model):
     project = models.ForeignKey(NonFinancialProject, on_delete=models.CASCADE, primary_key=False)
-    ability_types = models.ManyToManyField(AbilityType, models.DO_NOTHING, primary_key=False)
+    ability_types = models.ManyToManyField(AbilityType, primary_key=False)
     min_age = models.IntegerField
     max_age = models.IntegerField
     gender = models.CharField(max_length=100)
@@ -110,3 +110,5 @@ class Request(models.Model):
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False)
     receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False)
     description = models.CharField(max_length=2000)
+
+
