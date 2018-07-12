@@ -19,6 +19,9 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     project_state = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.project_name
+
 
 class FinancialProject(Project):
     # TODO set min
@@ -26,16 +29,23 @@ class FinancialProject(Project):
     target_money = models.FloatField
     current_money = models.FloatField
 
+    def __str__(self):
+        super.__str__(self)
+
 
 # TODO delete if useless
 class NonFinancialProject(Project):
-    pass
+
+    def __str__(self):
+        super.__str__(self)
 
 
 class AbilityType(models.Model):
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=2000)
-    pass
+
+    def __str__(self):
+        return self.name
 
 
 class Ability(models.Model):
@@ -107,8 +117,8 @@ class DateInterval(models.Model):
 
 
 class Request(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False)
-    receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False)
+    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False, related_name='%(class)s_requests_sender')
+    receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False, related_name='%(class)s_requests_receiver')
     description = models.CharField(max_length=2000)
 
 
