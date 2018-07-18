@@ -4,7 +4,7 @@ from accounts.models import *
 from django.db import models
 
 from django.db import models
-from enum import Enum
+import json
 
 import datetime
 from django.utils import timezone
@@ -35,7 +35,6 @@ class FinancialProject(Project):
 
 # TODO delete if useless
 class NonFinancialProject(Project):
-
     def __str__(self):
         super.__str__(self)
 
@@ -66,59 +65,47 @@ class Requirement(models.Model):
 
 
 class DateInterval(models.Model):
-    user = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    # TODO can someone pls check what is going on with defining 2 user fields?
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    # TODO shouldn't user be many to one
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, null=True)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
     # project
     begin_date = models.DateField
     end_date = models.DateField
+    week_schedule = models.CharField(max_length=200)
 
-    begin_saturday_1 = models.TimeField
-    end_saturday_1 = models.TimeField
+    def to_json(self, schedule):
+        self.week_schedule = json.dumps(schedule)
 
-    begin_sunday_1 = models.TimeField
-    end_sunday_1 = models.TimeField
-
-    begin_monday_1 = models.TimeField
-    end_monday_1 = models.TimeField
-
-    begin_tuesday_1 = models.TimeField
-    end_tuesday_1 = models.TimeField
-
-    begin_wednesday_1 = models.TimeField
-    end_wednesday_1 = models.TimeField
-
-    begin_thursday_1 = models.TimeField
-    end_thursday_1 = models.TimeField
-
-    begin_friday_1 = models.TimeField
-    end_friday_1 = models.TimeField
-
-    begin_saturday_2 = models.TimeField
-    end_saturday_2 = models.TimeField
-
-    begin_sunday_2 = models.TimeField
-    end_sunday_2 = models.TimeField
-
-    begin_monday_2 = models.TimeField
-    end_monday_2 = models.TimeField
-
-    begin_tuesday_2 = models.TimeField
-    end_tuesday_2 = models.TimeField
-
-    begin_wednesday_2 = models.TimeField
-    end_wednesday_2 = models.TimeField
-
-    begin_thursday_2 = models.TimeField
-    end_thursday_2 = models.TimeField
-
-    begin_friday_2 = models.TimeField
-    end_friday_2 = models.TimeField
+    def from_json(self):
+        return json.loads(self.week_schedule)
 
 
 class Request(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False, related_name='%(class)s_requests_sender')
-    receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False, related_name='%(class)s_requests_receiver')
+    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
+                               related_name='%(class)s_requests_sender')
+    receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
+                                 related_name='%(class)s_requests_receiver')
     description = models.CharField(max_length=2000)
 
 
+# TODO add effect of province and city
+def search_benefactor(wanted_schedule, min_required_hours, min_date_overlap=30, min_time_overlap=50,
+                      ability_name=None, ability_min_score=0, ability_max_score=10, province=None, city=None,
+                      user_min_score=0, user_max_score=10, gender=None, first_name=None, last_name=None):
+    result_benefactors = Benefactor.objects.all().filter(score__lte=user_max_score).filter(score__gte=user_min_score)
+    if first_name is not None:
+        result_benefactors = result_benefactors.filter(first_name__iexact=first_name)
+    if last_name is not None:
+        result_benefactors = result_benefactors.filter(last_name__iexact=last_name)
+    if gender is not None:
+        result_benefactors = result_benefactors.filter(gender__iexact=gender)
+
+    schedule_filtered_ids = \
+        [benefactor.id for benefactor in result_benefactors if
+         benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
+    result_benefactors = result_benefactors.filter(id__in=schedule_filtered_ids)
+
+    abilities = Ability.objects.all()
+    if ability_name is not None:
+        abilities = abilities.filter(ability_type__name__iexact=ability_name)
+        pass
