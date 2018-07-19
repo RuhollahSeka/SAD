@@ -28,8 +28,6 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     project_state = models.CharField(max_length=50)
     objects = ProjectManager
-    start_date = models.DateField()
-    deadline = models.DateField()
     type = models.CharField(max_length=50)
 
     def __str__(self):
@@ -41,14 +39,19 @@ class FinancialProject(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
     target_money = models.FloatField
     current_money = models.FloatField
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def progress_in_range(self, min_progress, max_progress):
+        return min_progress < self.current_money / self.target_money < max_progress
 
     def __str__(self):
         super.__str__(self)
 
 
-# TODO delete if useless
 class NonFinancialProject(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+
     def __str__(self):
         super.__str__(self)
 
@@ -79,10 +82,9 @@ class Requirement(models.Model):
 
 
 class DateInterval(models.Model):
-    # TODO shouldn't user be many to one
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, null=True)
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, null=True)
-    # project
+    non_financial_project = models.ForeignKey(NonFinancialProject, on_delete=models.CASCADE, null=True)
+
     begin_date = models.DateField
     end_date = models.DateField
     week_schedule = models.CharField(max_length=200)
@@ -104,7 +106,8 @@ class Request(models.Model):
 
 # TODO add effect of province and city
 def search_benefactor(wanted_schedule, min_required_hours, min_date_overlap=30, min_time_overlap=50,
-                      ability_name=None, ability_min_score=0, ability_max_score=10, province=None, city=None,
+                      ability_name=None, ability_min_score=0, ability_max_score=10, country=None, province=None,
+                      city=None,
                       user_min_score=0, user_max_score=10, gender=None, first_name=None, last_name=None):
     result_benefactors = Benefactor.objects.all().filter(score__lte=user_max_score).filter(score__gte=user_min_score)
     if first_name is not None:
@@ -119,6 +122,13 @@ def search_benefactor(wanted_schedule, min_required_hours, min_date_overlap=30, 
          benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
     result_benefactors = result_benefactors.filter(id__in=schedule_filtered_ids)
 
+    if country is not None:
+        result_benefactors = result_benefactors.filter(user__contactinfo__country__iexact=country)
+    if province is not None:
+        result_benefactors = result_benefactors.filter(user__contactinfo__province__iexact=province)
+    if city is not None:
+        result_benefactors = result_benefactors.filter(user__contactinfo__city__iexact=city)
+
     abilities = Ability.objects.all()
     if ability_name is not None:
         abilities = abilities.filter(ability_type__name__iexact=ability_name)
@@ -127,32 +137,41 @@ def search_benefactor(wanted_schedule, min_required_hours, min_date_overlap=30, 
 
 # TODO add effect of province and city
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
-                   min_finished_projects=0, max_finished_projects=math.inf, related_benefactor=None, province=None,
-                   city=None):
+                   min_finished_projects=0, max_finished_projects=math.inf, related_benefactor=None, country=None
+                   , province=None, city=None):
     result_charities = Charity.objects.all().filter(score__lte=min_score).filter(score__gte=max_score)
-    project_number_filter_ids = [charity.id for charity in result_charities if
-                                 max_related_projects >
-                                 Project.objects.related_charity_filter_count(charity) > min_related_projects and
-                                 max_finished_projects >
-                                 Project.objects.finished_charity_filter_count(charity) > min_finished_projects]
-    result_charities = result_charities.filter(id__in=project_number_filter_ids)
+    filtered_ids = [charity.id for charity in result_charities if
+                    max_related_projects >
+                    Project.objects.related_charity_filter_count(charity) > min_related_projects and
+                    max_finished_projects >
+                    Project.objects.finished_charity_filter_count(charity) > min_finished_projects]
+    result_charities = result_charities.filter(id__in=filtered_ids)
     if name is not None:
         result_charities = result_charities.filter(name__iexact=name)
     if related_benefactor is not None:
-        result_charities = [charity for charity in result_charities if
+        filtered_ids = [charity.id for charity in result_charities if
                         related_benefactor.charity_set.filter(pk=charity.pk).exists()]
+        result_charities = result_charities.filter(id__in=filtered_ids)
 
-    pass
 
-# TODO idk about anility
-def search_project(project_name=None, charity_name=None, related_benefactor=None, project_state=None, min_progress=0, max_progress=100,
-                   week_schedule=None):
-    result_projects = Project.objects.all().filter()
+# TODO idk about ability
+def search_financial_project(project_name=None, charity_name=None, benefactor=None, project_state=None,
+                             min_progress=0, max_progress=100, start_date=None, end_date=None):
+    filtered_ids = [financial_project.id for financial_project in FinancialProject.objects.all() if
+                    financial_project.progress_in_range(min_progress, max_progress)]
+    result_financial_projects = FinancialProject.objects.all().filter(id__in=filtered_ids)
 
     if project_name is not None:
-        result_projects = result_projects.filter(project_name__iexact=project_name)
+        result_financial_projects = result_financial_projects.filter(project__project_name__iexact=project_name)
     if charity_name is not None:
-        result_projects = result_projects.filter(charity__name=charity_name)
+        result_financial_projects = result_financial_projects.filter(project__charity__name=charity_name)
+    if project_state is not None:
+        result_financial_projects = result_financial_projects.filter(project__project_state__iexact=project_state)
+    if benefactor is not None:
+        filtered_ids = [financial_project.id for financial_project in result_financial_projects if
+                        benefactor.project_set.filter(pk=financial_project.project.pk)]
+        result_financial_projects = result_financial_projects.filter(id__in=filtered_ids)
+
 
 
     pass
