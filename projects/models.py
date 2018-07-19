@@ -59,7 +59,7 @@ class NonFinancialProject(models.Model):
 class AbilityType(models.Model):
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=2000)
-
+    tags = models.ManyToManyField(AbilityTag)
     def __str__(self):
         return self.name
 
@@ -102,6 +102,11 @@ class Request(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
                                  related_name='%(class)s_requests_receiver')
     description = models.CharField(max_length=2000)
+
+
+class AbilityTag(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=1000)
 
 
 # TODO add effect of province and city

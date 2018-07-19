@@ -40,34 +40,6 @@ def create_new_project(request):
         return HttpResponse(content=[])
 
 
-def get_project_data_for_edit(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    # TODO fix template path
-    template = loader.get_template('projects/get_project_data_for_edit.html')
-    try:
-        context = {
-            'pk': pk,
-            'project_name': project.project_name,
-            'description': project.description,
-            'project_state': project.project_state,
-            'start_date': project.start_date,
-            'deadline': project.deadline,
-            'type': project.type,
-        }
-        if project.type is 'financial':
-            fin_project = get_object_or_404(FinancialProject, project=project)
-            context.update({
-                'target_money': fin_project.target_money,
-                'current_money': fin_project.current_money
-            })
-    except:
-        context = {
-            'pk': pk,
-            'error_message': 'Error in finding the Project!'
-        }
-    return HttpResponse(template.render(context, request))
-
-
 def edit_project(request, pk):
     # TODO fix path
     template = loader.get_template('path-to-template')
@@ -102,3 +74,34 @@ def edit_project(request, pk):
 
 def show_project_data(request, pk):
     project = get_object_or_404(Project, pk=pk)
+    # TODO fix template path
+    template = loader.get_template('projects/get_project_data_for_edit.html')
+    try:
+        context = {
+            'pk': pk,
+            'project_name': project.project_name,
+            'description': project.description,
+            'project_state': project.project_state,
+            'start_date': project.start_date,
+            'deadline': project.deadline,
+            'type': project.type,
+        }
+        if project.type is 'financial':
+            fin_project = get_object_or_404(FinancialProject, project=project)
+            context.update({
+                'target_money': fin_project.target_money,
+                'current_money': fin_project.current_money
+            })
+    except:
+        context = {
+            'pk': pk,
+            'error_message': 'Error in finding the Project!'
+        }
+    return HttpResponse(template.render(context, request))
+
+
+def add_requirement(request, project_id):
+    # FIXME maybe it shouldn't be pk
+    project = get_object_or_404(Project, pk=project_id)
+    requirement = Requirement.objects.create()
+
