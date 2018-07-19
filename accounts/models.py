@@ -15,25 +15,7 @@ class Charity(models.Model):
 
     name = models.CharField(max_length=200)
     score = models.FloatField()
-
-
-def find_overlapped_dateintervals_days(benefactor, start_date, end_date):
-    date_diff_days = (end_date - start_date).days
-    all_overlapped_days = 0
-    useful_dateintervals = []
-
-    for dateinterval in benefactor.dateinterval_set:
-        if end_date < dateinterval.begin_date or start_date > dateinterval.end_date:
-            continue
-        else:
-            overlapped_days = (min(end_date, dateinterval.end_date) - max(start_date, dateinterval.begin_date)).days
-            all_overlapped_days += overlapped_days
-            useful_dateintervals.append((dateinterval.from_json(), overlapped_days))
-
-    for useful_dateinterval in useful_dateintervals:
-        useful_dateinterval[1] /= all_overlapped_days
-
-    return useful_dateintervals, all_overlapped_days / date_diff_days
+    benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
 
 
 class Benefactor(models.Model):
@@ -62,6 +44,9 @@ class Benefactor(models.Model):
 
 class ContactInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    country = models.CharField(max_length=30)
+    province = models.CharField(max_length=30)
+    city = models.CharField(max_length=30)
+    postal_code = models.CharField(max_length=30)
     address = models.CharField(max_length=500)
     phone_number = models.CharField(max_length=20)
-    fax_number = models.CharField(max_length=20)

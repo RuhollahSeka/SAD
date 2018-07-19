@@ -6,11 +6,20 @@ from django.db import models
 from django.db import models
 import json
 
-import datetime
+import datetime, math
 from django.utils import timezone
 
 
 # Create your models here.
+
+
+class ProjectManager(models.Manager):
+    def finished_charity_filter_count(self, charity):
+        return super().all().filter(project_state__iexact='finished').filter(charity=charity).count()
+
+    def related_charity_filter_count(self, charity):
+        return super().all().filter(charity=charity).count()
+
 
 class Project(models.Model):
     project_name = models.CharField(max_length=200)
@@ -18,6 +27,7 @@ class Project(models.Model):
     benefactors = models.ManyToManyField(Benefactor, primary_key=False)
     description = models.CharField(max_length=2000)
     project_state = models.CharField(max_length=50)
+    objects = ProjectManager
 
     def __str__(self):
         return self.project_name
@@ -109,3 +119,36 @@ def search_benefactor(wanted_schedule, min_required_hours, min_date_overlap=30, 
     if ability_name is not None:
         abilities = abilities.filter(ability_type__name__iexact=ability_name)
         pass
+
+
+# TODO add effect of province and city
+def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
+                   min_finished_projects=0, max_finished_projects=math.inf, related_benefactor=None, province=None,
+                   city=None):
+    result_charities = Charity.objects.all().filter(score__lte=min_score).filter(score__gte=max_score)
+    project_number_filter_ids = [charity.id for charity in result_charities if
+                                 max_related_projects >
+                                 Project.objects.related_charity_filter_count(charity) > min_related_projects and
+                                 max_finished_projects >
+                                 Project.objects.finished_charity_filter_count(charity) > min_finished_projects]
+    result_charities = result_charities.filter(id__in=project_number_filter_ids)
+    if name is not None:
+        result_charities = result_charities.filter(name__iexact=name)
+    if related_benefactor is not None:
+        result_charities = [charity for charity in result_charities if
+                        related_benefactor.charity_set.filter(pk=charity.pk).exists()]
+
+    pass
+
+# TODO idk about anility
+def search_project(project_name=None, charity_name=None, related_benefactor=None, project_state=None, min_progress=0, max_progress=100,
+                   week_schedule=None):
+    result_projects = Project.objects.all().filter()
+
+    if project_name is not None:
+        result_projects = result_projects.filter(project_name__iexact=project_name)
+    if charity_name is not None:
+        result_projects = result_projects.filter(charity__name=charity_name)
+
+
+    pass

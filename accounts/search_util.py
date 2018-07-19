@@ -1,5 +1,6 @@
 import datetime, json
 
+
 def sub_time(time_1, time_2):
     more_hour_sub = 1 if time_1[0] > time_2[0] else 0
     result = (time_1[0] - time_2[0] - more_hour_sub, abs(time_1[1] - time_2[1]))
@@ -69,3 +70,22 @@ def find_all_overlapped_hours(overlapped_dateintervals, weekly_schedule, min_tim
             all_overlapped_time += find_single_overlapped_hours(current_schedule[weekday], times, min_time_overlap)
 
     return all_overlapped_time
+
+
+def find_overlapped_dateintervals_days(benefactor, start_date, end_date):
+    date_diff_days = (end_date - start_date).days
+    all_overlapped_days = 0
+    useful_dateintervals = []
+
+    for dateinterval in benefactor.dateinterval_set:
+        if end_date < dateinterval.begin_date or start_date > dateinterval.end_date:
+            continue
+        else:
+            overlapped_days = (min(end_date, dateinterval.end_date) - max(start_date, dateinterval.begin_date)).days
+            all_overlapped_days += overlapped_days
+            useful_dateintervals.append((dateinterval.from_json(), overlapped_days))
+
+    for useful_dateinterval in useful_dateintervals:
+        useful_dateinterval[1] /= all_overlapped_days
+
+    return useful_dateintervals, all_overlapped_days / date_diff_days
