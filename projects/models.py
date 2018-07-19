@@ -6,7 +6,7 @@ from django.db import models
 from django.db import models
 import json
 
-import datetime
+import datetime, math
 from django.utils import timezone
 
 
