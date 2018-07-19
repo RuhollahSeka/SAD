@@ -28,14 +28,17 @@ class Project(models.Model):
     description = models.CharField(max_length=2000)
     project_state = models.CharField(max_length=50)
     objects = ProjectManager
+    start_date = models.DateField()
+    deadline = models.DateField()
+    type = models.CharField(max_length=50)
 
     def __str__(self):
         return self.project_name
 
 
-class FinancialProject(Project):
+class FinancialProject(models.Model):
     # TODO set min
-
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
     target_money = models.FloatField
     current_money = models.FloatField
 
@@ -44,7 +47,8 @@ class FinancialProject(Project):
 
 
 # TODO delete if useless
-class NonFinancialProject(Project):
+class NonFinancialProject(models.Model):
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
     def __str__(self):
         super.__str__(self)
 
