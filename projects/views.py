@@ -88,6 +88,8 @@ def edit_project(request, pk):
             fin_project.target_money = dic['target_money']
             # FIXME should the current_money be editable or not?
             fin_project.current_money = dic['current_money']
+            fin_project.save()
+        project.save()
     except:
         context = {
             'pk': pk,
@@ -96,3 +98,7 @@ def edit_project(request, pk):
         return HttpResponse(template.render(context, request))
     # FIXME maybe all responses should be Redirects / parameters need fixing
     return HttpResponseRedirect([])
+
+
+def show_project_data(request, pk):
+    project = get_object_or_404(Project, pk=pk)
