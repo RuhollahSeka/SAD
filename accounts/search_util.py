@@ -72,12 +72,12 @@ def find_all_overlapped_hours(overlapped_dateintervals, weekly_schedule, min_tim
     return all_overlapped_time
 
 
-def find_overlapped_dateintervals_days(benefactor, start_date, end_date):
+def find_overlapped_dateintervals_days(dateinterval_set, start_date, end_date):
     date_diff_days = (end_date - start_date).days
     all_overlapped_days = 0
     useful_dateintervals = []
 
-    for dateinterval in benefactor.dateinterval_set:
+    for dateinterval in dateinterval_set:
         if end_date < dateinterval.begin_date or start_date > dateinterval.end_date:
             continue
         else:
@@ -89,3 +89,21 @@ def find_overlapped_dateintervals_days(benefactor, start_date, end_date):
         useful_dateinterval[1] /= all_overlapped_days
 
     return useful_dateintervals, all_overlapped_days / date_diff_days
+
+
+def has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule,
+                  dateinterval_set=None, dateinterval=None):
+    wanted_start_date = schedule[0]
+    wanted_end_date = schedule[1]
+    weekly_schedule = schedule[2]
+
+    if dateinterval is not None:
+        dateinterval_set = [dateinterval]
+
+    (overlapped_dateintervals, overlapped_days) = find_overlapped_dateintervals_days(dateinterval_set,
+                                                                                     wanted_start_date,
+                                                                                     wanted_end_date)
+    if overlapped_days < min_date_overlap:
+        return False
+    overlapped_hours = find_all_overlapped_hours(overlapped_dateintervals, weekly_schedule, min_time_overlap)
+    return True if overlapped_hours == max_time(overlapped_hours, min_required_hours) else False
