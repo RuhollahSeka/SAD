@@ -50,20 +50,20 @@ class AbilityType(models.Model):
 
 
 class Ability(models.Model):
-    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE)
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE)
-    score = models.IntegerField
-    description = models.CharField(max_length=300)
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, null=False)
+    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, null=False)
+    score = models.IntegerField(default=-1)
+    description = models.CharField(max_length=300, default="")
 
 
 class Project(models.Model):
-    project_name = models.CharField(max_length=200)
-    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, primary_key=False)
+    project_name = models.CharField(max_length=200, null=False)
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, primary_key=False, null=False)
     benefactors = models.ManyToManyField(Benefactor, primary_key=False)
-    description = models.CharField(max_length=2000)
-    project_state = models.CharField(max_length=50)
+    description = models.CharField(max_length=2000, default="")
+    project_state = models.CharField(max_length=50, default="open")
     objects = ProjectManager()
-    type = models.CharField(max_length=50)
+    type = models.CharField(max_length=50, null=False)
 
     def __str__(self):
         return self.project_name + "-" + self.type
@@ -73,8 +73,8 @@ class FinancialProject(models.Model):
     # TODO set min
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
 
-    target_money = models.FloatField
-    current_money = models.FloatField
+    target_money = models.FloatField(null=False)
+    current_money = models.FloatField(default=0.0)
 
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
@@ -89,15 +89,14 @@ class FinancialProject(models.Model):
 class NonFinancialProject(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
 
-    # TODO im not sure about the on_delete for this field
     ability_type = models.ForeignKey(AbilityType, on_delete=models.DO_NOTHING, primary_key=False)
-    min_age = models.IntegerField()
-    max_age = models.IntegerField()
-    required_gender = models.CharField(max_length=100, null=True)
+    min_age = models.IntegerField(default=0)
+    max_age = models.IntegerField(default=200)
+    required_gender = models.CharField(max_length=100, null=True, default="Other")
 
-    country = models.CharField(max_length=30)
-    province = models.CharField(max_length=30)
-    city = models.CharField(max_length=30)
+    country = models.CharField(max_length=30, default="Islamic, Republic of Iran")
+    province = models.CharField(max_length=30, default="Tehran")
+    city = models.CharField(max_length=30, default="Tehran")
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)
