@@ -10,11 +10,11 @@ class User(AbstractUser):
 
 
 class Benefactor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
 
-    first_name = models.CharField(max_length=50, null=False)
-    last_name = models.CharField(max_length=100, null=False)
-    gender = models.CharField(max_length=30, null=False)
+    first_name = models.CharField(max_length=50, default='')
+    last_name = models.CharField(max_length=100, default='')
+    gender = models.CharField(max_length=30, default='')
 
     score = models.FloatField(default=-1)
 
@@ -30,18 +30,18 @@ class Benefactor(models.Model):
 
 
 class Charity(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
 
-    name = models.CharField(max_length=200, null=False)
+    name = models.CharField(max_length=200, default='')
     score = models.FloatField(default=-1)
     benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
 
 
 class ContactInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    country = models.CharField(max_length=30, null=True, default="Islamic, Republic of Iran")
-    province = models.CharField(max_length=30, null=True, default="Tehran")
-    city = models.CharField(max_length=30, null=True, default="Tehran")
-    postal_code = models.CharField(max_length=30, null=True, default="11111111")
-    address = models.CharField(max_length=500, null=True, default="")
-    phone_number = models.CharField(max_length=20, null=True, default="")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
+    country = models.CharField(max_length=30, null=True)
+    province = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
+    postal_code = models.CharField(max_length=30, null=True)
+    address = models.CharField(max_length=500, null=True)
+    phone_number = models.CharField(max_length=20, null=True)

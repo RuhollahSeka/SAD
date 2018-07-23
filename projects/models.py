@@ -32,13 +32,13 @@ class AbilityTypeManager(models.Manager):
 
 
 class AbilityTag(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.CharField(max_length=1000)
+    name = models.CharField(max_length=200, default='')
+    description = models.CharField(max_length=1000, default='')
 
 
 class AbilityType(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.CharField(max_length=2000)
+    name = models.CharField(max_length=200, default='')
+    description = models.CharField(max_length=2000, default='')
     tags = models.ManyToManyField(AbilityTag)
     objects = AbilityTypeManager()
 
@@ -50,20 +50,20 @@ class AbilityType(models.Model):
 
 
 class Ability(models.Model):
-    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, null=False)
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, null=False)
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
-    description = models.CharField(max_length=300, default="")
+    description = models.CharField(max_length=300, default='')
 
 
 class Project(models.Model):
-    project_name = models.CharField(max_length=200, null=False)
-    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, primary_key=False, null=False)
-    benefactors = models.ManyToManyField(Benefactor, primary_key=False)
-    description = models.CharField(max_length=2000, default="")
-    project_state = models.CharField(max_length=50, default="open")
+    project_name = models.CharField(max_length=200, default='')
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    benefactors = models.ManyToManyField(Benefactor)
+    description = models.CharField(max_length=2000, default='')
+    project_state = models.CharField(max_length=50, default='open')
+    type = models.CharField(max_length=50, default='')
     objects = ProjectManager()
-    type = models.CharField(max_length=50, null=False)
 
     def __str__(self):
         return self.project_name + "-" + self.type
@@ -71,9 +71,9 @@ class Project(models.Model):
 
 class FinancialProject(models.Model):
     # TODO set min
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True, default='')
 
-    target_money = models.FloatField(null=False)
+    target_money = models.FloatField(default=0.0)
     current_money = models.FloatField(default=0.0)
 
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
@@ -87,16 +87,16 @@ class FinancialProject(models.Model):
 
 
 class NonFinancialProject(models.Model):
-    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE, primary_key=True, default='')
 
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.DO_NOTHING, primary_key=False)
+    ability_type = models.ForeignKey(AbilityType, on_delete=models.DO_NOTHING, default='')
     min_age = models.IntegerField(default=0)
     max_age = models.IntegerField(default=200)
-    required_gender = models.CharField(max_length=100, null=True, default="Other")
+    required_gender = models.CharField(max_length=100, null=True)
 
-    country = models.CharField(max_length=30, default="Islamic, Republic of Iran")
-    province = models.CharField(max_length=30, default="Tehran")
-    city = models.CharField(max_length=30, default="Tehran")
+    country = models.CharField(max_length=30, null=True)
+    province = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)
@@ -122,10 +122,10 @@ class DateInterval(models.Model):
 
 class Request(models.Model):
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
-                               related_name='%(class)s_requests_sender')
+                               related_name='%(class)s_requests_sender', default='')
     receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
-                                 related_name='%(class)s_requests_receiver')
-    description = models.CharField(max_length=2000)
+                                 related_name='%(class)s_requests_receiver', default='')
+    description = models.CharField(max_length=2000, default='')
 
 
 def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overlap=30, min_time_overlap=50, tags=None,
