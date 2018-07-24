@@ -7,6 +7,95 @@ from django.template import loader
 
 # Create your views here.
 
+def find_non_financial_projects_search_results(request):
+    project_name = request.POST.get('search_non_financial_project_name')
+    charity_name = request.POST.get('search_non_financial_charity_name')
+    benefactor_name = request.POST.get('search_non_financial_benefactor_name')
+    project_state = request.POST.get('search_non_financial_project_state')
+    ability_name = request.POST.get('search_non_financial_ability_name')
+    tags = request.POST.get('search_non_financial_tags')
+    start_date = request.POST.get('search_non_financial_start_date')
+    end_date = request.POST.get('search_non_financial_end_date')
+    weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
+    schedule = [start_date, end_date, weekly_schedule]
+    min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
+    min_date_overlap = request.POST.get('search_non_financial_min_date_overlap')
+    min_time_overlap = request.POST.get('search_non_financial_min_time_overlap')
+    age = request.POST.get('search_non_financial_age')
+    gender = request.POST.get('search_non_financial_gender')
+    country = request.POST.get('search_non_financial_country')
+    province = request.POST.get('search_non_financial_province')
+    city = request.POST.get('search_non_financial_city')
+    project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
+                                                    ability_name, tags, schedule, min_required_hours, min_date_overlap,
+                                                    min_time_overlap, age, gender, country, province, city)
+    return render(request, 'url', {'result_non_financial_projects': list(project_queryset)})
+
+
+def find_financial_project_search_results(request):
+    project_name = request.POST.get('search_financial_project_name')
+    charity_name = request.POST.get('search_financial_charity_name')
+    benefactor_name = request.POST.get('search_financial_benefactor_name')
+    project_state = request.POST.get('search_financial_project_state')
+    min_progress = request.POST.get('search_financial_min_progress')
+    max_progress = request.POST.get('search_financial_max_progress')
+    min_deadline_date = request.POST.get('search_financial_min_deadline_date')
+    max_deadline_date = request.POST.get('search_financial_max_deadline_date')
+    project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
+                                                min_progress, max_progress, min_deadline_date, max_deadline_date)
+    return render(request, 'url', {'result_financial_projects': list(project_queryset)})
+
+
+def find_charity_search_results(request):
+    charity_name = request.POST.get('search_charity_name')
+    min_score = request.POST.get('search_charity_min_score')
+    max_score = request.POST.get('search_charity_max_score')
+    min_related_projects = request.POST.get('search_charity_min_related_projects')
+    max_related_projects = request.POST.get('search_charity_max_related_projects')
+    min_finished_projects = request.POST.get('search_charity_min_finished_projects')
+    max_finished_projects = request.POST.get('search_charity_max_finished_projects')
+    benefactor_name = request.POST.get('search_charity_benefactor_name')
+    country = request.POST.get('search_charity_country')
+    province = request.POST.get('search_charity_province')
+    city = request.POST.get('search_charity_city')
+    charity_queryset = search_charity(charity_name, min_score, max_score, min_related_projects, max_related_projects,
+                                      min_finished_projects, max_finished_projects, benefactor_name, country, province,
+                                      city)
+    return render(request, 'url', {'result_charities': list(charity_queryset)})
+
+
+# TODO handle security and stuff like that
+# TODO send more data like scores, overlapped days and overlapped weekly hours
+def find_benefactor_search_results(request):
+    start_date = request.POST.get('search_benefactor_start_date')
+    end_date = request.POST.get('search_benefactor_end_date')
+    weekly_schedule = create_query_schedule(request.POST.get('search_benefactor_schedule'))
+    schedule = [start_date, end_date, weekly_schedule]
+    min_required_hours = request.POST.get('search_benefactor_min_required_hours')
+    min_date_overlap = request.POST.get('search_benefactors_min_date_overlap')
+    min_time_overlap = request.POST.get('search_benefactors_min_time_overlap')
+    tags = request.POST.get('search_benefactor_tags')
+    ability_name = request.POST.get('search_benefactor_ability_name')
+    ability_min_score = request.POST.get('search_benefactor_ability_min_score')
+    ability_max_score = request.POST.get('search_benefactor_ability_max_score')
+    country = request.POST.get('search_benefactor_country')
+    province = request.POST.get('search_benefactor_province')
+    city = request.POST.get('search_benefactor_city')
+    user_min_score = request.POST.get('search_benefactor_user_min_score')
+    user_max_score = request.POST.get('search_benefactor_user_max_score')
+    gender = request.POST.get('search_benefactor_gender')
+    first_name = request.POST.get('search_benefactor_first_name')
+    last_name = request.POST.get('search_benefactor_last_name')
+    benefactor_queryset = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap, tags,
+                                            ability_name, ability_min_score, ability_max_score, country, province,
+                                            city, user_min_score, user_max_score, gender, first_name, last_name)
+    benefactor_list = list(benefactor_queryset)
+    result_benefactor_data = []
+    for benefactor, overlap_data in zip(benefactor_list, search_overlap_data):
+        result_benefactor_data.append([benefactor, overlap_data[0], overlap_data[1]])
+
+    return render(request, 'wtf?', {'result_benefactors': result_benefactor_data})
+
 
 def create_new_project(request):
     if request.user.is_authenticated():
@@ -104,4 +193,3 @@ def add_requirement(request, project_id):
     # FIXME maybe it shouldn't be pk
     project = get_object_or_404(Project, pk=project_id)
     requirement = Requirement.objects.create()
-

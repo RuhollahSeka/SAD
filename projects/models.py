@@ -141,11 +141,6 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         result_benefactors = result_benefactors.filter(last_name__icontains=last_name)
     if gender is not None:
         result_benefactors = result_benefactors.filter(gender__iexact=gender)
-    if wanted_schedule is not None:
-        schedule_filtered_ids = \
-            [benefactor.id for benefactor in result_benefactors if
-             benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
-        result_benefactors = result_benefactors.filter(id__in=schedule_filtered_ids)
     if country is not None:
         result_benefactors = result_benefactors.filter(user__contactinfo__country__iexact=country)
     if province is not None:
@@ -157,11 +152,17 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
     result_ids = [benefactor.id for benefactor in result_benefactors if
                   benefactor.has_ability(ability_type_ids, ability_min_score, ability_max_score)]
     result_benefactors = result_benefactors.filter(id__in=result_ids)
+
+    if wanted_schedule is not None:
+        schedule_filtered_ids = \
+            [benefactor.id for benefactor in result_benefactors if
+             benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
+        result_benefactors = result_benefactors.filter(id__in=schedule_filtered_ids)
     return result_benefactors
 
 
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
-                   min_finished_projects=0, max_finished_projects=math.inf, related_benefactor=None, country=None
+                   min_finished_projects=0, max_finished_projects=math.inf, benefactor_name=None, country=None
                    , province=None, city=None):
     result_charities = Charity.objects.all().filter(score__lte=min_score).filter(score__gte=max_score)
     filtered_ids = [charity.id for charity in result_charities if
@@ -178,43 +179,51 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
         result_charities = result_charities.filter(user__contactinfo__province__iexact=province)
     if city is not None:
         result_charities = result_charities.filter(user__contactinfo__city__iexact=city)
-    if related_benefactor is not None:
-        filtered_ids = [charity.id for charity in result_charities if
-                        related_benefactor.charity_set.filter(pk=charity.pk).exists()]
+    if benefactor_name is not None:
+        benefactors = Benefactor.objects.all().filter(first_name__icontains=benefactor_name) \
+                      | Benefactor.objects.all().filter(last_name__icontains=benefactor_name)
+        filtered_ids = []
+        for benefactor in benefactors:
+            filtered_ids.extend([charity.id for charity in result_charities if
+                                 benefactor.charity_set.filter(pk=charity.pk).exists()])
         result_charities = result_charities.filter(id__in=filtered_ids)
     return result_charities
 
 
-def filter_projects(current_projects, project_name, charity_name, benefactor, project_state):
+def filter_projects(current_projects, project_name, charity_name, benefactor_name, project_state):
     if project_name is not None:
         current_projects = current_projects.filter(project__project_name__iexact=project_name)
     if charity_name is not None:
         current_projects = current_projects.filter(project__charity__name=charity_name)
     if project_state is not None:
         current_projects = current_projects.filter(project__project_state__iexact=project_state)
-    if benefactor is not None:
-        filtered_ids = [project.id for project in current_projects if
-                        benefactor.project_set.filter(pk=project.project.pk).exists()]
+    if benefactor_name is not None:
+        benefactors = Benefactor.objects.all().filter(first_name__icontains=benefactor_name) \
+                      | Benefactor.objects.all().filter(last_name__icontains=benefactor_name)
+        filtered_ids = []
+        for benefactor in benefactors:
+            filtered_ids.extend([project.id for project in current_projects if
+                                 benefactor.project_set.filter(pk=project.project.pk).exists()])
         current_projects = current_projects.filter(id__in=filtered_ids)
     return current_projects
 
 
-def search_financial_project(project_name=None, charity_name=None, benefactor=None, project_state=None,
+def search_financial_project(project_name=None, charity_name=None, benefactor_name=None, project_state=None,
                              min_progress=0, max_progress=100, min_deadline_date=None, max_deadline_date=None):
     filtered_ids = [financial_project.id for financial_project in FinancialProject.objects.all() if
                     financial_project.progress_in_range(min_progress, max_progress)]
     result_financial_projects = FinancialProject.objects.all().filter(id__in=filtered_ids)
     result_financial_projects = result_financial_projects.filter(end_date__gte=min_deadline_date) \
         .filter(end_date__lte=max_deadline_date)
-    return filter_projects(result_financial_projects, project_name, charity_name, benefactor, project_state)
+    return filter_projects(result_financial_projects, project_name, charity_name, benefactor_name, project_state)
 
 
-def search_non_financial_project(project_name=None, charity_name=None, benefactor=None, project_state=None,
+def search_non_financial_project(project_name=None, charity_name=None, benefactor_name=None, project_state=None,
                                  ability_name=None, tags=None, wanted_schedule=None, min_required_hours=0,
                                  min_date_overlap=30, min_time_overlap=50, age=None, gender=None, country=None,
                                  province=None, city=None):
     result_projects = NonFinancialProject.objects.all()
-    result_projects = filter_projects(result_projects, project_name, charity_name, benefactor, project_state)
+    result_projects = filter_projects(result_projects, project_name, charity_name, benefactor_name, project_state)
 
     if age is not None:
         result_projects = result_projects.filter(min_age__lte=age).filter(max_age__gte=age)
