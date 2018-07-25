@@ -4,9 +4,19 @@ from accounts.search_util import *
 import datetime, json
 
 
+class ContactInfo(models.Model):
+    country = models.CharField(max_length=30, null=True)
+    province = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
+    postal_code = models.CharField(max_length=30, null=True)
+    address = models.CharField(max_length=500, null=True)
+    phone_number = models.CharField(max_length=20, null=True)
+
+
 class User(AbstractUser):
-    is_student = models.BooleanField(default=False)
-    is_teacher = models.BooleanField(default=False)
+    contactinfo = models.OneToOneField(ContactInfo, on_delete=models.CASCADE, default='')
+    is_benefactor = models.BooleanField(default=False)
+    is_charity = models.BooleanField(default=False)
 
 
 class Benefactor(models.Model):
@@ -35,13 +45,3 @@ class Charity(models.Model):
     name = models.CharField(max_length=200, default='')
     score = models.FloatField(default=-1)
     benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
-
-
-class ContactInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
-    country = models.CharField(max_length=30, null=True)
-    province = models.CharField(max_length=30, null=True)
-    city = models.CharField(max_length=30, null=True)
-    postal_code = models.CharField(max_length=30, null=True)
-    address = models.CharField(max_length=500, null=True)
-    phone_number = models.CharField(max_length=20, null=True)
