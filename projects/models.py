@@ -32,13 +32,13 @@ class AbilityTypeManager(models.Manager):
 
 
 class AbilityTag(models.Model):
-    name = models.CharField(max_length=200, default='')
-    description = models.CharField(max_length=1000, default='')
+    name = models.CharField(max_length=256, default='')
+    description = models.CharField(max_length=1024, default='')
 
 
 class AbilityType(models.Model):
-    name = models.CharField(max_length=200, default='')
-    description = models.CharField(max_length=2000, default='')
+    name = models.CharField(max_length=256, default='')
+    description = models.CharField(max_length=2048, default='')
     tags = models.ManyToManyField(AbilityTag)
     objects = AbilityTypeManager()
 
@@ -53,16 +53,16 @@ class Ability(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
-    description = models.CharField(max_length=300, default='')
+    description = models.CharField(max_length=512, default='')
 
 
 class Project(models.Model):
-    project_name = models.CharField(max_length=200, default='')
+    project_name = models.CharField(max_length=256, default='')
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     benefactors = models.ManyToManyField(Benefactor)
-    description = models.CharField(max_length=2000, default='')
-    project_state = models.CharField(max_length=50, default='open')
-    type = models.CharField(max_length=50, default='')
+    description = models.CharField(max_length=2048, default='')
+    project_state = models.CharField(max_length=64, default='open')
+    type = models.CharField(max_length=64, default='')
     objects = ProjectManager()
 
     def __str__(self):
@@ -92,11 +92,13 @@ class NonFinancialProject(models.Model):
     ability_type = models.ForeignKey(AbilityType, on_delete=models.DO_NOTHING, default='')
     min_age = models.IntegerField(default=0)
     max_age = models.IntegerField(default=200)
-    required_gender = models.CharField(max_length=100, null=True)
+    required_gender = models.CharField(max_length=128, null=True)
 
-    country = models.CharField(max_length=30, null=True)
-    province = models.CharField(max_length=30, null=True)
-    city = models.CharField(max_length=30, null=True)
+    country = models.CharField(max_length=32, null=True)
+    province = models.CharField(max_length=32, null=True)
+    city = models.CharField(max_length=32, null=True)
+
+    request = models.OneToOneField(CooperationRequest, on_delete=models.DO_NOTHING, null=True)
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)
@@ -111,21 +113,13 @@ class DateInterval(models.Model):
 
     begin_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
-    week_schedule = models.CharField(max_length=200, default='')
+    week_schedule = models.CharField(max_length=512, default='')
 
     def to_json(self, schedule):
         self.week_schedule = json.dumps(schedule)
 
     def from_json(self):
         return json.loads(self.week_schedule)
-
-
-class Request(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
-                               related_name='%(class)s_requests_sender', default='')
-    receiver = models.ForeignKey(User, on_delete=models.DO_NOTHING, primary_key=False,
-                                 related_name='%(class)s_requests_receiver', default='')
-    description = models.CharField(max_length=2000, default='')
 
 
 def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overlap=30, min_time_overlap=50, tags=None,
