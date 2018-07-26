@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Project</title>
+</head>
+<body>
+    <form method="post" action="{% url 'projects:create_project_submit' %}">
+        <label for="project_name">Project Name</label><input id="project_name" type="text" name="project_name"><br>
+        <label for="description">Description</label><input id="description" type="text" width="40" height="6" name="description"><br>
+        <label for="type1">Financial</label><input id="type1" type="radio" name="type" value="financial"><br>
+        <label for="type2">Non-Financial</label><input id="type2" type="radio" name="type" value="non-financial"><br>
+        <fieldset>
+            <legend>Financial Project</legend>
+            <label for="start_date">Start Date</label><input id="start_date" type="date" name="start_date"><br>
+            <label for="end_date">End Date</label><input id="end_date" type="date" name="end_date"><br>
+            <label for="target_money">Target Money</label><input id="target_money" type="number" name="target_money"><br>
+            <label for="current_money">Current Money</label><input id="current_money" type="number" name="current_money"><br>
+        </fieldset>
+        <!-- TODO Dunno how to handle this shit -->
+        <fieldset>
+            <legend>Non-Financial Project</legend>
+            <label for="ability_type">Ability Type</label><input id="ability_type" type="text" name="ability_type"><br>
+            <label for="min_age">Minimum Age</label><input id="min_age" type="number" name="min_age"><br>
+            <label for="max_age">Maximum Age</label><input id="max_age" type="number" name="max_age"><br>
+            <label for="required_gender">Required Gender</label><input id="required_gender" name="required_gender" type="text"><br>
+            <fieldset>
+                <legend>Address</legend>
+                <label for="country">Country</label><input id="country" name="country" type="text"><br>
+                <label for="province">Country</label><input id="province" name="province" type="text"><br>
+                <label for="city">Country</label><input id="city" name="city" type="text"><br>
+            </fieldset>
+        </fieldset>
+    </form>
+</body>
+</html>

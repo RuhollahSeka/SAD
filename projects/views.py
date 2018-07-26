@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.generic import TemplateView
+
 from projects.models import *
 from django.template import loader
 
@@ -98,29 +100,43 @@ def find_benefactor_search_results(request):
 
 
 def create_new_project(request):
+
     if request.user.is_authenticated():
         project = Project.objects.create()
-        project.project_name = request.POST['project_name']
+        project.project_name = request.POST.get('project_name')
         project.charity = request.user
-        project.description = request.POST['description']
+        project.description = request.POST.get('description')
         project.state = 'open'
-        if request.POST['start_date'] is not None:
-            project.start_date = datetime.datetime.strptime(request.POST['start_date'], '%y-%m-%d')
-        else:
-            project.start_date = datetime.date.today()
-        project.deadline = datetime.datetime.strptime(request.POST['deadline'], '%y-%m-%d')
         project.save()
-        if request.POST['type'] is 'financial':
+        if request.POST.get('type') is 'financial':
             project.type = 'financial'
             financial_project = FinancialProject.objects.create()
+            if request.POST.get('start_date') is not None:
+                financial_project.start_date = datetime.datetime.strptime(request.POST.get('start_date'), '%y-%m-%d')
+            else:
+                financial_project.start_date = datetime.date.today()
+            financial_project.end_date = datetime.datetime.strptime(request.POST.get('end_date'), '%y-%m-%d')
             financial_project.project = project
-            financial_project.target_money = int(request.POST['target_money'])
-            financial_project.current_money = 0
+            financial_project.target_money = int(request.POST.get('target_money'))
+            if request.POST.get('current_money') is not None:
+                financial_project.current_money = request.POST.get('current_money')
+            else:
+                financial_project.current_money = 0
             financial_project.save()
         else:
             project.type = 'non-financial'
             non_financial_project = NonFinancialProject.objects.create()
             non_financial_project.project = project
+            if request.POST.get("ability_type") is not None:
+                non_financial_project.ability_type = request.POST.get("ability_type")
+            if request.POST.get("min_age") is not None:
+                non_financial_project.min_age = request.POST.get("min_age")
+            if request.POST.get("max_age") is not None:
+                non_financial_project.max_age = request.POST.get("max_age")
+            non_financial_project.required_gender = request.POST.get("required_gender")
+            non_financial_project. country = request.POST.get("country")
+            non_financial_project.province = request.POST.get("province")
+            non_financial_project.city = request.POST.get("city")
             non_financial_project.save()
         # TODO Fix redirect path
         return HttpResponseRedirect('path')
@@ -134,22 +150,31 @@ def edit_project(request, pk):
     template = loader.get_template('path-to-template')
     if not request.user.is_authenticated():
         return HttpResponse(template.render({'pk': pk, 'error_message': 'Authentication Error!'}, request))
-    if not request.method is 'POST':
+    if request.method is not 'POST':
         return HttpResponse(template.render({'pk': pk, 'error_message': 'Method is not POST!'}, request))
-    project = get_object_or_404(Project, pk=pk)
+    project = Project.objects.get(pk=pk)
     try:
         dic = request.POST
         project.project_name = dic['project_name']
         project.project_state = dic['project_state']
         project.description = dic['description']
-        project.start_date = dic['start_date']
-        project.deadline = dic['deadline']
         if project.type is 'financial':
-            fin_project = get_object_or_404(FinancialProject, project=project)
+            fin_project = FinancialProject.objects.get(project=project)
             fin_project.target_money = dic['target_money']
+            fin_project.start_date = dic['start_date']
+            fin_project.end_date = dic['end_date']
             # FIXME should the current_money be editable or not?
             fin_project.current_money = dic['current_money']
             fin_project.save()
+        else:
+            nf_project = NonFinancialProject.objects.get(project=project)
+            nf_project.ability_type = dic['ability_type']
+            nf_project.city = dic['city']
+            nf_project.country = dic['country']
+            nf_project.max_age = dic['max_age']
+            nf_project.min_age = dic['min_age']
+            nf_project.project = dic['province']
+            nf_project.required_gender = dic['required_gender']
         project.save()
     except:
         context = {
@@ -162,7 +187,7 @@ def edit_project(request, pk):
 
 
 def show_project_data(request, pk):
-    project = get_object_or_404(Project, pk=pk)
+    project = Project.objects.get(pk=pk)
     # TODO fix template path
     template = loader.get_template('projects/get_project_data_for_edit.html')
     try:
@@ -171,15 +196,26 @@ def show_project_data(request, pk):
             'project_name': project.project_name,
             'description': project.description,
             'project_state': project.project_state,
-            'start_date': project.start_date,
-            'deadline': project.deadline,
             'type': project.type,
         }
         if project.type is 'financial':
-            fin_project = get_object_or_404(FinancialProject, project=project)
+            fin_project =  FinancialProject.objects.get(project=project)
             context.update({
+                'start_date': fin_project.start_date,
+                'end_date': fin_project.end_date,
                 'target_money': fin_project.target_money,
                 'current_money': fin_project.current_money
+            })
+        else:
+            nf_project = NonFinancialProject.objects.get(project=project)
+            context.update({
+                'ability_type':nf_project.ability_type,
+                'min_age':nf_project.min_age,
+                'max_age':nf_project.max_age,
+                'required_gender':nf_project.required_gender,
+                'country':nf_project.country,
+                'province':nf_project.province,
+                'city':nf_project.city,
             })
     except:
         context = {
@@ -189,7 +225,7 @@ def show_project_data(request, pk):
     return HttpResponse(template.render(context, request))
 
 
-def add_requirement(request, project_id):
-    # FIXME maybe it shouldn't be pk
-    project = get_object_or_404(Project, pk=project_id)
-    requirement = Requirement.objects.create()
+class CreateProjectForm(TemplateView):
+    template_name = "create_project_form.html"
+
+
