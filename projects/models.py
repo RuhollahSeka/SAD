@@ -19,36 +19,6 @@ class ProjectManager(models.Manager):
         return super().all().filter(charity=charity).count()
 
 
-class AbilityTypeManager(models.Manager):
-    def find_ability_ids(self, ability_name=None, ability_tags=None):
-        result_abilities = super().all()
-        if ability_name is not None:
-            result_abilities = result_abilities.filter(name__icontains=ability_name)
-        if ability_tags is not None:
-            result_ids = [ability_type.id for ability_type in result_abilities if
-                          all(tag in ability_tags for tag in ability_type.get_tag_strings())]
-            result_abilities = result_abilities.filter(id__in=result_ids)
-        return [ability.id for ability in result_abilities]
-
-
-class AbilityTag(models.Model):
-    name = models.CharField(max_length=256, default='')
-    description = models.CharField(max_length=1024, default='')
-
-
-class AbilityType(models.Model):
-    name = models.CharField(max_length=256, default='')
-    description = models.CharField(max_length=2048, default='')
-    tags = models.ManyToManyField(AbilityTag)
-    objects = AbilityTypeManager()
-
-    def get_tag_strings(self):
-        return [tag.name for tag in self.tags.all()]
-
-    def __str__(self):
-        return self.name
-
-
 class Ability(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
