@@ -91,6 +91,8 @@ def submit_cooperation_request(request):
         project = NonFinancialProject.objects.get()
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
+        new_request.nonfinancialproject=project
+        new_request.save()
         return HttpResponseRedirect([])
     except:
         # TODO Raise Error

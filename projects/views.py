@@ -101,7 +101,7 @@ def find_benefactor_search_results(request):
 
 def create_new_project(request):
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         project = Project.objects.create()
         project.project_name = request.POST.get('project_name')
         project.charity = request.user
@@ -137,6 +137,12 @@ def create_new_project(request):
             non_financial_project. country = request.POST.get("country")
             non_financial_project.province = request.POST.get("province")
             non_financial_project.city = request.POST.get("city")
+            date_interval = DateInterval.objects.create()
+            date_interval.begin_date = request.POST.get('start_date')
+            date_interval.end_date = request.POST.get('end_date')
+            date_interval.non_financial_project = non_financial_project
+            # FIXME check if the input is JSON or not
+            date_interval.week_schedule = request.POST.get('week_schedule')
             non_financial_project.save()
         # TODO Fix redirect path
         return HttpResponseRedirect('path')
@@ -175,6 +181,14 @@ def edit_project(request, pk):
             nf_project.min_age = dic['min_age']
             nf_project.project = dic['province']
             nf_project.required_gender = dic['required_gender']
+            date_interval = nf_project.dateinterval
+            if dic.get('start_date') is not None:
+                date_interval.begin_date = dic['start_date']
+            date_interval.end_date = dic['end_date']
+            if dic.get('week_schedule') is not None:
+                date_interval.week_schedule = dic['week_schedule']
+            nf_project.save()
+            date_interval.save()
         project.save()
     except:
         context = {
