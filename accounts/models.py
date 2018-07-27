@@ -34,30 +34,34 @@ class AbilityType(models.Model):
         return self.name
 
 
+
 class ContactInfo(models.Model):
-    country = models.CharField(max_length=32, null=True)
-    province = models.CharField(max_length=32, null=True)
-    city = models.CharField(max_length=32, null=True)
-    postal_code = models.CharField(max_length=32, null=True)
-    address = models.CharField(max_length=512, null=True)
-    phone_number = models.CharField(max_length=32, null=True)
+    country = models.CharField(max_length=30, null=True)
+    province = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
+    postal_code = models.CharField(max_length=30, null=True)
+    address = models.CharField(max_length=500, null=True)
+    phone_number = models.CharField(max_length=20, null=True)
 
 
 class User(AbstractUser):
-    contactinfo = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
-    is_benefactor = models.BooleanField(default=False)
     is_charity = models.BooleanField(default=False)
+    is_benefactor = models.BooleanField(default=False)
+    contact_info = models.OneToOneField(ContactInfo,on_delete = models.DO_NOTHING,null=False)
+
 
 
 class Benefactor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
-    first_name = models.CharField(max_length=64, default='')
-    last_name = models.CharField(max_length=128, default='')
-    gender = models.CharField(max_length=32, default='')
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=40)
+    age = models.IntegerField()
 
     score = models.FloatField(default=-1)
-
+    
+    
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule,
                                     dateinterval_set=self.dateinterval_set)
@@ -70,13 +74,13 @@ class Benefactor(models.Model):
 
 
 class Charity(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
-    name = models.CharField(max_length=256, default='')
-    score = models.FloatField(default=-1)
+    name = models.CharField(max_length=200)
+    score = models.FloatField()
     benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
 
-
+    
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
