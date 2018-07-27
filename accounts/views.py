@@ -11,11 +11,23 @@ from accounts.models import *
 # Create your views here.
 
 def submit_benefactor_score(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_benefactor:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    charity = Charity.objects.get(user=request.user)
+    benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('benefactor_username')))
+    if charity.benefactor_history.get(user=benefactor.user) is None:
+        # TODO Raise No_Cooperation Error
+        return HttpResponse([])
     try:
-        benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('benefactor_username')))
         ability = AbilityType.objects.get(benefactor=benefactor, name=request.POST.get('ability_type'))
-        score = BenefactorScore.objects.create(ability_type=ability, benefactor=benefactor,
-                                               charity=Charity.objects.get(user=request.user))
+        score = charity.benefactorscore_set.get(benefactor=benefactor, charity=charity)
+        if score is None:
+            score = BenefactorScore.objects.create(ability_type=ability, benefactor=benefactor,
+                                                   charity=Charity.objects.get(user=request.user))
         score.score = int(request.POST.get('score'))
         score.save()
         return HttpResponseRedirect([])
@@ -25,9 +37,21 @@ def submit_benefactor_score(request):
 
 
 def submit_charity_score(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_charity:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    benefactor = Benefactor.objects.get(user=request.user)
+    if benefactor.charity_set.get(user=User.objects.get(username=request.POST.get('charity_username'))) is None:
+        # TODO Raise No_Cooperation Error
+        return HttpResponse([])
     try:
         charity = Charity.objects.get(user=User.objects.get(username=request.POST.get('charity_username')))
-        score = CharityScore.objects.get(charity=charity, benefactor=Benefactor.objects.get(user=request.user))
+        score = benefactor.charityscore_set.get(benefactor=benefactor, charity=charity)
+        if score is None:
+            score = CharityScore.objects.get(charity=charity, benefactor=Benefactor.objects.get(user=request.user))
         score.score = int(request.POST.get('score'))
         score.save()
         return HttpResponseRedirect([])
@@ -37,6 +61,9 @@ def submit_charity_score(request):
 
 
 def submit_ability_request(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
     try:
         new_request = AbilityRequest.objects.create(type=request.POST.get('type'), name=request.POST.get('name'),
                                                     description=request.POST.get('description'))
@@ -48,6 +75,9 @@ def submit_ability_request(request):
 
 
 def submit_cooperation_request(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
     try:
         if request.user.is_benefactor:
             benefactor = Benefactor.objects.get(user=request.user)
