@@ -1,0 +1,41 @@
+<html>
+<head>
+
+</head>
+<body>
+<div>
+    <form action="{% url "signup" %}" method="post">
+    {% csrf_token %}
+        <label for="us1">Username:</label><input id="us1" name="username" required type="text">
+        <br>
+        <label for="us2">Password:</label><input id="us2" name="password" required type="password">
+        <br>
+        <label for="us5">Email:</label><input    id="us5" name="email"    required type="text">
+        <br>
+        <label for="us6">Province:</label><input id="us6" name="province" required type="text">
+        <br>
+        <label for="us7">City:</label><input     id="us7" name="city"     required type="text">
+        <br>
+        <label for="us8">Address:</label><input  id="us8" name="address"  required type="text">
+        <br>
+        <label for="us3">Charity:</label><input type="radio" name="account_type" id="us3" value="Charity" checked   >
+        <label for="us4">Benefactor:</label><input type="radio" name="account_type" id="us4" value="Benefactor"        >
+       <br>
+        <label for="us9">CharityName:</label><input  id="us9" name="charity_name"  required type="text">
+        <br>
+        <br>
+        <br>
+        <label for="us10">FirstName:</label><input id="us10" name="first_name" required type="text">
+        <br>
+        <label for="us11">LastName: </label><input id="us11" name="last_name"  required type="text">
+        <br>
+        <label for="us12">Gender:   </label><input id="us12" name="gender"     required type="text">
+        <br>
+        <label for="us13">Age:   </label><input id="us13" name="age"     required type="number">
+
+
+        <input type="submit" value="Submit" >
+    </form>
+</div>
+</body>
+</html>
