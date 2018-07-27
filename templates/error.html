@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+</head>
+<body>
+ {{ error_message }}
+<br>
+<form action="{% url 'error_redirect' redirect_address %}" method="get" >
+    <button type="submit" id="button1" >OK
+    </button>
+</form>
+</body>
+</html>
