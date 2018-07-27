@@ -1,37 +1,38 @@
-"""AZED URL Configuration
+from django.contrib.auth import login
+from django.shortcuts import redirect,get_object_or_404
+from django.views.generic import CreateView, TemplateView
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
+from django.template import loader
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
-from django.urls import path,include
-from . import views
-urlpatterns = [
+from accounts.forms import CharitySignUpForm
+from accounts.models import *
 
-    path('accounts/', include('accounts.urls')),
 
-    path('admin/', admin.site.urls),
-    path('',views.HomeView.as_view(),name='Home'),
+###Home
 
-    path('error/',views.ErrorView.as_view(),name='error_page'),
-    path('error/red=<slug:redirect_address>/',views.error_redirect,name='error_redirect'),
+class HomeView(TemplateView):
+    template_name = "base.html"
 
-    #path('accounts/signup/charityf/', views.CharitySignUpView.as_view(), name='charity_signupf'),
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        if self.request.user.is_authenticated:
+            context['login'] = True
+            context['username'] = self.request.user.username
+        else:
+            context['login'] = False
+
+        return context
 
 
 
+###Error
 
-]
+class ErrorView(TemplateView):
+    template_name = "error.html"
 
-
+def error_redirect(request , redirect_address):
+    return HttpResponseRedirect(reverse(redirect_address))
 
