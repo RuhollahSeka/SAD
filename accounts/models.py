@@ -75,7 +75,7 @@ class Charity(models.Model):
 
     name = models.CharField(max_length=200)
     score = models.FloatField()
-    benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
+    benefactor_history = models.ManyToManyField(Benefactor)
 
 
 class Notification(models.Model):
@@ -85,16 +85,22 @@ class Notification(models.Model):
 
 
 class BenefactorScore(models.Model):
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='', primary_key=True)
-    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='', primary_key=True)
-    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='', primary_key=True)
+    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
+
+    class Meta:
+        unique_together = (('ability_type', 'benefactor', 'charity'),)
 
 
 class CharityScore(models.Model):
-    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='', primary_key=True)
-    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='', primary_key=True)
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
+
+    class Meta:
+        unique_together = (('benefactor', 'charity'), )
 
 
 class AbilityRequest(models.Model):
