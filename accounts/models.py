@@ -116,3 +116,11 @@ class CooperationRequest(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     description = models.CharField(max_length=2048, null=True)
+
+
+class Log(models.Model):
+    type = models.CharField(max_length=64, default='')
+    first_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
+    second_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
+    date_time = models.DateTimeField(default='')
+    description = models.CharField(max_length=2048, default='')
