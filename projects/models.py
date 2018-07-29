@@ -71,7 +71,8 @@ class NonFinancialProject(models.Model):
     request = models.OneToOneField(CooperationRequest, on_delete=models.DO_NOTHING, null=True)
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
-        return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)
+        return \
+        has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)[0]
 
     def __str__(self):
         return self.project.__str__()
@@ -98,6 +99,8 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
     if tags is None:
         tags = []
 
+    schedule_filtered = []
+
     result_benefactors = Benefactor.objects.all().filter(score__lte=user_max_score).filter(score__gte=user_min_score)
     if first_name is not None:
         result_benefactors = result_benefactors.filter(first_name__icontains=first_name)
@@ -118,11 +121,16 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
     result_benefactors = result_benefactors.filter(id__in=result_ids)
 
     if wanted_schedule is not None:
-        schedule_filtered_ids = \
-            [benefactor.id for benefactor in result_benefactors if
-             benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
-        result_benefactors = result_benefactors.filter(id__in=schedule_filtered_ids)
-    return result_benefactors
+        schedule_data = [benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap,
+                                                  wanted_schedule) for benefactor in result_benefactors]
+        schedule_filtered = [(benefactor.id, data[1], data[2]) for
+                                 benefactor, data in zip(result_benefactors, schedule_data) if data[0]]
+        result_benefactors = result_benefactors.filter(id__in=[data[0] for data in schedule_filtered])
+
+    benefactor_list = list(result_benefactors)
+    final_results = [(benefactor, data[1], data[2]) for benefactor, data in zip(benefactor_list, schedule_filtered)]
+
+    return final_results
 
 
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,

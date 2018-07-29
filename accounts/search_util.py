@@ -1,6 +1,5 @@
 import datetime, json, re
 
-search_overlap_data = []
 
 
 def sub_time(time_1, time_2):
@@ -95,7 +94,6 @@ def find_overlapped_dateintervals_days(dateinterval_set, start_date, end_date):
 
 def has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule,
                          dateinterval_set=None, dateinterval=None):
-    global search_overlap_data
     wanted_start_date = schedule[0]
     wanted_end_date = schedule[1]
     weekly_schedule = schedule[2]
@@ -107,13 +105,12 @@ def has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap,
                                                                                      wanted_start_date,
                                                                                      wanted_end_date)
     if overlapped_days < min_date_overlap:
-        return False
+        return False, 0, 0
     overlapped_hours = find_all_overlapped_hours(overlapped_dateintervals, weekly_schedule, min_time_overlap)
     if overlapped_hours == max_time(overlapped_hours, min_required_hours):
         weekly_overlap_minutes = overlapped_hours[0] * 60 + overlapped_hours[1]
-        search_overlap_data.append((overlapped_days, weekly_overlap_minutes))
-        return True
-    return False
+        return True, overlapped_days, weekly_overlap_minutes
+    return False, 0, 0
 
 
 def create_query_schedule(ui_schedule):

@@ -88,13 +88,13 @@ def find_benefactor_search_results(request):
     gender = request.POST.get('search_benefactor_gender')
     first_name = request.POST.get('search_benefactor_first_name')
     last_name = request.POST.get('search_benefactor_last_name')
-    benefactor_queryset = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap, tags,
+    result_benefactor_data = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap, tags,
                                             ability_name, ability_min_score, ability_max_score, country, province,
                                             city, user_min_score, user_max_score, gender, first_name, last_name)
-    benefactor_list = list(benefactor_queryset)
-    result_benefactor_data = []
-    for benefactor, overlap_data in zip(benefactor_list, search_overlap_data):
-        result_benefactor_data.append([benefactor, overlap_data[0], overlap_data[1]])
+    # benefactor_list = list(benefactor_queryset)
+    # result_benefactor_data = []
+    # for benefactor, overlap_data in zip(benefactor_list, search_overlap_data):
+    #     result_benefactor_data.append([benefactor, overlap_data[0], overlap_data[1]])
 
     return render(request, 'wtf?', {'result_benefactors': result_benefactor_data})
 

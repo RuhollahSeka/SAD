@@ -34,7 +34,6 @@ class AbilityType(models.Model):
         return self.name
 
 
-
 class ContactInfo(models.Model):
     country = models.CharField(max_length=30, null=True)
     province = models.CharField(max_length=30, null=True)
@@ -47,8 +46,7 @@ class ContactInfo(models.Model):
 class User(AbstractUser):
     is_charity = models.BooleanField(default=False)
     is_benefactor = models.BooleanField(default=False)
-    contact_info = models.OneToOneField(ContactInfo,on_delete = models.DO_NOTHING,null=False)
-
+    contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, null=False)
 
 
 class Benefactor(models.Model):
@@ -60,8 +58,7 @@ class Benefactor(models.Model):
     age = models.IntegerField()
 
     score = models.FloatField(default=-1)
-    
-    
+
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule,
                                     dateinterval_set=self.dateinterval_set)
@@ -80,7 +77,7 @@ class Charity(models.Model):
     score = models.FloatField()
     benefactor_history = models.ManyToManyField(Benefactor, primary_key=False)
 
-    
+
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
