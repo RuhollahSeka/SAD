@@ -46,16 +46,16 @@ class ContactInfo(models.Model):
 class User(AbstractUser):
     is_charity = models.BooleanField(default=False)
     is_benefactor = models.BooleanField(default=False)
-    contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, null=False)
+    contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
 
 
 class Benefactor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=100)
-    gender = models.CharField(max_length=40)
-    age = models.IntegerField()
+    first_name = models.CharField(max_length=50, default='')
+    last_name = models.CharField(max_length=100, default='')
+    gender = models.CharField(max_length=40, null=True)
+    age = models.IntegerField(null=True)
 
     score = models.FloatField(default=-1)
 
@@ -71,10 +71,10 @@ class Benefactor(models.Model):
 
 
 class Charity(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
 
     name = models.CharField(max_length=200)
-    score = models.FloatField()
+    score = models.FloatField(default=-1)
     benefactor_history = models.ManyToManyField(Benefactor)
 
 

@@ -72,7 +72,7 @@ class NonFinancialProject(models.Model):
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return \
-        has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)[0]
+            has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)[0]
 
     def __str__(self):
         return self.project.__str__()
@@ -124,7 +124,7 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         schedule_data = [benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap,
                                                   wanted_schedule) for benefactor in result_benefactors]
         schedule_filtered = [(benefactor.id, data[1], data[2]) for
-                                 benefactor, data in zip(result_benefactors, schedule_data) if data[0]]
+                             benefactor, data in zip(result_benefactors, schedule_data) if data[0]]
         result_benefactors = result_benefactors.filter(id__in=[data[0] for data in schedule_filtered])
 
     benefactor_list = list(result_benefactors)
