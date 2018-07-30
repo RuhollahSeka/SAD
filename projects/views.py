@@ -10,6 +10,10 @@ from django.template import loader
 # Create your views here.
 
 def find_non_financial_projects_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
     project_name = request.POST.get('search_non_financial_project_name')
     charity_name = request.POST.get('search_non_financial_charity_name')
     benefactor_name = request.POST.get('search_non_financial_benefactor_name')
@@ -35,6 +39,10 @@ def find_non_financial_projects_search_results(request):
 
 
 def find_financial_project_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
     project_name = request.POST.get('search_financial_project_name')
     charity_name = request.POST.get('search_financial_charity_name')
     benefactor_name = request.POST.get('search_financial_benefactor_name')
@@ -49,6 +57,10 @@ def find_financial_project_search_results(request):
 
 
 def find_charity_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
     charity_name = request.POST.get('search_charity_name')
     min_score = request.POST.get('search_charity_min_score')
     max_score = request.POST.get('search_charity_max_score')
@@ -67,8 +79,11 @@ def find_charity_search_results(request):
 
 
 # TODO handle security and stuff like that
-# TODO send more data like scores, overlapped days and overlapped weekly hours
 def find_benefactor_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_benefactor:
+        pass
     start_date = request.POST.get('search_benefactor_start_date')
     end_date = request.POST.get('search_benefactor_end_date')
     weekly_schedule = create_query_schedule(request.POST.get('search_benefactor_schedule'))
@@ -115,6 +130,7 @@ def create_new_project(request):
                 financial_project.start_date = datetime.datetime.strptime(request.POST.get('start_date'), '%y-%m-%d')
             else:
                 financial_project.start_date = datetime.date.today()
+            # FIXME only date not datetime?
             financial_project.end_date = datetime.datetime.strptime(request.POST.get('end_date'), '%y-%m-%d')
             financial_project.project = project
             financial_project.target_money = int(request.POST.get('target_money'))
