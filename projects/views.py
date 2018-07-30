@@ -341,3 +341,20 @@ def get_project_report(request, project_id):
     except:
         # TODO Raise Unexpected Error
         return HttpResponse([])
+
+
+def accept_request(request, rid):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    try:
+        req = CooperationRequest.objects.get(id=rid)
+        benefactor = req.benefactor
+        charity = req.charity
+        project = Project.objects.get(id=req.nonfinancialproject.project.id)
+        if project.type is 'financial':
+            # TODO Raise Project Type Error
+            return HttpResponse([])
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])
