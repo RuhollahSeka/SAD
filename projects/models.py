@@ -49,6 +49,13 @@ class FinancialProject(models.Model):
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
 
+    def add_contribution(self, amount):
+        self.current_money += amount
+        if self.current_money >= amount:
+            self.project.project_state = 'completed'
+        self.project.save()
+        self.save()
+
     def progress_in_range(self, min_progress, max_progress):
         return min_progress < self.current_money / self.target_money < max_progress
 

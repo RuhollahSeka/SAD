@@ -273,3 +273,38 @@ class CreateProjectForm(TemplateView):
     template_name = "create_project_form.html"
 
 
+def contribute_to_project(request, project_id):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_charity:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    project = Project.objects.get(id=project_id)
+    if project.type is not 'financial':
+        # TODO Raise Project Type Error
+        return HttpResponse([])
+    fin_project = FinancialProject.objects.get(project=project)
+    try:
+        if project.project_state is 'completed':
+            # TODO Raise Project Closed Error
+            return HttpResponse([])
+        amount = float(request.POST.get('money'))
+        benefactor = Benefactor.objects.get(user=request.user)
+        if benefactor.credit < amount:
+            # TODO Raise Not Enough Money Error
+            return HttpResponse([])
+        contribution = FinancialContribution.objects.get(benefactor=benefactor, financial_project=fin_project)
+        if contribution is not None:
+            contribution.money += amount
+            contribution.save()
+        else:
+            FinancialContribution.objects.create(benefactor=benefactor, financial_project=fin_project, money=amount)
+        benefactor.credit -= amount
+        fin_project.add_contribution(amount)
+        benefactor.save()
+        # TODO Redirect
+        return HttpResponseRedirect([])
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])

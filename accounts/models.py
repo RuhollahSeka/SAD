@@ -56,7 +56,7 @@ class Benefactor(models.Model):
     last_name = models.CharField(max_length=100, default='')
     gender = models.CharField(max_length=40, null=True)
     age = models.IntegerField(null=True)
-
+    credit = models.FloatField(default=0)
     score = models.FloatField(default=-1)
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):

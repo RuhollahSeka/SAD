@@ -216,8 +216,8 @@ def signup(request):
     except:
         template = loader.get_template('accounts/register.html')
         context = {
-            'error_message' : 'Sign Up Error!',
-            'redirect_address' : 'signup_view'
+            'error_message': 'Sign Up Error!',
+            'redirect_address': 'signup_view'
         }
         return HttpResponse(template.render(context, request))
 
@@ -258,48 +258,56 @@ def login_user(request):
 
 #### Customize User
 
-class CustomizeUserView(TemplateView):
-    template_name = "accounts/user_profile.html"
 
-    def get_context_data(self, **kwargs):
-        try:
-            context = super().get_context_data(**kwargs)
+def customize_user_data(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    try:
+        context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
+                   "country": request.user.contact_info.country, "province": request.user.contact_info.province,
+                   "city": request.user.contact_info.city, "address": request.user.contact_info.address,
+                   "phone_number": request.user.contact_info.phone_number}
+        if request.user.is_benefactor:
+            try:
+                benefactor = Benefactor.objects.get(user=request.user)
+                projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
+                context['project_count'] = len(projects)
+                abilities = benefactor.ability_set.all()
+                score = 0
+                for ability in abilities:
+                    score += ability.score
+                score /= len(abilities)
+                context['score'] = score
+                context["first_name"] = request.user.benefactor.first_name
+                context["last_name"] = request.user.benefactor.last_name
+                context["gender"] = request.user.benefactor.gender
+                context["age"] = request.user.benefactor.age
+                context["credit"] = request.user.benefactor.credit
+            except:
+                print(1)
 
-            context["type"] = self.request.user.is_charity
-            context["username"] = self.request.user.username
-            context["email"] = self.request.user.email
 
-            context["country"] = self.request.user.contact_info.country
-            context["province"] = self.request.user.contact_info.province
-            context["city"] = self.request.user.contact_info.city
-            context["address"] = self.request.user.contact_info.address
-            context["phone_number"] = self.request.user.contact_info.phone_number
-
-            if self.request.user.is_benefactor:
-                try:
-                    context["first_name"] = self.request.user.benefactor.first_name
-                    context["last_name"] = self.request.user.benefactor.last_name
-                    context["gender"] = self.request.user.benefactor.gender
-                    context["age"] = self.request.user.benefactor.age
-                except:
-                    print(1)
-
-
-            else:
-                try:
-                    context["name"] = self.request.user.charity.name
-                except:
-                    print(1)
-
-            return context
-        except:
-            context = {
-                'error_message':'Error Getting Account Data!'
-            }
-            return context
+        else:
+            try:
+                context["name"] = request.user.charity.name
+                context["score"] = request.user.charity.score
+            except:
+                print(1)
+        return HttpResponse(render(request, 'accounts/user_profile.html', context))
+    except:
+        context = {
+            'error_message': 'Error Getting Account Data!'
+        }
+        # TODO Raise Error
+        return HttpResponseRedirect([])
 
 
 def customize_user(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+
     request.user.contact_info.province = request.POST.get("province")
     request.user.contact_info.city = request.POST.get("city")
     request.user.contact_info.address = request.POST.get("address")
@@ -319,3 +327,24 @@ def customize_user(request):
 
     # if not request.user.is_authenticated :
     # return 1 #fixme redirect to error.html with appropriate context
+
+def add_benefactor_credit(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_charity:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    try:
+        benefactor = Benefactor.objects.get(user=request.user)
+        amount = int(request.POST.get('deposit_amount'))
+        # FIXME Redirect to user profile view
+        return HttpResponseRedirect([])
+    except:
+        context = {
+            'error_message': 'error in deposit!',
+            # FIXME Redirect to user profile view
+            'redirect_address': 'user_profile'
+        }
+        return HttpResponseRedirect(reverse('error'))
+
