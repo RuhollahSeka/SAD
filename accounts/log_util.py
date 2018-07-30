@@ -46,9 +46,22 @@ def create_non_financial_project_report(nonfinancialproject):
         report = add_weekday_report(report, weekly_schedule.get('thur'))
         report += 'جمعه:' + '\n'
         report = add_weekday_report(report, weekly_schedule.get('fri'))
-    pass
+    return report
 
 
-def create_financial_project_report(project):
-
+def create_financial_project_report(financialproject):
+    report = ''
+    report += 'نام پروژه: ' + financialproject.project.project_name + '\n'
+    report += 'نام سازمان:' + ' ' + financialproject.project.charity.name + '\n'
+    report += '' + str(len(financialproject.project.benefactors)) + '\n'
+    report += '' + str(financialproject.current_money)
+    report += '' + str(financialproject.target_money)
+    report += 'جزییات کمک های نقدی:' + '\n'
+    for financialcontribution in financialproject.financialcontribution_set:
+        benefactor = financialcontribution.benefactor
+        report += '' + benefactor.first_name + ' ' + benefactor.last_name + '\n'
+        report += '' + str(financialcontribution.money) + '\n'
+        report += '\n'
+    report += '' + str(financialproject.start_date) + '\n'
+    report += '' + str(financialproject.end_date) + '\n'
     pass
