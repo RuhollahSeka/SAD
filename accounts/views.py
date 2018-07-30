@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.template import loader
 
-from projects.models import FinancialProject, NonFinancialProject, Project
+from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!
@@ -21,6 +21,49 @@ from accounts.models import *
 
 
 # Create your views here.
+
+def add_ability_to_benefactor(request):
+    benefactor_id = request.POST.get('add_ability_benefactor_id')
+    if request.user.id != benefactor_id:
+        # TODO error
+        pass
+
+    ability_type_name = request.POST.get('add_ability_ability_type_name')
+    ability_description = request.POST.get('add_ability_description')
+    ability_type = AbilityType.objects.all().filter(name__iexact=ability_type_name)[0]
+    benefactor = Benefactor.objects.all().filter(user_id=benefactor_id)[0]
+    ability = Ability(benefactor=benefactor, ability_type=ability_type, description=ability_description)
+    ability.save()
+    benefactor.ability_set.add(ability)
+    return HttpResponseRedirect('path')
+
+
+def admin_get_request_related_stuff(request):
+    all_ability_requests = AbilityRequest.objects.all()
+    all_cooperation_requests = CooperationRequest.objects.all()
+    all_notifications = Notification.objects.all()
+    all_logs = Log.objects.all()
+    return render(request, 'url', {
+        'all_ability_requests': all_ability_requests,
+        'all_cooperation_requests': all_cooperation_requests,
+        'all_notifications': all_notifications,
+        'all_logs': all_logs
+    })
+
+
+def admin_get_charities(request):
+    charities = Charity.objects.all()
+    return render(request, 'url', {
+        'all_charities': list(charities)
+    })
+
+
+def admin_get_benefactors(request):
+    benefactors = Benefactor.objects.all()
+    return render(request, 'url', {
+        'all_benefactors': list(benefactors)
+    })
+
 
 def admin_first_page_data(request):
     benefactor_len = len(Benefactor.objects.all())
