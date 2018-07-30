@@ -228,3 +228,12 @@ def search_non_financial_project(project_name=None, charity_name=None, benefacto
     filter_ids = [project.id for project in result_projects if project.ability_type.id in ability_type_ids]
     result_projects = result_projects.filter(id__in=filter_ids)
     return result_projects
+
+
+class Log(models.Model):
+    log_type = models.CharField(max_length=64, default='')
+    first_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_first_actor')
+    second_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_second_actor')
+    log_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
+    date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
+    description = models.CharField(max_length=2048, default='')
