@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.template import loader
 
-from projects.models import FinancialProject, NonFinancialProject, Project
+from projects.models import FinancialProject, NonFinancialProject, Project, Log
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!
@@ -21,6 +21,33 @@ from accounts.models import *
 
 
 # Create your views here.
+
+def admin_get_request_related_stuff(request):
+    all_ability_requests = AbilityRequest.objects.all()
+    all_cooperation_requests = CooperationRequest.objects.all()
+    all_notifications = Notification.objects.all()
+    all_logs = Log.objects.all()
+    return render(request, 'url', {
+        'all_ability_requests': all_ability_requests,
+        'all_cooperation_requests': all_cooperation_requests,
+        'all_notifications': all_notifications,
+        'all_logs': all_logs
+    })
+
+
+def admin_get_charities(request):
+    charities = Charity.objects.all()
+    return render(request, 'url', {
+        'all_charities': list(charities)
+    })
+
+
+def admin_get_benefactors(request):
+    benefactors = Benefactor.objects.all()
+    return render(request, 'url', {
+        'all_benefactors': list(benefactors)
+    })
+
 
 def admin_first_page_data(request):
     benefactor_len = len(Benefactor.objects.all())
