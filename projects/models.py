@@ -93,6 +93,12 @@ class DateInterval(models.Model):
         return json.loads(self.week_schedule)
 
 
+class FinancialContribution(models.Model):
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    financial_project = models.ForeignKey(FinancialProject, on_delete=models.CASCADE, default='')
+    money = models.FloatField(default=0)
+
+
 def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overlap=30, min_time_overlap=50, tags=None,
                       ability_name=None, ability_min_score=0, ability_max_score=10, country=None, province=None,
                       city=None, user_min_score=0, user_max_score=10, gender=None, first_name=None, last_name=None):

@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.template import loader
 
-from projects.models import NonFinancialProject, Project
+from projects.models import FinancialProject, NonFinancialProject, Project
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!
@@ -21,6 +21,22 @@ from accounts.models import *
 
 
 # Create your views here.
+
+def admin_first_page_data(request):
+    benefactor_len = len(Benefactor.objects.all())
+    charity_len = len(Charity.objects.all())
+    project_len = len(Project.objects.all())
+    all_money_spent = 0
+    for financial_project in FinancialProject.objects.all():
+        all_money_spent += financial_project.current_money
+
+    return render(request, 'url', {
+        'benefactor_len': benefactor_len,
+        'charity_len': charity_len,
+        'project_len': project_len,
+        'all_money_spent': all_money_spent
+    })
+
 
 def submit_benefactor_score(request):
     if not request.user.is_authenticated:

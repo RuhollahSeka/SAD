@@ -14,6 +14,16 @@ def find_non_financial_projects_search_results(request):
         pass
     if request.user.is_charity:
         pass
+    all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
+    all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
+
+    if request.method == 'GET':
+        return render(request, 'url', {
+            'ability_types': all_ability_types,
+            'ability_tags': all_ability_tags,
+            'result_non_financial_projects': []
+        })
+
     project_name = request.POST.get('search_non_financial_project_name')
     charity_name = request.POST.get('search_non_financial_charity_name')
     benefactor_name = request.POST.get('search_non_financial_benefactor_name')
@@ -35,7 +45,11 @@ def find_non_financial_projects_search_results(request):
     project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                     ability_name, tags, schedule, min_required_hours, min_date_overlap,
                                                     min_time_overlap, age, gender, country, province, city)
-    return render(request, 'url', {'result_non_financial_projects': list(project_queryset)})
+    return render(request, 'url', {
+        'result_non_financial_projects': list(project_queryset),
+        'ability_types': all_ability_types,
+        'ability_tags': all_ability_tags
+    })
 
 
 def find_financial_project_search_results(request):

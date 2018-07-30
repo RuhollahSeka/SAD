@@ -1,5 +1,10 @@
+import datetime
+
+
 def add_weekday_report(report, weekday_times):
-    pass
+    for time in weekday_times:
+        report += 'از ' + str(datetime.time(time[0], time[1])) + ' تا ' + str(datetime.time(time[2], time[3])) + '\n'
+    return report
 
 
 def create_non_financial_project_report(nonfinancialproject):
@@ -13,20 +18,37 @@ def create_non_financial_project_report(nonfinancialproject):
     else:
         report += 'نیکوکاری این پروژه را قبول نکرده است.' + '\n'
         report += 'شرایط مورد نیاز این پروژه:' + '\n'
-        report += '' + nonfinancialproject.min_age
-        report += '' + nonfinancialproject.max_age
-        report += '' + nonfinancialproject.required_gender
-        report += '' + nonfinancialproject.country
-        report += '' + nonfinancialproject.province
-        report += '' + nonfinancialproject.city
-        report += '' + nonfinancialproject.dateinterval.begin_date
-        report += '' + nonfinancialproject.dateinterval.end_date
+        report += 'حداقل سن: ' + nonfinancialproject.min_age
+        report += 'حداکثر سن: ' + nonfinancialproject.max_age
+        if nonfinancialproject.required_gender is not None:
+            report += 'جنسیت: ' + nonfinancialproject.required_gender
+        if nonfinancialproject.country is not None:
+            report += 'کشور: ' + nonfinancialproject.country
+        if nonfinancialproject.province is not None:
+            report += 'استان: ' + nonfinancialproject.province
+        if nonfinancialproject.city is not None:
+            report += 'شهر: ' + nonfinancialproject.city
+        report += 'تاریخ شروع: ' + nonfinancialproject.dateinterval.begin_date
+        report += 'تاریخ پایان: ' + nonfinancialproject.dateinterval.end_date
         weekly_schedule = nonfinancialproject.dateinterval.from_json()
         report += 'برنامه هفتگی:' + '\n'
         report += 'شنبه:' + '\n'
-        add_weekday_report(report, weekly_schedule.get('sat'))
+        report = add_weekday_report(report, weekly_schedule.get('sat'))
+        report += 'یک شنبه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('sun'))
+        report += 'دو شنبه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('mon'))
+        report += 'سه شنبه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('tue'))
+        report += 'چهار شنبه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('wed'))
+        report += 'پنج شنبه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('thur'))
+        report += 'جمعه:' + '\n'
+        report = add_weekday_report(report, weekly_schedule.get('fri'))
     pass
 
 
 def create_financial_project_report(project):
+
     pass
