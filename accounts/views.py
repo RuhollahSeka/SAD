@@ -150,6 +150,22 @@ class SignUpView(TemplateView):
 
 def signup(request):
     try:
+        
+        test1_user = User.objects.get(username=request.POST.get("username"))
+        test2_user = User.objects.get(username=request.POST.get("email"))
+        if test1_user is not None and test2_user is not None :
+
+            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Account already exists! Try login or forget password.'})
+        
+        if test1_user is None and test2_user is not None :
+            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Email is already taken!  '})
+        
+        if test1_user is not None and test2_user is None :
+            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Username is already taken! try another username.  '})
+
+        
+        
+        
         tmp_contact_info = ContactInfo.objects.create(country="Iran",
                                                       province=request.POST.get("province"),
                                                       city=request.POST.get("city"),
@@ -173,7 +189,7 @@ def signup(request):
 
 
         else:
-            tmp_user.is_charity = True
+            tmp_user.is_benefactor = True
             tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
                                                        last_name=request.POST.get("last_name"), score=-1,
                                                        age=request.POST.get("age"))
