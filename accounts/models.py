@@ -3,6 +3,8 @@ from django.db import models
 from accounts.search_util import *
 import datetime, json
 
+from projects.models import Project
+
 
 class AbilityTypeManager(models.Manager):
     def find_ability_ids(self, ability_name=None, ability_tags=None):
@@ -81,6 +83,7 @@ class Charity(models.Model):
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
+    date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, null=True)
 
 
@@ -119,8 +122,9 @@ class CooperationRequest(models.Model):
 
 
 class Log(models.Model):
-    type = models.CharField(max_length=64, default='')
+    log_type = models.CharField(max_length=64, default='')
     first_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_first_actor')
     second_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_second_actor')
+    log_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
     date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, default='')

@@ -3,6 +3,7 @@ from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 
+from accounts.log_util import create_financial_project_report, create_non_financial_project_report
 from projects.models import *
 from django.template import loader
 
@@ -305,6 +306,38 @@ def contribute_to_project(request, project_id):
         benefactor.save()
         # TODO Redirect
         return HttpResponseRedirect([])
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])
+
+
+def get_project_report(request, project_id):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_benefactor:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    project = Project.objects.get(id=project_id)
+    charity = Charity.objects.get(user=request.user)
+    try:
+        if project.charity is not charity:
+            # TODO Raise Owner Error
+            return HttpResponse([])
+        if project.type is 'financial':
+            fin_project = FinancialProject.objects.get(project=project)
+            context = {'report': create_financial_project_report(fin_project),
+                       'project_id': project_id}
+            # TODO Return Context
+            return HttpResponse(context)
+        else:
+            nf_project = NonFinancialProject.objects.get(project=project)
+            context = {
+                'report': create_non_financial_project_report(nf_project),
+                'project_id': project_id
+            }
+            # TODO Return Context
+            return HttpResponse(context)
     except:
         # TODO Raise Unexpected Error
         return HttpResponse([])
