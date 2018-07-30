@@ -11,10 +11,10 @@ def create_non_financial_project_report(nonfinancialproject):
     report = ''
     report += 'نام پروژه: ' + nonfinancialproject.project.project_name + '\n'
     report += 'نام سازمان:' + ' ' + nonfinancialproject.project.charity.name + '\n'
-    report += '' + nonfinancialproject.ability_type.name + '\n'
+    report += 'نام توانمندی مورد نیاز:' + nonfinancialproject.ability_type.name + '\n'
     if nonfinancialproject.project.benefactors is not None and len(nonfinancialproject.project.benefactors) != 0:
         benefactor = nonfinancialproject.project.benefactors[0]
-        report += '' + benefactor.first_name + ' ' + benefactor.last_name
+        report += 'نیکوکار:' + benefactor.first_name + ' ' + benefactor.last_name
     else:
         report += 'نیکوکاری این پروژه را قبول نکرده است.' + '\n'
         report += 'شرایط مورد نیاز این پروژه:' + '\n'
@@ -52,16 +52,16 @@ def create_non_financial_project_report(nonfinancialproject):
 def create_financial_project_report(financialproject):
     report = ''
     report += 'نام پروژه: ' + financialproject.project.project_name + '\n'
-    report += 'نام سازمان:' + ' ' + financialproject.project.charity.name + '\n'
-    report += '' + str(len(financialproject.project.benefactors)) + '\n'
-    report += '' + str(financialproject.current_money)
-    report += '' + str(financialproject.target_money)
-    report += 'جزییات کمک های نقدی:' + '\n'
+    report += 'نام سازمان: ' + ' ' + financialproject.project.charity.name + '\n'
+    report += 'تعداد نیکوکارانی که تا به اینجا، کمک نقدی کرده اند: ' + str(len(financialproject.project.benefactors)) + '\n'
+    report += 'حجم کمک نقدی تا به اینجا: ' + str(financialproject.current_money)
+    report += 'مقدار کمک نقدی مورد نیاز: ' + str(financialproject.target_money)
+    report += 'جزییات کمک های نقدی: ' + '\n'
     for financialcontribution in financialproject.financialcontribution_set:
         benefactor = financialcontribution.benefactor
-        report += '' + benefactor.first_name + ' ' + benefactor.last_name + '\n'
-        report += '' + str(financialcontribution.money) + '\n'
+        report += 'نام نیکوکار: ' + benefactor.first_name + ' ' + benefactor.last_name + '\n'
+        report += 'مقدار کمک نقدی: ' + str(financialcontribution.money) + '\n'
         report += '\n'
-    report += '' + str(financialproject.start_date) + '\n'
-    report += '' + str(financialproject.end_date) + '\n'
-    pass
+    report += 'تاریخ شروع: ' + str(financialproject.start_date) + '\n'
+    report += 'تاریخ پایان: ' + str(financialproject.end_date) + '\n'
+    return report
