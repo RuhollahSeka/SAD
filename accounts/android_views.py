@@ -58,7 +58,7 @@ def android_signup(request):
     gender = data.get('gender')
 
     if User.objects.all().filter(username__iexact=username).count() > 0:
-        return
+        return JsonResponse('[]', safe=False, status=200)
     contact_info = ContactInfo(country='Iran', province=province, city=city, address=address)
     contact_info.save()
 
@@ -74,3 +74,4 @@ def android_signup(request):
         user.save()
         charity = Charity(user=user, name=first_name + last_name)
         charity.save()
+    return JsonResponse('[]', safe=False, status=200)
