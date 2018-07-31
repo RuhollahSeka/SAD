@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.template import loader
 
-from projects.models import FinancialProject, NonFinancialProject, Project
+from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!
@@ -22,6 +22,49 @@ from accounts.models import *
 
 
 # Create your views here.
+
+def add_ability_to_benefactor(request):
+    benefactor_id = request.POST.get('add_ability_benefactor_id')
+    if request.user.id != benefactor_id:
+        # TODO error
+        pass
+
+    ability_type_name = request.POST.get('add_ability_ability_type_name')
+    ability_description = request.POST.get('add_ability_description')
+    ability_type = AbilityType.objects.all().filter(name__iexact=ability_type_name)[0]
+    benefactor = Benefactor.objects.all().filter(user_id=benefactor_id)[0]
+    ability = Ability(benefactor=benefactor, ability_type=ability_type, description=ability_description)
+    ability.save()
+    benefactor.ability_set.add(ability)
+    return HttpResponseRedirect('path')
+
+
+def admin_get_request_related_stuff(request):
+    all_ability_requests = AbilityRequest.objects.all()
+    all_cooperation_requests = CooperationRequest.objects.all()
+    all_notifications = Notification.objects.all()
+    all_logs = Log.objects.all()
+    return render(request, 'url', {
+        'all_ability_requests': all_ability_requests,
+        'all_cooperation_requests': all_cooperation_requests,
+        'all_notifications': all_notifications,
+        'all_logs': all_logs
+    })
+
+
+def admin_get_charities(request):
+    charities = Charity.objects.all()
+    return render(request, 'url', {
+        'all_charities': list(charities)
+    })
+
+
+def admin_get_benefactors(request):
+    benefactors = Benefactor.objects.all()
+    return render(request, 'url', {
+        'all_benefactors': list(benefactors)
+    })
+
 
 def admin_first_page_data(request):
     benefactor_len = len(Benefactor.objects.all())
@@ -108,16 +151,22 @@ def submit_cooperation_request(request, project_id):
         # TODO Raise Authentication Error
         return HttpResponse([])
     try:
+        # FIXME How should we find the project? I mean which data is given to find the project with?
+        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         if request.user.is_benefactor:
             benefactor = Benefactor.objects.get(user=request.user)
             charity = Charity.objects.get(user=User.objects.get(username=request.POST.get('username')))
+            new_notification = Notification.objects.create(type='new_request',user=charity.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request has Been Sent for Project ' + project.project
+            new_notification.save()
             request_type = 'b2c'
         else:
             benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('username')))
             charity = Charity.objects.get(user=request.user)
+            new_notification = Notification.objects.create(type='new_request',user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request Has Been Sent to You!'
+            new_notification.save()
             request_type = 'c2b'
-        # FIXME How should we find the project? I mean which data is given to find the project with?
-        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
         new_request.nonfinancialproject = project
@@ -168,22 +217,22 @@ class SignUpView(TemplateView):
 @csrf_exempt
 def signup(request):
     try:
-        
+
         test1_user = User.objects.filter(username=request.POST.get("username"))
         test2_user = User.objects.filter(username=request.POST.get("email"))
         if test1_user.__len__() != 0 and test2_user.__len__() != 0:
 
             return render(request, 'accounts/register.html', {'error_msg': 'Account already exists! Try login or forget password.'})
-        
+
         if test1_user.__len__() == 0 and len(test2_user) != 0:
             return render(request, 'accounts/register.html', {'error_msg': 'Email is already taken!  '})
-        
+
         if len(test1_user) != 0 and len(test2_user) == 0:
             return render(request, 'accounts/register.html', {'error_msg': 'Username is already taken! try another username.  '})
 
-        
-        
-        
+
+
+
         tmp_contact_info = ContactInfo.objects.create(country="Iran",
                                                       province=request.POST.get("province"),
                                                       city=request.POST.get("city"),
