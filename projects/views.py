@@ -10,7 +10,7 @@ from django.template import loader
 
 # Create your views here.
 
-def find_non_financial_projects_search_results(request):
+def find_non_financial_projects_advanced_search_results(request):
     if request.user.is_authenticated:
         pass
     if request.user.is_charity:
@@ -19,7 +19,7 @@ def find_non_financial_projects_search_results(request):
     all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
 
     if request.method == 'GET':
-        return render(request, 'url', {
+        return render(request, 'projects/non-fin-advanced-search', {
             'ability_types': all_ability_types,
             'ability_tags': all_ability_tags,
             'result_non_financial_projects': []
@@ -46,7 +46,50 @@ def find_non_financial_projects_search_results(request):
     project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                     ability_name, tags, schedule, min_required_hours, min_date_overlap,
                                                     min_time_overlap, age, gender, country, province, city)
-    return render(request, 'url', {
+    return render(request, 'projects/non-fin-advanced-search', {
+        'result_non_financial_projects': list(project_queryset),
+        'ability_types': all_ability_types,
+        'ability_tags': all_ability_tags
+    })
+
+
+def find_non_financial_projects_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
+    all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
+    all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
+
+    if request.method == 'GET':
+        return render(request, 'projects/non-fin-search', {
+            'ability_types': all_ability_types,
+            'ability_tags': all_ability_tags,
+            'result_non_financial_projects': []
+        })
+
+    project_name = request.POST.get('search_non_financial_project_name')
+    charity_name = request.POST.get('search_non_financial_charity_name')
+    benefactor_name = request.POST.get('search_non_financial_benefactor_name')
+    project_state = request.POST.get('search_non_financial_project_state')
+    ability_name = request.POST.get('search_non_financial_ability_name')
+    tags = request.POST.get('search_non_financial_tags')
+    start_date = request.POST.get('search_non_financial_start_date')
+    end_date = request.POST.get('search_non_financial_end_date')
+    weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
+    schedule = [start_date, end_date, weekly_schedule]
+    min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
+    min_date_overlap = request.POST.get('search_non_financial_min_date_overlap')
+    min_time_overlap = request.POST.get('search_non_financial_min_time_overlap')
+    age = request.POST.get('search_non_financial_age')
+    gender = request.POST.get('search_non_financial_gender')
+    country = request.POST.get('search_non_financial_country')
+    province = request.POST.get('search_non_financial_province')
+    city = request.POST.get('search_non_financial_city')
+    project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
+                                                    ability_name, tags, schedule, min_required_hours, min_date_overlap,
+                                                    min_time_overlap, age, gender, country, province, city)
+    return render(request, 'projects/non-fin-search', {
         'result_non_financial_projects': list(project_queryset),
         'ability_types': all_ability_types,
         'ability_tags': all_ability_tags
@@ -131,7 +174,8 @@ def find_benefactor_search_results(request):
 
 def create_new_project(request):
     if request.method == 'GET':
-        return render(request, 'accounts/create-project.html', {''})
+        projects = request.user.charity.project_set
+        return render(request, 'accounts/create-project.html', {'result_set': projects})
     if request.user.is_authenticated:
         project = Project.objects.create()
         project.project_name = request.POST.get('project_name')
@@ -176,8 +220,9 @@ def create_new_project(request):
             # FIXME check if the input is JSON or not
             date_interval.week_schedule = request.POST.get('week_schedule')
             non_financial_project.save()
+        projects = request.user.charity.project_set
         # TODO Fix redirect path
-        return HttpResponseRedirect('path')
+        return render(request, 'accounts/create-project.html', {'result_set': projects})
     else:
         # TODO Fix content
         return render(request, 'accounts/login.html')
