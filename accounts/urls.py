@@ -11,7 +11,8 @@ urlpatterns = [
     path('customize_user/', views.customize_user_data, name='customize_user_view'),
     path('customize_user/register/', views.customize_user, name='customize_user'),
 
-    path('android-login', android_views.android_login, name='android_login')
+    path('android-login', android_views.android_login, name='android_login'),
+    path('android-signup', android_views.android_signup, name='android_signup')
 ]
 
 
