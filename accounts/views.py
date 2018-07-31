@@ -19,6 +19,7 @@ from django.template import loader
 
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
+from projects.models import CooperationRequest
 
 
 # Create your views here.
@@ -35,7 +36,10 @@ def all_user_projects(request):
 def add_ability_to_benefactor(request):
     benefactor_id = request.POST.get('add_ability_benefactor_id')
     if request.user.id != benefactor_id:
-        # TODO error
+        # TODO Return Error
+        context = {
+            'error_message': 'Authentication Error: You Don\'t Have Permission to Change this Account!'
+        }
         pass
 
     ability_type_name = request.POST.get('add_ability_ability_type_name')
@@ -45,6 +49,7 @@ def add_ability_to_benefactor(request):
     ability = Ability(benefactor=benefactor, ability_type=ability_type, description=ability_description)
     ability.save()
     benefactor.ability_set.add(ability)
+    # TODO Fix Path
     return HttpResponseRedirect('path')
 
 
@@ -53,6 +58,7 @@ def admin_get_request_related_stuff(request):
     all_cooperation_requests = CooperationRequest.objects.all()
     all_notifications = Notification.objects.all()
     all_logs = Log.objects.all()
+    # FIXME fix url
     return render(request, 'url', {
         'all_ability_requests': all_ability_requests,
         'all_cooperation_requests': all_cooperation_requests,
@@ -63,6 +69,7 @@ def admin_get_request_related_stuff(request):
 
 def admin_get_charities(request):
     charities = Charity.objects.all()
+    # FIXME fix url
     return render(request, 'url', {
         'all_charities': list(charities)
     })
@@ -70,6 +77,7 @@ def admin_get_charities(request):
 
 def admin_get_benefactors(request):
     benefactors = Benefactor.objects.all()
+    # FIXME fix url
     return render(request, 'url', {
         'all_benefactors': list(benefactors)
     })
@@ -82,7 +90,7 @@ def admin_first_page_data(request):
     all_money_spent = 0
     for financial_project in FinancialProject.objects.all():
         all_money_spent += financial_project.current_money
-
+    # FIXME fix url
     return render(request, 'url', {
         'benefactor_len': benefactor_len,
         'charity_len': charity_len,
@@ -94,13 +102,22 @@ def admin_first_page_data(request):
 def submit_benefactor_score(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
     if request.user.is_benefactor:
         # TODO Raise Account Type Error
+        context = {
+            'error_message': 'Account Type Error: You Can\'t Submit Score for Another Benefactor!'
+        }
         return HttpResponse([])
     charity = Charity.objects.get(user=request.user)
     benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('benefactor_username')))
-    if charity.benefactor_history.get(user=benefactor.user) is None:
+    if charity.benefactor_history.filter(user=benefactor.user).count() <= 0:
+        context = {
+            'error_message': ' No Cooperation Error: You Cannot Submit Score for a Benefactor with Whom You Had no Cooperation!'
+        }
         # TODO Raise No_Cooperation Error
         return HttpResponse([])
     try:
@@ -113,6 +130,9 @@ def submit_benefactor_score(request):
         score.save()
         return HttpResponseRedirect([])
     except:
+        context = {
+            'error_message': 'UnExpected Error: Some of the Data Needed for The Page is Lost or Damaged'
+        }
         return HttpResponse([])
         # TODO raise error
 
@@ -120,12 +140,21 @@ def submit_benefactor_score(request):
 def submit_charity_score(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
     if request.user.is_charity:
+        context = {
+            'error_message': 'Account Type Error: You Can\'t Submit Score for Another Charity!'
+        }
         # TODO Raise Account Type Error
         return HttpResponse([])
     benefactor = Benefactor.objects.get(user=request.user)
-    if benefactor.charity_set.get(user=User.objects.get(username=request.POST.get('charity_username'))) is None:
+    if benefactor.charity_set.get(user=User.objects.get(username=request.POST.get('charity_username'))).count <= 0:
+        context = {
+            'error_message': ' No Cooperation Error: You Cannot Submit Score for a Charity with Which You Had no Cooperation!'
+        }
         # TODO Raise No_Cooperation Error
         return HttpResponse([])
     try:
@@ -138,12 +167,18 @@ def submit_charity_score(request):
         return HttpResponseRedirect([])
     except:
         # TODO raise error
+        context = {
+            'error_message': 'UnExpected Error: Some of the Data Needed for The Page is Lost or Damaged'
+        }
         return HttpResponse([])
 
 
 def submit_ability_request(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
     try:
         new_request = AbilityRequest.objects.create(type=request.POST.get('type'), name=request.POST.get('name'),
@@ -152,12 +187,18 @@ def submit_ability_request(request):
         return HttpResponseRedirect([])
     except:
         # TODO Raise Error
+        context = {
+            'error_message': 'UnExpected Error: Some of the Data Needed for The Page is Lost or Damaged'
+        }
         return HttpResponse([])
 
 
 def submit_cooperation_request(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
     try:
         # FIXME How should we find the project? I mean which data is given to find the project with?
@@ -166,14 +207,14 @@ def submit_cooperation_request(request, project_id):
             benefactor = Benefactor.objects.get(user=request.user)
             charity = Charity.objects.get(user=User.objects.get(username=request.POST.get('username')))
             new_notification = Notification.objects.create(type='new_request',user=charity.user, datetime=datetime.datetime.now())
-            new_notification.description = 'A new Cooperation Request has Been Sent for Project ' + project.project
+            new_notification.description = 'A new Cooperation Request is Received for Project ' + project.project
             new_notification.save()
             request_type = 'b2c'
         else:
             benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('username')))
             charity = Charity.objects.get(user=request.user)
             new_notification = Notification.objects.create(type='new_request',user=benefactor.user, datetime=datetime.datetime.now())
-            new_notification.description = 'A new Cooperation Request Has Been Sent to You!'
+            new_notification.description = 'A new Cooperation Request Has Been Received!'
             new_notification.save()
             request_type = 'c2b'
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
@@ -183,6 +224,9 @@ def submit_cooperation_request(request, project_id):
         return HttpResponseRedirect([])
     except:
         # TODO Raise Error
+        context = {
+            'error_message': 'UnExpected Error: Some of the Data Needed for The Page is Lost or Damaged'
+        }
         return HttpResponse('error')
 
 
@@ -448,9 +492,15 @@ def customize_user(request):
 def add_benefactor_credit(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
     if request.user.is_charity:
         # TODO Raise Account Type Error
+        context = {
+            'error_message': 'Account Type Error: I Don\'t Know How You Ended Here But Charities Cannot Add Credits!'
+        }
         return HttpResponse([])
     try:
         benefactor = Benefactor.objects.get(user=request.user)
