@@ -467,6 +467,9 @@ def customize_user_data(request):
 def customize_user(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
+        context = {
+            'error_message': 'Authentication Error: You are not Signed In!'
+        }
         return HttpResponse([])
 
     request.user.contact_info.province = request.POST.get("province")
