@@ -427,28 +427,34 @@ def customize_user_data(request):
     if request.method == 'GET':
         return render(request, 'accounts/user-profile.html')
     try:
+        notifications = Notification.objects.filter(user=request.user).all()
         context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
                    "country": request.user.contact_info.country, "province": request.user.contact_info.province,
                    "city": request.user.contact_info.city, "address": request.user.contact_info.address,
-                   "phone_number": request.user.contact_info.phone_number}
+                   "phone_number": request.user.contact_info.phone_number,"description": request.user.description,
+                   "notifications": notifications}
         if request.user.is_benefactor:
-            # try:
+            try:
                 benefactor = Benefactor.objects.get(user=request.user)
                 projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
                 context['project_count'] = len(projects)
                 abilities = benefactor.ability_set.all()
-                score = 0
-                for ability in abilities:
-                    score += ability.score
-                score /= len(abilities)
+                if benefactor.score <= 0:
+                    score = 'N/A'
+                else:
+                    score = 0
+                    for ability in abilities:
+                        score += ability.score
+                    score /= len(abilities)
                 context['score'] = score
-                context["first_name"] = request.user.benefactor.first_name
-                context["last_name"] = request.user.benefactor.last_name
-                context["gender"] = request.user.benefactor.gender
-                context["age"] = request.user.benefactor.age
-                context["credit"] = request.user.benefactor.credit
-            # except:
-            #     print(1)
+                context["first_name"] = benefactor.first_name
+                context["last_name"] = benefactor.last_name
+                context["gender"] = benefactor.gender
+                context["age"] = benefactor.age
+                context["credit"] = benefactor.credit
+            except:
+                print(1)
+
 
         else:
             try:
@@ -472,9 +478,12 @@ def customize_user(request):
             'error_message': 'Authentication Error: You are not Signed In!'
         }
         return HttpResponse([])
-
-    request.user.contact_info.province = request.POST.get("province")
-    request.user.contact_info.city = request.POST.get("city")
+    request.user.password = request.POST.get("password")
+    request.user.description = request.POST.get("description")
+    if request.POST.get("province") is not None:
+        request.user.contact_info.province = request.POST.get("province")
+    if request.POST.get("city") is not None:
+        request.user.contact_info.city = request.POST.get("city")
     request.user.contact_info.address = request.POST.get("address")
     request.user.contact_info.phone_number = request.POST.get("phone_number")
     request.user.save()
