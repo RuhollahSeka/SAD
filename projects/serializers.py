@@ -19,7 +19,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ('project_name', 'charity', 'benefactors', 'description', 'project_state', 'type', 'financialproject',
-                  'nonfinancialproject')
+                  'nonfinancialproject', 'log_set')
 
 
 class FinancialProjectSerializer(serializers.ModelSerializer):
@@ -57,3 +57,13 @@ class FinancialContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinancialContribution
         fields = ('benefactor', 'financial_project', 'money')
+
+
+class LogSerializer(serializers.ModelSerializer):
+    first_actor = UserSerializer()
+    second_actor = UserSerializer()
+    log_project = ProjectSerializer()
+
+    class Meta:
+        model = Log
+        fields = ('log_type', 'first_actor', 'second_actor', 'log_project', 'date_time', 'description')
