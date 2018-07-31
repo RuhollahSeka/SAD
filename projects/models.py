@@ -36,7 +36,7 @@ class Project(models.Model):
     objects = ProjectManager()
 
     def __str__(self):
-        return self.project_name + "-" + self.type
+        return 'Name: ' + self.project_name + '' + self.type + ')'
 
 
 class FinancialProject(models.Model):

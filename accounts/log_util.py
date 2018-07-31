@@ -1,5 +1,5 @@
 import datetime
-from accounts.models import Log
+from projects.models import Log
 
 
 class Logger:

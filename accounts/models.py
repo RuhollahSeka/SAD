@@ -46,7 +46,11 @@ class ContactInfo(models.Model):
 class User(AbstractUser):
     is_charity = models.BooleanField(default=False)
     is_benefactor = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
+
+    def __str__(self):
+        return 'Username: ' + self.username
 
 
 class Benefactor(models.Model):
