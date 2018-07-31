@@ -3,6 +3,7 @@ from .models import *
 from accounts.models import *
 from accounts.serializers import *
 
+
 class AbilitySerializer(serializers.ModelSerializer):
     benefactor = BenefactorSerializer()
     ability_type = AbilityTypeSerializer()
@@ -27,18 +28,18 @@ class FinancialProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FinancialProject
-        fields = ('project', 'target_money', 'current_money', 'start_date', 'end_date', 'financialcontribution_set')
+        fields = ('project', 'target_money', 'current_money', 'start_date', 'end_date', 'financialcontribution_set',
+                  'cooperationrequest_set')
 
 
 class NonFinancialProjectSerializer(serializers.ModelSerializer):
     project = ProjectSerializer()
     ability_type = AbilityTypeSerializer()
-    request = CooperationRequestSerializer()
 
     class Meta:
         model = NonFinancialProject
         fields = ('project', 'ability_type', 'min_age', 'max_age', 'required_gender', 'country', 'province', 'city',
-                  'request', 'dateinterval')
+                  'dateinterval')
 
 
 class DateIntervalSerializer(serializers.ModelSerializer):
@@ -67,3 +68,13 @@ class LogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Log
         fields = ('log_type', 'first_actor', 'second_actor', 'log_project', 'date_time', 'description')
+
+
+class CooperationRequestSerializer(serializers.ModelSerializer):
+    benefactor = BenefactorSerializer()
+    charity = CharitySerializer()
+    project = ProjectSerializer()
+
+    class Meta:
+        model = CooperationRequest
+        fields = ('type', 'state', 'benefactor', 'charity', 'description', 'project')

@@ -317,7 +317,7 @@ def show_project_data(request, pk):
 
 
 class CreateProjectForm(TemplateView):
-    template_name = "create_project_form.html"
+    template_name = "accounts/create-project.html"
 
 
 def contribute_to_project(request, project_id):

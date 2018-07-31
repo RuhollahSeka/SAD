@@ -284,3 +284,20 @@ class Log(models.Model):
             return ans
         except:
             return None
+
+
+# The project field is one to one so I put it in the NonFinancialProject class
+class CooperationRequest(models.Model):
+    type = models.CharField(max_length=64, default='')
+    state = models.CharField(max_length=16, default='On-Hold')
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, default='')
+    description = models.CharField(max_length=2048, null=True)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None

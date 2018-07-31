@@ -82,12 +82,3 @@ class AbilityRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = AbilityRequest
         fields = ('type', 'name', 'description')
-
-
-class CooperationRequestSerializer(serializers.ModelSerializer):
-    benefactor = BenefactorSerializer()
-    charity = CharitySerializer()
-
-    class Meta:
-        model = CooperationRequest
-        fields = ('type', 'state', 'benefactor', 'charity', 'description', 'nonfinancialproject_set')
