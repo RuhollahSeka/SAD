@@ -231,13 +231,13 @@ def signup(request):
         test2_user = User.objects.filter(username=request.POST.get("email"))
         if test1_user.__len__() != 0 and test2_user.__len__() != 0:
 
-            return render(request, 'accounts/register.html', {'error_msg': 'Account already exists! Try login or forget password.'})
+            return render(request, 'accounts/register.html', {'error_message': 'Account already exists! Try login or forget password.'})
 
         if test1_user.__len__() == 0 and len(test2_user) != 0:
-            return render(request, 'accounts/register.html', {'error_msg': 'Email is already taken!  '})
+            return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
 
         if len(test1_user) != 0 and len(test2_user) == 0:
-            return render(request, 'accounts/register.html', {'error_msg': 'Username is already taken! try another username.  '})
+            return render(request, 'accounts/register.html', {'error_message': 'Username is already taken! try another username.  '})
 
 
 
@@ -260,6 +260,7 @@ def signup(request):
             tmp_user.is_charity = True
             tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"), score=-1)
             tmp_charity.save()
+            tmp_user.save()
 
             login(request, tmp_user)
             return render(request, 'accounts/charity.html')
@@ -269,10 +270,11 @@ def signup(request):
             tmp_user.is_benefactor = True
             tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
                                                        last_name=request.POST.get("last_name"), score=-1,
-                                                       age=request.POST.get("age"))
+                                                       age=request.POST.get("age"), gender=request.POST.get('gender'))
             tmp_benefactor.save()
+            tmp_user.save()
             login(request, tmp_user)
-            return HttpResponseRedirect('sad')
+            return render(request, 'accounts/user-profile.html')
 
     except:
         context = {
@@ -307,7 +309,7 @@ def login_user(request):
         else:
 
             login(request, tmp_user)
-            return render(request, 'accounts/user.html')
+            return render(request, 'accounts/user-profile.html')
     except:
 
         context = {
@@ -320,20 +322,72 @@ def login_user(request):
         return HttpResponse(template.render(context, request))
 
 
+def user_profile(request):
+    if not request.user.is_authenticated:
+        return render(request, 'accounts/login.html', {'error_message': 'please login first'})
+    try:
+        print(request.user)
+        context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
+                   "country": request.user.contact_info.country, "province": request.user.contact_info.province,
+                   "city": request.user.contact_info.city, "address": request.user.contact_info.address,
+                   "phone_number": request.user.contact_info.phone_number}
+        if request.user.is_benefactor:
+            # try:
+                benefactor = Benefactor.objects.get(user=request.user)
+                context['user'] = benefactor
+                context['benefactor'] = benefactor
+                projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
+                context['project_count'] = len(projects)
+                abilities = benefactor.ability_set.all()
+                if benefactor.score == -1:
+                    score = 'N/A'
+                else:
+                    score = 0
+                    for ability in abilities:
+                        score += ability.score
+                    score /= abilities
+                print(request)
+                context['score'] = score
+                context["first_name"] = benefactor.first_name
+                context["last_name"] = benefactor.last_name
+                context["gender"] = benefactor.gender
+                context["age"] = benefactor.age
+                context["credit"] = benefactor.credit
+                # print(context.__str__())
+            # except:
+            #     print(1)
+
+        else:
+            try:
+                charity = Charity.objects.get(user=request.user)
+                context["name"] = charity.name
+                context["score"] = charity.score
+            except:
+                print(1)
+        return render(request, 'accounts/user-profile.html', context)
+    except:
+        context = {
+            'error_message': 'Error Getting Account Data!'
+        }
+        # TODO Raise Error
+        return HttpResponseRedirect([])
+
+
 #### Customize User
 
-
+@csrf_exempt
 def customize_user_data(request):
     if not request.user.is_authenticated:
-        # TODO Raise Authentication Error
-        return HttpResponse([])
+        return render(request, 'accounts/login.html', {'error_message': 'please login first'})
+    if request.method == 'GET':
+        return render(request, 'accounts/user-profile.html')
     try:
         context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
                    "country": request.user.contact_info.country, "province": request.user.contact_info.province,
                    "city": request.user.contact_info.city, "address": request.user.contact_info.address,
                    "phone_number": request.user.contact_info.phone_number}
         if request.user.is_benefactor:
-            try:
+            # try:
                 benefactor = Benefactor.objects.get(user=request.user)
                 projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
                 context['project_count'] = len(projects)
@@ -348,9 +402,8 @@ def customize_user_data(request):
                 context["gender"] = request.user.benefactor.gender
                 context["age"] = request.user.benefactor.age
                 context["credit"] = request.user.benefactor.credit
-            except:
-                print(1)
-
+            # except:
+            #     print(1)
 
         else:
             try:
@@ -358,7 +411,7 @@ def customize_user_data(request):
                 context["score"] = request.user.charity.score
             except:
                 print(1)
-        return HttpResponse(render(request, 'accounts/user_profile.html', context))
+        return render(request, 'accounts/user-profile.html', context)
     except:
         context = {
             'error_message': 'Error Getting Account Data!'
