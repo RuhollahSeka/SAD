@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.template import loader
 
-from projects.models import NonFinancialProject, Project
+from projects.models import FinancialProject, NonFinancialProject, Project
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!
@@ -21,6 +22,22 @@ from accounts.models import *
 
 
 # Create your views here.
+
+def admin_first_page_data(request):
+    benefactor_len = len(Benefactor.objects.all())
+    charity_len = len(Charity.objects.all())
+    project_len = len(Project.objects.all())
+    all_money_spent = 0
+    for financial_project in FinancialProject.objects.all():
+        all_money_spent += financial_project.current_money
+
+    return render(request, 'url', {
+        'benefactor_len': benefactor_len,
+        'charity_len': charity_len,
+        'project_len': project_len,
+        'all_money_spent': all_money_spent
+    })
+
 
 def submit_benefactor_score(request):
     if not request.user.is_authenticated:
@@ -86,7 +103,7 @@ def submit_ability_request(request):
         return HttpResponse([])
 
 
-def submit_cooperation_request(request):
+def submit_cooperation_request(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         return HttpResponse([])
@@ -100,7 +117,7 @@ def submit_cooperation_request(request):
             charity = Charity.objects.get(user=request.user)
             request_type = 'c2b'
         # FIXME How should we find the project? I mean which data is given to find the project with?
-        project = NonFinancialProject.objects.get()
+        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
         new_request.nonfinancialproject = project
@@ -145,65 +162,94 @@ class CharitySignUpView(CreateView):
 #####Signup
 
 class SignUpView(TemplateView):
-    template_name = "registration/signup.html"
+    template_name = "accounts/register.html"
 
 
+@csrf_exempt
 def signup(request):
-    tmp_contact_info = ContactInfo.objects.create(country="Iran",
-                                                  province=request.POST.get("province"),
-                                                  city=request.POST.get("city"),
-                                                  address=request.POST.get("address"),
-                                                  postal_code=request.POST.get("postal_code"),
-                                                  phone_number=request.POST.get("phone_number")
-                                                  )
-    tmp_user = User.objects.create(username=request.POST.get("username"),
-                                   password=request.POST.get("password"),
-                                   email=request.POST.get("email"),
-                                   contact_info=tmp_contact_info
-                                   )
+    try:
+        
+        test1_user = User.objects.filter(username=request.POST.get("username"))
+        test2_user = User.objects.filter(username=request.POST.get("email"))
+        if test1_user.__len__() != 0 and test2_user.__len__() != 0:
 
-    tmp_user.save()
-    if request.POST.get("account_type") == "Charity":
-        tmp_user.is_charity = True
-        tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"), score=-1)
-        tmp_charity.save()
+            return render(request, 'accounts/register.html', {'error_msg': 'Account already exists! Try login or forget password.'})
+        
+        if test1_user.__len__() == 0 and len(test2_user) != 0:
+            return render(request, 'accounts/register.html', {'error_msg': 'Email is already taken!  '})
+        
+        if len(test1_user) != 0 and len(test2_user) == 0:
+            return render(request, 'accounts/register.html', {'error_msg': 'Username is already taken! try another username.  '})
+
+        
+        
+        
+        tmp_contact_info = ContactInfo.objects.create(country="Iran",
+                                                      province=request.POST.get("province"),
+                                                      city=request.POST.get("city"),
+                                                      address=request.POST.get("address"),
+                                                      postal_code=request.POST.get("postal_code"),
+                                                      phone_number=request.POST.get("phone_number")
+                                                      )
+        tmp_user = User.objects.create(username=request.POST.get("username"),
+                                       password=request.POST.get("password"),
+                                       email=request.POST.get("email"),
+                                       contact_info=tmp_contact_info
+                                       )
+
+        tmp_user.save()
+        if request.POST.get("account_type") == "Charity":
+            tmp_user.is_charity = True
+            tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"), score=-1)
+            tmp_charity.save()
+
+            login(request, tmp_user)
+            return render(request, 'accounts/charity.html')
 
 
+        else:
+            tmp_user.is_benefactor = True
+            tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
+                                                       last_name=request.POST.get("last_name"), score=-1,
+                                                       age=request.POST.get("age"))
+            tmp_benefactor.save()
+            login(request, tmp_user)
+            return HttpResponseRedirect('sad')
 
-
-    else:
-        tmp_user.is_charity = True
-        tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
-                                                   last_name=request.POST.get("last_name"), score=-1,
-                                                   age=request.POST.get("age"))
-        tmp_benefactor.save()
-
-    login(request, tmp_user)
-    return HttpResponseRedirect(reverse("Home"))
+    except:
+        context = {
+            'error_message': 'Sign Up Error!',
+            'redirect_address': 'signup_view'
+        }
+        return render(request, 'accounts/register.html', context)
 
 
 ####Login
 
 class LoginView(TemplateView):
-    template_name = "registration/login.html"
+    template_name = "accounts/login.html"
 
 
+@csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     try:
+        tmp_user = User.objects.filter(username=request.POST.get("username"))
+        if len(tmp_user) == 0:
+            return render(request, 'accounts/login.html')
         tmp_user = User.objects.get(username=request.POST.get("username"))
         if tmp_user.password != request.POST.get("password"):
-            raise Exception
+            return render(request, 'accounts/login.html', {'error_msg': 'Invalid password -.-'})
 
         if tmp_user.is_charity:
 
             login(request, user=tmp_user)
-            return HttpResponseRedirect(reverse("Home"))
+            return render(request, 'accounts/charity.html')
 
         else:
 
             login(request, tmp_user)
-            return HttpResponseRedirect(reverse("Home"))
+            return render(request, 'accounts/user.html')
     except:
 
         context = {
@@ -211,50 +257,63 @@ def login_user(request):
             'redirect_address': "login_view"
 
         }
-        template = loader.get_template('error.html')
+        template = loader.get_template('accounts/login.html')
 
         return HttpResponse(template.render(context, request))
 
 
 #### Customize User
 
-class CustomizeUserView(TemplateView):
-    template_name = "registration/customize_user.html"
 
-    def get_context_data(self, **kwargs):
-
-        context = super().get_context_data(**kwargs)
-
-        context["type"] = self.request.user.is_charity
-        context["username"] = self.request.user.username
-        context["email"] = self.request.user.email
-
-        context["country"] = self.request.user.contact_info.country
-        context["province"] = self.request.user.contact_info.province
-        context["city"] = self.request.user.contact_info.city
-        context["address"] = self.request.user.contact_info.address
-        context["phone_number"] = self.request.user.contact_info.phone_number
-
-        if self.request.user.is_benefactor:
+def customize_user_data(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    try:
+        context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
+                   "country": request.user.contact_info.country, "province": request.user.contact_info.province,
+                   "city": request.user.contact_info.city, "address": request.user.contact_info.address,
+                   "phone_number": request.user.contact_info.phone_number}
+        if request.user.is_benefactor:
             try:
-                context["first_name"] = self.request.user.benefactor.first_name
-                context["last_name"] = self.request.user.benefactor.last_name
-                context["gender"] = self.request.user.benefactor.gender
-                context["age"] = self.request.user.benefactor.age
+                benefactor = Benefactor.objects.get(user=request.user)
+                projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
+                context['project_count'] = len(projects)
+                abilities = benefactor.ability_set.all()
+                score = 0
+                for ability in abilities:
+                    score += ability.score
+                score /= len(abilities)
+                context['score'] = score
+                context["first_name"] = request.user.benefactor.first_name
+                context["last_name"] = request.user.benefactor.last_name
+                context["gender"] = request.user.benefactor.gender
+                context["age"] = request.user.benefactor.age
+                context["credit"] = request.user.benefactor.credit
             except:
                 print(1)
 
 
         else:
             try:
-                context["name"] = self.request.user.charity.name
+                context["name"] = request.user.charity.name
+                context["score"] = request.user.charity.score
             except:
                 print(1)
-
-        return context
+        return HttpResponse(render(request, 'accounts/user_profile.html', context))
+    except:
+        context = {
+            'error_message': 'Error Getting Account Data!'
+        }
+        # TODO Raise Error
+        return HttpResponseRedirect([])
 
 
 def customize_user(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+
     request.user.contact_info.province = request.POST.get("province")
     request.user.contact_info.city = request.POST.get("city")
     request.user.contact_info.address = request.POST.get("address")
@@ -274,3 +333,24 @@ def customize_user(request):
 
     # if not request.user.is_authenticated :
     # return 1 #fixme redirect to error.html with appropriate context
+
+def add_benefactor_credit(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_charity:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    try:
+        benefactor = Benefactor.objects.get(user=request.user)
+        amount = int(request.POST.get('deposit_amount'))
+        # FIXME Redirect to user profile view
+        return HttpResponseRedirect([])
+    except:
+        context = {
+            'error_message': 'error in deposit!',
+            # FIXME Redirect to user profile view
+            'redirect_address': 'user_profile'
+        }
+        return HttpResponseRedirect(reverse('error'))
+

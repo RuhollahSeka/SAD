@@ -49,6 +49,13 @@ class FinancialProject(models.Model):
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
 
+    def add_contribution(self, amount):
+        self.current_money += amount
+        if self.current_money >= amount:
+            self.project.project_state = 'completed'
+        self.project.save()
+        self.save()
+
     def progress_in_range(self, min_progress, max_progress):
         return min_progress < self.current_money / self.target_money < max_progress
 
@@ -91,6 +98,12 @@ class DateInterval(models.Model):
 
     def from_json(self):
         return json.loads(self.week_schedule)
+
+
+class FinancialContribution(models.Model):
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    financial_project = models.ForeignKey(FinancialProject, on_delete=models.CASCADE, default='')
+    money = models.FloatField(default=0)
 
 
 def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overlap=30, min_time_overlap=50, tags=None,
@@ -215,3 +228,12 @@ def search_non_financial_project(project_name=None, charity_name=None, benefacto
     filter_ids = [project.id for project in result_projects if project.ability_type.id in ability_type_ids]
     result_projects = result_projects.filter(id__in=filter_ids)
     return result_projects
+
+
+class Log(models.Model):
+    log_type = models.CharField(max_length=64, default='')
+    first_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_first_actor')
+    second_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, related_name='log_second_actor')
+    log_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
+    date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
+    description = models.CharField(max_length=2048, default='')

@@ -3,6 +3,7 @@ from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import TemplateView
 
+from accounts.log_util import create_financial_project_report, create_non_financial_project_report
 from projects.models import *
 from django.template import loader
 
@@ -10,6 +11,20 @@ from django.template import loader
 # Create your views here.
 
 def find_non_financial_projects_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
+    all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
+    all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
+
+    if request.method == 'GET':
+        return render(request, 'url', {
+            'ability_types': all_ability_types,
+            'ability_tags': all_ability_tags,
+            'result_non_financial_projects': []
+        })
+
     project_name = request.POST.get('search_non_financial_project_name')
     charity_name = request.POST.get('search_non_financial_charity_name')
     benefactor_name = request.POST.get('search_non_financial_benefactor_name')
@@ -31,10 +46,18 @@ def find_non_financial_projects_search_results(request):
     project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                     ability_name, tags, schedule, min_required_hours, min_date_overlap,
                                                     min_time_overlap, age, gender, country, province, city)
-    return render(request, 'url', {'result_non_financial_projects': list(project_queryset)})
+    return render(request, 'url', {
+        'result_non_financial_projects': list(project_queryset),
+        'ability_types': all_ability_types,
+        'ability_tags': all_ability_tags
+    })
 
 
 def find_financial_project_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
     project_name = request.POST.get('search_financial_project_name')
     charity_name = request.POST.get('search_financial_charity_name')
     benefactor_name = request.POST.get('search_financial_benefactor_name')
@@ -49,6 +72,10 @@ def find_financial_project_search_results(request):
 
 
 def find_charity_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
     charity_name = request.POST.get('search_charity_name')
     min_score = request.POST.get('search_charity_min_score')
     max_score = request.POST.get('search_charity_max_score')
@@ -67,8 +94,11 @@ def find_charity_search_results(request):
 
 
 # TODO handle security and stuff like that
-# TODO send more data like scores, overlapped days and overlapped weekly hours
 def find_benefactor_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_benefactor:
+        pass
     start_date = request.POST.get('search_benefactor_start_date')
     end_date = request.POST.get('search_benefactor_end_date')
     weekly_schedule = create_query_schedule(request.POST.get('search_benefactor_schedule'))
@@ -115,6 +145,7 @@ def create_new_project(request):
                 financial_project.start_date = datetime.datetime.strptime(request.POST.get('start_date'), '%y-%m-%d')
             else:
                 financial_project.start_date = datetime.date.today()
+            # FIXME only date not datetime?
             financial_project.end_date = datetime.datetime.strptime(request.POST.get('end_date'), '%y-%m-%d')
             financial_project.project = project
             financial_project.target_money = int(request.POST.get('target_money'))
@@ -240,6 +271,73 @@ def show_project_data(request, pk):
 
 
 class CreateProjectForm(TemplateView):
-    template_name = "create_project_form.html"
+    template_name = "accounts/create-project.html"
 
 
+def contribute_to_project(request, project_id):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_charity:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    project = Project.objects.get(id=project_id)
+    if project.type is not 'financial':
+        # TODO Raise Project Type Error
+        return HttpResponse([])
+    fin_project = FinancialProject.objects.get(project=project)
+    try:
+        if project.project_state is 'completed':
+            # TODO Raise Project Closed Error
+            return HttpResponse([])
+        amount = float(request.POST.get('money'))
+        benefactor = Benefactor.objects.get(user=request.user)
+        if benefactor.credit < amount:
+            # TODO Raise Not Enough Money Error
+            return HttpResponse([])
+        contribution = FinancialContribution.objects.get(benefactor=benefactor, financial_project=fin_project)
+        if contribution is not None:
+            contribution.money += amount
+            contribution.save()
+        else:
+            FinancialContribution.objects.create(benefactor=benefactor, financial_project=fin_project, money=amount)
+        benefactor.credit -= amount
+        fin_project.add_contribution(amount)
+        benefactor.save()
+        # TODO Redirect
+        return HttpResponseRedirect([])
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])
+
+
+def get_project_report(request, project_id):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    if request.user.is_benefactor:
+        # TODO Raise Account Type Error
+        return HttpResponse([])
+    project = Project.objects.get(id=project_id)
+    charity = Charity.objects.get(user=request.user)
+    try:
+        if project.charity is not charity:
+            # TODO Raise Owner Error
+            return HttpResponse([])
+        if project.type is 'financial':
+            fin_project = FinancialProject.objects.get(project=project)
+            context = {'report': create_financial_project_report(fin_project),
+                       'project_id': project_id}
+            # TODO Return Context
+            return HttpResponse(context)
+        else:
+            nf_project = NonFinancialProject.objects.get(project=project)
+            context = {
+                'report': create_non_financial_project_report(nf_project),
+                'project_id': project_id
+            }
+            # TODO Return Context
+            return HttpResponse(context)
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])

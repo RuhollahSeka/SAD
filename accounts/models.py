@@ -56,7 +56,7 @@ class Benefactor(models.Model):
     last_name = models.CharField(max_length=100, default='')
     gender = models.CharField(max_length=40, null=True)
     age = models.IntegerField(null=True)
-
+    credit = models.FloatField(default=0)
     score = models.FloatField(default=-1)
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
@@ -81,6 +81,7 @@ class Charity(models.Model):
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
+    date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, null=True)
 
 
@@ -118,9 +119,3 @@ class CooperationRequest(models.Model):
     description = models.CharField(max_length=2048, null=True)
 
 
-class Log(models.Model):
-    type = models.CharField(max_length=64, default='')
-    first_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
-    second_actor = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
-    date_time = models.DateTimeField(default='')
-    description = models.CharField(max_length=2048, default='')

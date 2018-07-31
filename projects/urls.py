@@ -5,5 +5,5 @@ app_name = 'projects'
 
 urlpatterns = [
     path('projects/create_new', views.CreateProjectForm.as_view, name='create_project_form'),
-    path('projects/create_new/submit', views.create_new_project, name='create_project_submit'),
+    path('projects/create_new_project', views.create_new_project, name='create_project_submit'),
 ]
