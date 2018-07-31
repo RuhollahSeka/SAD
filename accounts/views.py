@@ -397,6 +397,7 @@ def user_profile(request):
                 context["gender"] = benefactor.gender
                 context["age"] = benefactor.age
                 context["credit"] = benefactor.credit
+                print(context)
                 # print(context.__str__())
             # except:
             #     print(1)
@@ -476,22 +477,25 @@ def customize_user(request):
     request.user.contact_info.city = request.POST.get("city")
     request.user.contact_info.address = request.POST.get("address")
     request.user.contact_info.phone_number = request.POST.get("phone_number")
-
+    request.user.save()
     if request.user.is_charity:
-
         request.user.charity.name = request.POST.get("name")
+        request.user.charity.save()
     else:
         request.user.benefactor.first_name = request.POST.get("first_name")
         request.user.benefactor.last_name = request.POST.get("last_name")
         request.user.benefactor.gender = request.POST.get("gender")
         request.user.benefactor.age = request.POST.get("age")
+        request.user.benefactor.save()
 
-    return HttpResponseRedirect(reverse("Home"))
+    return render(request, '', )
 
 
     # if not request.user.is_authenticated :
     # return 1 #fixme redirect to error.html with appropriate context
 
+
+@csrf_exempt
 def add_benefactor_credit(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
@@ -505,16 +509,18 @@ def add_benefactor_credit(request):
             'error_message': 'Account Type Error: I Don\'t Know How You Ended Here But Charities Cannot Add Credits!'
         }
         return HttpResponse([])
-    try:
-        benefactor = Benefactor.objects.get(user=request.user)
-        amount = int(request.POST.get('deposit_amount'))
-        # FIXME Redirect to user profile view
-        return HttpResponseRedirect([])
-    except:
-        context = {
-            'error_message': 'error in deposit!',
-            # FIXME Redirect to user profile view
-            'redirect_address': 'user_profile'
-        }
-        return HttpResponseRedirect(reverse('error'))
+    # try:
+    benefactor = Benefactor.objects.get(user=request.user)
+    amount = int(request.POST.get('deposit_amount'))
+    benefactor.credit += amount
+    benefactor.save()
+    # FIXME Redirect to user profile view
+    return render(request, 'accounts/user-profile.html')
+    # except:
+    #     context = {
+    #         'error_message': 'error in deposit!',
+    #         # FIXME Redirect to user profile view
+    #         'redirect_address': 'user_profile'
+    #     }
+    #     return HttpResponseRedirect(reverse('error'))
 
