@@ -150,16 +150,22 @@ def submit_cooperation_request(request, project_id):
         # TODO Raise Authentication Error
         return HttpResponse([])
     try:
+        # FIXME How should we find the project? I mean which data is given to find the project with?
+        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         if request.user.is_benefactor:
             benefactor = Benefactor.objects.get(user=request.user)
             charity = Charity.objects.get(user=User.objects.get(username=request.POST.get('username')))
+            new_notification = Notification.objects.create(type='new_request',user=charity.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request has Been Sent for Project ' + project.project
+            new_notification.save()
             request_type = 'b2c'
         else:
             benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('username')))
             charity = Charity.objects.get(user=request.user)
+            new_notification = Notification.objects.create(type='new_request',user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request Has Been Sent to You!'
+            new_notification.save()
             request_type = 'c2b'
-        # FIXME How should we find the project? I mean which data is given to find the project with?
-        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
         new_request.nonfinancialproject = project
