@@ -357,7 +357,7 @@ def accept_request(request, rid):
         req = CooperationRequest.objects.get(id=rid)
         benefactor = req.benefactor
         charity = req.charity
-        if req.state is not 'c2b' and req.state is not 'b2c':
+        if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
         if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
@@ -399,7 +399,7 @@ def deny_request(request, rid):
         req = CooperationRequest.objects.get(id=rid)
         benefactor = req.benefactor
         charity = req.charity
-        if req.state is not 'c2b' and req.state is not 'b2c':
+        if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
         if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):

@@ -74,9 +74,6 @@ class NonFinancialProject(models.Model):
     country = models.CharField(max_length=32, null=True)
     province = models.CharField(max_length=32, null=True)
     city = models.CharField(max_length=32, null=True)
-
-    request = models.OneToOneField(CooperationRequest, on_delete=models.DO_NOTHING, null=True)
-
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return \
             has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)[0]
