@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import android_views
 
 urlpatterns = [
     path('accounts/signup', views.SignUpView.as_view(), name='signup_view'),
@@ -11,6 +12,8 @@ urlpatterns = [
 
     path('accounts/customize_user/', views.customize_user_data, name='customize_user_view'),
     path('accounts/customize_user/register/', views.customize_user, name='customize_user'),
+
+    path('android-all-users', android_views.android_user_list, name='android_all_users')
 ]
 
 

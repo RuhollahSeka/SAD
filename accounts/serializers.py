@@ -23,11 +23,11 @@ class ContactInfoSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    contactinfo = ContactInfoSerializer()
+    contact_info = ContactInfoSerializer()
 
     class Meta:
         model = User
-        fields = ('is_charity', 'is_benefactor', 'is_admin', 'contactinfo', 'username', 'password', 'is_authenticated',
+        fields = ('is_charity', 'is_benefactor', 'is_admin', 'contact_info', 'username', 'password', 'is_authenticated',
                   'notification_set', 'log_first_actor', 'log_second_actor')
 
 

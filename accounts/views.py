@@ -22,6 +22,15 @@ from accounts.models import *
 
 # Create your views here.
 
+def all_user_projects(request):
+    if not request.user.is_charity:
+        pass
+    projects = request.user.charity.project_set
+    return render(request, 'url', {
+        'all_user_projects': projects
+    })
+
+
 def add_ability_to_benefactor(request):
     benefactor_id = request.POST.get('add_ability_benefactor_id')
     if request.user.id != benefactor_id:
