@@ -5,6 +5,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from django.views.generic import TemplateView
 from django.template import loader
+from rest_framework.response import Response
 
 from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
 from accounts.models import *
@@ -22,6 +23,17 @@ from accounts.forms import CharitySignUpForm
 from accounts.models import *
 from accounts.serializers import *
 from django.views.decorators.csrf import csrf_exempt
+from projects.models import *
+
+
+@csrf_exempt
+def android_test(request):
+    data = {
+        'first': 'lol',
+        'second': 24
+    }
+
+    return Response(data)
 
 
 @csrf_exempt
@@ -57,8 +69,11 @@ def android_signup(request):
     age = data.get('age')
     gender = data.get('gender')
 
-    if User.objects.all().filter(username__iexact=username).count() > 0:
-        return JsonResponse('[]', safe=False, status=200)
+    user = User.objects.all().filter(username__iexact=username)
+    user_serializer = UserSerializer(user, many=True)
+
+    if user.count() > 0:
+        return JsonResponse(user_serializer.data, safe=False)
     contact_info = ContactInfo(country='Iran', province=province, city=city, address=address)
     contact_info.save()
 
@@ -74,4 +89,18 @@ def android_signup(request):
         user.save()
         charity = Charity(user=user, name=first_name + last_name)
         charity.save()
-    return JsonResponse('[]', safe=False, status=200)
+    return JsonResponse(user_serializer.data, safe=False)
+
+
+@csrf_exempt
+def android_financial_project_search(request):
+    project_name = request.POST.get('search_financial_project_name')
+    charity_name = request.POST.get('search_financial_charity_name')
+    benefactor_name = request.POST.get('search_financial_benefactor_name')
+    project_state = request.POST.get('search_financial_project_state')
+    min_progress = request.POST.get('search_financial_min_progress')
+    max_progress = request.POST.get('search_financial_max_progress')
+    min_deadline_date = request.POST.get('search_financial_min_deadline_date')
+    max_deadline_date = request.POST.get('search_financial_max_deadline_date')
+    project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
+                                                min_progress, max_progress, min_deadline_date, max_deadline_date)
