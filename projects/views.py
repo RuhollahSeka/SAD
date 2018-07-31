@@ -8,6 +8,7 @@ from projects.models import *
 from django.template import loader
 
 
+
 # Create your views here.
 
 def find_non_financial_projects_advanced_search_results(request):
@@ -162,8 +163,8 @@ def find_benefactor_search_results(request):
     first_name = request.POST.get('search_benefactor_first_name')
     last_name = request.POST.get('search_benefactor_last_name')
     result_benefactor_data = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap, tags,
-                                            ability_name, ability_min_score, ability_max_score, country, province,
-                                            city, user_min_score, user_max_score, gender, first_name, last_name)
+                                               ability_name, ability_min_score, ability_max_score, country, province,
+                                               city, user_min_score, user_max_score, gender, first_name, last_name)
     # benefactor_list = list(benefactor_queryset)
     # result_benefactor_data = []
     # for benefactor, overlap_data in zip(benefactor_list, search_overlap_data):
@@ -277,36 +278,53 @@ def edit_project(request, pk):
     return HttpResponseRedirect([])
 
 
-def show_project_data(request, pk):
-    project = Project.objects.get(pk=pk)
+def show_project_data(request, pid):
+    projects = Project.objects.filter(id=pid)
+    if len(projects) <= 0:
+        # Raise 404
+        return HttpResponse([])
+    project = projects[0]
     # TODO fix template path
     template = loader.get_template('projects/get_project_data_for_edit.html')
     try:
+        owner = request.user.is_charity and project.charity.user is request.user
         context = {
-            'pk': pk,
-            'project_name': project.project_name,
-            'description': project.description,
-            'project_state': project.project_state,
-            'type': project.type,
+            'project': project,
+            'is_owner': owner,
+
         }
         if project.type is 'financial':
-            fin_project =  FinancialProject.objects.get(project=project)
+            fin_project = FinancialProject.objects.get(project=project)
+            contributions = FinancialContribution.objects.filter(financial_project=fin_project)
             context.update({
                 'start_date': fin_project.start_date,
                 'end_date': fin_project.end_date,
                 'target_money': fin_project.target_money,
-                'current_money': fin_project.current_money
+                'current_money': fin_project.current_money,
+                'contributions': contributions.all(),
             })
         else:
             nf_project = NonFinancialProject.objects.get(project=project)
+            date_interval = DateInterval.objects.get(non_financial_project=nf_project)
+            helper = nf_project.project.benefactors
+            b_username = None
+            b_fullname = None
+            if not helper.count() <= 0:
+                # Error Prone Line
+                b_username = helper.all()[0].user.username
+                b_fullname = helper.all()[0].first_name + ' ' + helper.all()[0].last_name
             context.update({
-                'ability_type':nf_project.ability_type,
-                'min_age':nf_project.min_age,
-                'max_age':nf_project.max_age,
-                'required_gender':nf_project.required_gender,
-                'country':nf_project.country,
-                'province':nf_project.province,
-                'city':nf_project.city,
+                'ability_type': nf_project.ability_type,
+                'min_age': nf_project.min_age,
+                'max_age': nf_project.max_age,
+                'required_gender': nf_project.required_gender,
+                'country': nf_project.country,
+                'province': nf_project.province,
+                'city': nf_project.city,
+                'start_date': date_interval.begin_date,
+                'end_date': date_interval.end_date,
+                'b_username': b_username,
+                'b_fullname': b_fullname,
             })
     except:
         context = {
@@ -406,7 +424,8 @@ def accept_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (
+            request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = Project.objects.get(id=req.nonfinancialproject.project.id)
@@ -421,11 +440,13 @@ def accept_request(request, rid):
             charity.benefactor_history.add(benefactor)
         project.project_state = 'in_progress'
         if request.user.is_benefactor:
-            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
             new_notification.save()
         else:
-            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
             new_notification.save()
         req.state = 'closed'
@@ -448,7 +469,8 @@ def deny_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (
+            request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = Project.objects.get(id=req.nonfinancialproject.project.id)
@@ -456,11 +478,13 @@ def deny_request(request, rid):
             # TODO Raise Project Type Error
             return HttpResponse([])
         if request.user.is_benefactor:
-            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
         else:
-            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
         req.state = 'closed'
