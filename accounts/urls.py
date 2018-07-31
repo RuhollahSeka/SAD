@@ -1,7 +1,6 @@
-from django.conf.urls import url
 from django.urls import path
 
-from . import views
+from . import views, android_views
 
 urlpatterns = [
     path('signup', views.SignUpView.as_view(), name='signup_view'),
@@ -12,6 +11,7 @@ urlpatterns = [
     path('customize_user/', views.customize_user_data, name='customize_user_view'),
     path('customize_user/register/', views.customize_user, name='customize_user'),
 
+    path('android-login', android_views.android_login, name='android_login')
 ]
 
 
