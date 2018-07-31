@@ -27,3 +27,11 @@ def android_user_list(request):
     users = User.objects.all()
     user_serializer = UserSerializer(users, many=True)
     return JsonResponse(user_serializer.data, safe=False)
+
+
+def android_login(request):
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user = User.objects.all().filter(username__iexact=username).filter(password__iexact=password)
+    user_serializer = UserSerializer(user)
+    return JsonResponse(user_serializer, safe=False)
