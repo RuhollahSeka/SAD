@@ -69,6 +69,7 @@ class User(AbstractUser):
     is_benefactor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
+    description = models.CharField(max_length=2048, default='')
 
     def get(self, *args, **kwargs):
         try:

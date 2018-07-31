@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 from accounts.log_util import create_financial_project_report, create_non_financial_project_report
@@ -11,6 +12,7 @@ from django.template import loader
 
 # Create your views here.
 
+@csrf_exempt
 def find_non_financial_projects_advanced_search_results(request):
     if request.user.is_authenticated:
         pass
@@ -54,6 +56,7 @@ def find_non_financial_projects_advanced_search_results(request):
     })
 
 
+@csrf_exempt
 def find_non_financial_projects_search_results(request):
     if request.user.is_authenticated:
         pass
@@ -97,6 +100,7 @@ def find_non_financial_projects_search_results(request):
     })
 
 
+@csrf_exempt
 def find_financial_project_search_results(request):
     if request.user.is_authenticated:
         pass
@@ -115,6 +119,7 @@ def find_financial_project_search_results(request):
     return render(request, 'url', {'result_financial_projects': list(project_queryset)})
 
 
+@csrf_exempt
 def find_charity_search_results(request):
     if request.user.is_authenticated:
         pass
@@ -137,6 +142,7 @@ def find_charity_search_results(request):
     return render(request, 'url', {'result_charities': list(charity_queryset)})
 
 
+@csrf_exempt
 # TODO handle security and stuff like that
 def find_benefactor_search_results(request):
     if request.user.is_authenticated:
@@ -173,6 +179,7 @@ def find_benefactor_search_results(request):
     return render(request, 'wtf?', {'result_benefactors': result_benefactor_data})
 
 
+@csrf_exempt
 def create_new_project(request):
     if request.method == 'GET':
         projects = request.user.charity.project_set
@@ -338,6 +345,7 @@ class CreateProjectForm(TemplateView):
     template_name = "accounts/create-project.html"
 
 
+@csrf_exempt
 def contribute_to_project(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
@@ -381,6 +389,7 @@ def contribute_to_project(request, project_id):
         return HttpResponse([])
 
 
+@csrf_exempt
 def get_project_report(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
@@ -413,6 +422,7 @@ def get_project_report(request, project_id):
         return HttpResponse([])
 
 
+@csrf_exempt
 def accept_request(request, rid):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
@@ -458,6 +468,7 @@ def accept_request(request, rid):
         return HttpResponse([])
 
 
+@csrf_exempt
 def deny_request(request, rid):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
