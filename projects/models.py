@@ -25,6 +25,7 @@ class Ability(models.Model):
     score = models.IntegerField(default=-1)
     description = models.CharField(max_length=512, default='')
 
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -42,6 +43,7 @@ class Project(models.Model):
     type = models.CharField(max_length=64, default='')
     objects = ProjectManager()
 
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -63,6 +65,7 @@ class FinancialProject(models.Model):
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
 
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -96,6 +99,7 @@ class NonFinancialProject(models.Model):
     province = models.CharField(max_length=32, null=True)
     city = models.CharField(max_length=32, null=True)
 
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -119,6 +123,7 @@ class DateInterval(models.Model):
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
     week_schedule = models.CharField(max_length=512, default='')
 
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -277,6 +282,24 @@ class Log(models.Model):
     log_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
     date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, default='')
+
+    @staticmethod
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
+
+# The project field is one to one so I put it in the NonFinancialProject class
+class CooperationRequest(models.Model):
+    type = models.CharField(max_length=64, default='')
+    state = models.CharField(max_length=16, default='On-Hold')
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, default='')
+    description = models.CharField(max_length=2048, null=True)
 
     def get(self, *args, **kwargs):
         try:

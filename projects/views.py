@@ -8,9 +8,10 @@ from projects.models import *
 from django.template import loader
 
 
+
 # Create your views here.
 
-def find_non_financial_projects_search_results(request):
+def find_non_financial_projects_advanced_search_results(request):
     if request.user.is_authenticated:
         pass
     if request.user.is_charity:
@@ -19,7 +20,7 @@ def find_non_financial_projects_search_results(request):
     all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
 
     if request.method == 'GET':
-        return render(request, 'url', {
+        return render(request, 'projects/non-fin-advanced-search', {
             'ability_types': all_ability_types,
             'ability_tags': all_ability_tags,
             'result_non_financial_projects': []
@@ -46,7 +47,50 @@ def find_non_financial_projects_search_results(request):
     project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                     ability_name, tags, schedule, min_required_hours, min_date_overlap,
                                                     min_time_overlap, age, gender, country, province, city)
-    return render(request, 'url', {
+    return render(request, 'projects/non-fin-advanced-search', {
+        'result_non_financial_projects': list(project_queryset),
+        'ability_types': all_ability_types,
+        'ability_tags': all_ability_tags
+    })
+
+
+def find_non_financial_projects_search_results(request):
+    if request.user.is_authenticated:
+        pass
+    if request.user.is_charity:
+        pass
+    all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
+    all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
+
+    if request.method == 'GET':
+        return render(request, 'projects/non-fin-search', {
+            'ability_types': all_ability_types,
+            'ability_tags': all_ability_tags,
+            'result_non_financial_projects': []
+        })
+
+    project_name = request.POST.get('search_non_financial_project_name')
+    charity_name = request.POST.get('search_non_financial_charity_name')
+    benefactor_name = request.POST.get('search_non_financial_benefactor_name')
+    project_state = request.POST.get('search_non_financial_project_state')
+    ability_name = request.POST.get('search_non_financial_ability_name')
+    tags = request.POST.get('search_non_financial_tags')
+    start_date = request.POST.get('search_non_financial_start_date')
+    end_date = request.POST.get('search_non_financial_end_date')
+    weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
+    schedule = [start_date, end_date, weekly_schedule]
+    min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
+    min_date_overlap = request.POST.get('search_non_financial_min_date_overlap')
+    min_time_overlap = request.POST.get('search_non_financial_min_time_overlap')
+    age = request.POST.get('search_non_financial_age')
+    gender = request.POST.get('search_non_financial_gender')
+    country = request.POST.get('search_non_financial_country')
+    province = request.POST.get('search_non_financial_province')
+    city = request.POST.get('search_non_financial_city')
+    project_queryset = search_non_financial_project(project_name, charity_name, benefactor_name, project_state,
+                                                    ability_name, tags, schedule, min_required_hours, min_date_overlap,
+                                                    min_time_overlap, age, gender, country, province, city)
+    return render(request, 'projects/non-fin-search', {
         'result_non_financial_projects': list(project_queryset),
         'ability_types': all_ability_types,
         'ability_tags': all_ability_tags
@@ -119,8 +163,8 @@ def find_benefactor_search_results(request):
     first_name = request.POST.get('search_benefactor_first_name')
     last_name = request.POST.get('search_benefactor_last_name')
     result_benefactor_data = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap, tags,
-                                            ability_name, ability_min_score, ability_max_score, country, province,
-                                            city, user_min_score, user_max_score, gender, first_name, last_name)
+                                               ability_name, ability_min_score, ability_max_score, country, province,
+                                               city, user_min_score, user_max_score, gender, first_name, last_name)
     # benefactor_list = list(benefactor_queryset)
     # result_benefactor_data = []
     # for benefactor, overlap_data in zip(benefactor_list, search_overlap_data):
@@ -130,7 +174,9 @@ def find_benefactor_search_results(request):
 
 
 def create_new_project(request):
-
+    if request.method == 'GET':
+        projects = request.user.charity.project_set
+        return render(request, 'accounts/create-project.html', {'result_set': projects})
     if request.user.is_authenticated:
         project = Project.objects.create()
         project.project_name = request.POST.get('project_name')
@@ -165,7 +211,7 @@ def create_new_project(request):
             if request.POST.get("max_age") is not None:
                 non_financial_project.max_age = request.POST.get("max_age")
             non_financial_project.required_gender = request.POST.get("required_gender")
-            non_financial_project. country = request.POST.get("country")
+            non_financial_project.country = request.POST.get("country")
             non_financial_project.province = request.POST.get("province")
             non_financial_project.city = request.POST.get("city")
             date_interval = DateInterval.objects.create()
@@ -175,11 +221,12 @@ def create_new_project(request):
             # FIXME check if the input is JSON or not
             date_interval.week_schedule = request.POST.get('week_schedule')
             non_financial_project.save()
+        projects = request.user.charity.project_set
         # TODO Fix redirect path
-        return HttpResponseRedirect('path')
+        return render(request, 'accounts/create-project.html', {'result_set': projects})
     else:
         # TODO Fix content
-        return HttpResponse(content=[])
+        return render(request, 'accounts/login.html')
 
 
 def edit_project(request, pk):
@@ -231,36 +278,53 @@ def edit_project(request, pk):
     return HttpResponseRedirect([])
 
 
-def show_project_data(request, pk):
-    project = Project.objects.get(pk=pk)
+def show_project_data(request, pid):
+    projects = Project.objects.filter(id=pid)
+    if len(projects) <= 0:
+        # Raise 404
+        return HttpResponse([])
+    project = projects[0]
     # TODO fix template path
     template = loader.get_template('projects/get_project_data_for_edit.html')
     try:
+        owner = request.user.is_charity and project.charity.user is request.user
         context = {
-            'pk': pk,
-            'project_name': project.project_name,
-            'description': project.description,
-            'project_state': project.project_state,
-            'type': project.type,
+            'project': project,
+            'is_owner': owner,
+
         }
         if project.type is 'financial':
-            fin_project =  FinancialProject.objects.get(project=project)
+            fin_project = FinancialProject.objects.get(project=project)
+            contributions = FinancialContribution.objects.filter(financial_project=fin_project)
             context.update({
                 'start_date': fin_project.start_date,
                 'end_date': fin_project.end_date,
                 'target_money': fin_project.target_money,
-                'current_money': fin_project.current_money
+                'current_money': fin_project.current_money,
+                'contributions': contributions.all(),
             })
         else:
             nf_project = NonFinancialProject.objects.get(project=project)
+            date_interval = DateInterval.objects.get(non_financial_project=nf_project)
+            helper = nf_project.project.benefactors
+            b_username = None
+            b_fullname = None
+            if not helper.count() <= 0:
+                # Error Prone Line
+                b_username = helper.all()[0].user.username
+                b_fullname = helper.all()[0].first_name + ' ' + helper.all()[0].last_name
             context.update({
-                'ability_type':nf_project.ability_type,
-                'min_age':nf_project.min_age,
-                'max_age':nf_project.max_age,
-                'required_gender':nf_project.required_gender,
-                'country':nf_project.country,
-                'province':nf_project.province,
-                'city':nf_project.city,
+                'ability_type': nf_project.ability_type,
+                'min_age': nf_project.min_age,
+                'max_age': nf_project.max_age,
+                'required_gender': nf_project.required_gender,
+                'country': nf_project.country,
+                'province': nf_project.province,
+                'city': nf_project.city,
+                'start_date': date_interval.begin_date,
+                'end_date': date_interval.end_date,
+                'b_username': b_username,
+                'b_fullname': b_fullname,
             })
     except:
         context = {
@@ -271,7 +335,7 @@ def show_project_data(request, pk):
 
 
 class CreateProjectForm(TemplateView):
-    template_name = "create_project_form.html"
+    template_name = "accounts/create-project.html"
 
 
 def contribute_to_project(request, project_id):
@@ -360,7 +424,8 @@ def accept_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (
+            request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = Project.objects.get(id=req.nonfinancialproject.project.id)
@@ -375,11 +440,13 @@ def accept_request(request, rid):
             charity.benefactor_history.add(benefactor)
         project.project_state = 'in_progress'
         if request.user.is_benefactor:
-            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
             new_notification.save()
         else:
-            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
             new_notification.save()
         req.state = 'closed'
@@ -402,7 +469,8 @@ def deny_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (
+            request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = Project.objects.get(id=req.nonfinancialproject.project.id)
@@ -410,11 +478,13 @@ def deny_request(request, rid):
             # TODO Raise Project Type Error
             return HttpResponse([])
         if request.user.is_benefactor:
-            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
         else:
-            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user,
+                                                           datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
         req.state = 'closed'
