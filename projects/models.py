@@ -25,6 +25,13 @@ class Ability(models.Model):
     score = models.IntegerField(default=-1)
     description = models.CharField(max_length=512, default='')
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 class Project(models.Model):
     project_name = models.CharField(max_length=256, default='')
@@ -34,6 +41,13 @@ class Project(models.Model):
     project_state = models.CharField(max_length=64, default='open')
     type = models.CharField(max_length=64, default='')
     objects = ProjectManager()
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def __str__(self):
         return 'Name: ' + self.project_name + '' + self.type + ')'
@@ -48,6 +62,13 @@ class FinancialProject(models.Model):
 
     start_date = models.DateField(default=datetime.date(2018, 1, 1))
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def add_contribution(self, amount):
         self.current_money += amount
@@ -75,7 +96,12 @@ class NonFinancialProject(models.Model):
     province = models.CharField(max_length=32, null=True)
     city = models.CharField(max_length=32, null=True)
 
-    request = models.OneToOneField(CooperationRequest, on_delete=models.DO_NOTHING, null=True)
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return \
@@ -93,6 +119,13 @@ class DateInterval(models.Model):
     end_date = models.DateField(default=datetime.date(2018, 1, 1))
     week_schedule = models.CharField(max_length=512, default='')
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
     def to_json(self, schedule):
         self.week_schedule = json.dumps(schedule)
 
@@ -104,6 +137,13 @@ class FinancialContribution(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     financial_project = models.ForeignKey(FinancialProject, on_delete=models.CASCADE, default='')
     money = models.FloatField(default=0)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
 
 def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overlap=30, min_time_overlap=50, tags=None,
@@ -237,3 +277,10 @@ class Log(models.Model):
     log_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
     date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, default='')
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None

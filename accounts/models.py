@@ -3,6 +3,8 @@ from django.db import models
 from accounts.search_util import *
 import datetime, json
 
+from projects.models import Project
+
 
 class AbilityTypeManager(models.Manager):
     def find_ability_ids(self, ability_name=None, ability_tags=None):
@@ -20,6 +22,13 @@ class AbilityTag(models.Model):
     name = models.CharField(max_length=256, default='')
     description = models.CharField(max_length=1024, default='')
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 class AbilityType(models.Model):
     name = models.CharField(max_length=256, default='')
@@ -29,6 +38,13 @@ class AbilityType(models.Model):
 
     def get_tag_strings(self):
         return [tag.name for tag in self.tags.all()]
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def __str__(self):
         return self.name
@@ -42,12 +58,26 @@ class ContactInfo(models.Model):
     address = models.CharField(max_length=500, null=True)
     phone_number = models.CharField(max_length=20, null=True)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 class User(AbstractUser):
     is_charity = models.BooleanField(default=False)
     is_benefactor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def __str__(self):
         return 'Username: ' + self.username
@@ -62,6 +92,13 @@ class Benefactor(models.Model):
     age = models.IntegerField(null=True)
     credit = models.FloatField(default=0)
     score = models.FloatField(default=-1)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
         return has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule,
@@ -81,6 +118,13 @@ class Charity(models.Model):
     score = models.FloatField(default=-1)
     benefactor_history = models.ManyToManyField(Benefactor)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
@@ -88,12 +132,26 @@ class Notification(models.Model):
     date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, null=True)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 class BenefactorScore(models.Model):
     ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
     class Meta:
         unique_together = (('ability_type', 'benefactor', 'charity'),)
@@ -104,6 +162,13 @@ class CharityScore(models.Model):
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
     class Meta:
         unique_together = (('benefactor', 'charity'), )
 
@@ -113,6 +178,13 @@ class AbilityRequest(models.Model):
     name = models.CharField(max_length=64, default='')
     description = models.CharField(max_length=2048, null=True)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
 
 # The project field is one to one so I put it in the NonFinancialProject class
 class CooperationRequest(models.Model):
@@ -120,6 +192,14 @@ class CooperationRequest(models.Model):
     state = models.CharField(max_length=16, default='On-Hold')
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, default='')
     description = models.CharField(max_length=2048, null=True)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
 
 

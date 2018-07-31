@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.template import loader
 
@@ -159,16 +160,22 @@ def submit_cooperation_request(request, project_id):
         # TODO Raise Authentication Error
         return HttpResponse([])
     try:
+        # FIXME How should we find the project? I mean which data is given to find the project with?
+        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         if request.user.is_benefactor:
             benefactor = Benefactor.objects.get(user=request.user)
             charity = Charity.objects.get(user=User.objects.get(username=request.POST.get('username')))
+            new_notification = Notification.objects.create(type='new_request',user=charity.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request has Been Sent for Project ' + project.project
+            new_notification.save()
             request_type = 'b2c'
         else:
             benefactor = Benefactor.objects.get(user=User.objects.get(username=request.POST.get('username')))
             charity = Charity.objects.get(user=request.user)
+            new_notification = Notification.objects.create(type='new_request',user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification.description = 'A new Cooperation Request Has Been Sent to You!'
+            new_notification.save()
             request_type = 'c2b'
-        # FIXME How should we find the project? I mean which data is given to find the project with?
-        project = NonFinancialProject.objects.all().filter(project_id=project_id)
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
         new_request.nonfinancialproject = project
@@ -213,27 +220,28 @@ class CharitySignUpView(CreateView):
 #####Signup
 
 class SignUpView(TemplateView):
-    template_name = "registration/signup.html"
+    template_name = "accounts/register.html"
 
 
+@csrf_exempt
 def signup(request):
     try:
-        
-        test1_user = User.objects.get(username=request.POST.get("username"))
-        test2_user = User.objects.get(username=request.POST.get("email"))
-        if test1_user is not None and test2_user is not None :
 
-            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Account already exists! Try login or forget password.'})
-        
-        if test1_user is None and test2_user is not None :
-            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Email is already taken!  '})
-        
-        if test1_user is not None and test2_user is None :
-            return render(request, 'accounts/non-fin-search.html', {'error_msg': 'Username is already taken! try another username.  '})
+        test1_user = User.objects.filter(username=request.POST.get("username"))
+        test2_user = User.objects.filter(username=request.POST.get("email"))
+        if test1_user.__len__() != 0 and test2_user.__len__() != 0:
 
-        
-        
-        
+            return render(request, 'accounts/register.html', {'error_msg': 'Account already exists! Try login or forget password.'})
+
+        if test1_user.__len__() == 0 and len(test2_user) != 0:
+            return render(request, 'accounts/register.html', {'error_msg': 'Email is already taken!  '})
+
+        if len(test1_user) != 0 and len(test2_user) == 0:
+            return render(request, 'accounts/register.html', {'error_msg': 'Username is already taken! try another username.  '})
+
+
+
+
         tmp_contact_info = ContactInfo.objects.create(country="Iran",
                                                       province=request.POST.get("province"),
                                                       city=request.POST.get("city"),
@@ -253,7 +261,8 @@ def signup(request):
             tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"), score=-1)
             tmp_charity.save()
 
-
+            login(request, tmp_user)
+            return render(request, 'accounts/charity.html')
 
 
         else:
@@ -262,16 +271,15 @@ def signup(request):
                                                        last_name=request.POST.get("last_name"), score=-1,
                                                        age=request.POST.get("age"))
             tmp_benefactor.save()
+            login(request, tmp_user)
+            return HttpResponseRedirect('sad')
 
-        login(request, tmp_user)
-        return HttpResponseRedirect(reverse("Home"))
     except:
-        template = loader.get_template('accounts/register.html')
         context = {
             'error_message': 'Sign Up Error!',
             'redirect_address': 'signup_view'
         }
-        return HttpResponse(template.render(context, request))
+        return render(request, 'accounts/register.html', context)
 
 
 ####Login
@@ -280,22 +288,26 @@ class LoginView(TemplateView):
     template_name = "accounts/login.html"
 
 
+@csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     try:
+        tmp_user = User.objects.filter(username=request.POST.get("username"))
+        if len(tmp_user) == 0:
+            return render(request, 'accounts/login.html')
         tmp_user = User.objects.get(username=request.POST.get("username"))
         if tmp_user.password != request.POST.get("password"):
-            raise Exception
+            return render(request, 'accounts/login.html', {'error_msg': 'Invalid password -.-'})
 
         if tmp_user.is_charity:
 
             login(request, user=tmp_user)
-            return HttpResponseRedirect(reverse("Home"))
+            return render(request, 'accounts/charity.html')
 
         else:
 
             login(request, tmp_user)
-            return HttpResponseRedirect(reverse("Home"))
+            return render(request, 'accounts/user.html')
     except:
 
         context = {
@@ -303,7 +315,7 @@ def login_user(request):
             'redirect_address': "login_view"
 
         }
-        template = loader.get_template('error.html')
+        template = loader.get_template('accounts/login.html')
 
         return HttpResponse(template.render(context, request))
 

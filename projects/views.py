@@ -304,6 +304,12 @@ def contribute_to_project(request, project_id):
         benefactor.credit -= amount
         fin_project.add_contribution(amount)
         benefactor.save()
+        new_notification = Notification.objects.create(type='project_contribution', user=project.charity.user,
+                                                       datetime=datetime.datetime.now())
+        new_notification.description = str(amount) + ' Has been Contributed to Project ' + project
+        if fin_project.project.project_state is 'completed':
+            new_notification.description += '\n Project Has Been Completed Successfully!'
+        new_notification.save()
         # TODO Redirect
         return HttpResponseRedirect([])
     except:
@@ -338,6 +344,83 @@ def get_project_report(request, project_id):
             }
             # TODO Return Context
             return HttpResponse(context)
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])
+
+
+def accept_request(request, rid):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    try:
+        req = CooperationRequest.objects.get(id=rid)
+        benefactor = req.benefactor
+        charity = req.charity
+        if req.state is 'closed':
+            # TODO Raise Request State Error
+            return HttpResponse([])
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+            # TODO Raise Authentication Error
+            return HttpResponse([])
+        project = Project.objects.get(id=req.nonfinancialproject.project.id)
+        if project.type is 'financial':
+            # TODO Raise Project Type Error
+            return HttpResponse([])
+        if project.benefactors.count() > 0 or project.project_state is not 'open':
+            # TODO Raise Project Occupied Error
+            return HttpResponse([])
+        project.benefactors.add(benefactor)
+        if len(charity.benefactor_history.filter(user=benefactor.user)) == 0:
+            charity.benefactor_history.add(benefactor)
+        project.project_state = 'in_progress'
+        if request.user.is_benefactor:
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
+            new_notification.save()
+        else:
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Accepted'
+            new_notification.save()
+        req.state = 'closed'
+        req.save()
+        # TODO Success Redirect
+        return HttpResponse([])
+    except:
+        # TODO Raise Unexpected Error
+        return HttpResponse([])
+
+
+def deny_request(request, rid):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        return HttpResponse([])
+    try:
+        req = CooperationRequest.objects.get(id=rid)
+        benefactor = req.benefactor
+        charity = req.charity
+        if req.state is 'closed':
+            # TODO Raise Request State Error
+            return HttpResponse([])
+        if (request.user.is_benefactor and request.user is not benefactor.user) or (request.user.is_charity and request.user is not charity.user):
+            # TODO Raise Authentication Error
+            return HttpResponse([])
+        project = Project.objects.get(id=req.nonfinancialproject.project.id)
+        if project.type is 'financial':
+            # TODO Raise Project Type Error
+            return HttpResponse([])
+        if request.user.is_benefactor:
+            new_notification = Notification.objects.create(type='request_accept', user=charity.user, datetime=datetime.datetime.now())
+            new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
+            new_notification.save()
+        else:
+            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user, datetime=datetime.datetime.now())
+            new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
+            new_notification.save()
+        req.state = 'closed'
+        req.save()
+        # TODO Success Redirect
+        return HttpResponse([])
     except:
         # TODO Raise Unexpected Error
         return HttpResponse([])
