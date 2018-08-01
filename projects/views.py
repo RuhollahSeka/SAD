@@ -20,12 +20,26 @@ def get_object(obj_class, *args, **kwargs):
         return 'Error'
 
 
+def error_context_generate(error_title, error_message, redirect_address):
+    return {
+        'error_title': error_title,
+        'error_message': error_message,
+        'redirect_address': redirect_address
+    }
+
+
+def sign_in_error():
+    return error_context_generate('Authentication Error', 'You Are Not Signed In!', '')
+
+
 # Create your views here.
 
 @csrf_exempt
 def find_non_financial_projects_advanced_search_results(request):
-    if request.user.is_authenticated:
-        pass
+    if not request.user.is_authenticated:
+        # TODO Raise Auth Error
+        context = sign_in_error()
+        return HttpResponseRedirect([])
     if request.user.is_charity:
         pass
     all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
@@ -68,10 +82,14 @@ def find_non_financial_projects_advanced_search_results(request):
 
 @csrf_exempt
 def find_non_financial_projects_search_results(request):
-    if request.user.is_authenticated:
-        pass
+    if not request.user.is_authenticated:
+        # TODO Raise Auth Error
+        context = sign_in_error()
+        return HttpResponseRedirect([])
     if request.user.is_charity:
-        pass
+        # TODO Raise Account Type Error
+        context = error_context_generate('Account Type Error', 'Charities Cannot Search for Projects', '')
+        return HttpResponseRedirect([])
     all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
     all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
 
@@ -445,7 +463,7 @@ def accept_request(request, rid):
             # TODO Raise Request State Error
             return HttpResponse([])
         if (request.user.is_benefactor and request.user is not benefactor.user) or (
-            request.user.is_charity and request.user is not charity.user):
+                    request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = get_object(Project, id=req.nonfinancialproject.project.id)
@@ -491,7 +509,7 @@ def deny_request(request, rid):
             # TODO Raise Request State Error
             return HttpResponse([])
         if (request.user.is_benefactor and request.user is not benefactor.user) or (
-            request.user.is_charity and request.user is not charity.user):
+                    request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = get_object(Project, id=req.nonfinancialproject.project.id)
