@@ -327,6 +327,25 @@ class LoginView(TemplateView):
     template_name = "accounts/login.html"
 
 
+def benefactor_dashboard(request):
+    pass
+
+
+def charity_dashboard(request):
+    pass
+
+
+def dashboard(request):
+    user = request.user
+    if not user.is_authenticated:
+        return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
+    if user.is_benefactor:
+        HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
+    if user.is_charity:
+        HttpResponseRedirect(reverse('accounts:charity_dashboard'))
+    else:
+        pass
+
 @csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
@@ -355,6 +374,13 @@ def login_user(request):
         template = loader.get_template('accounts/login.html')
 
         return HttpResponse(template.render(context, request))
+
+
+def recover_password(request):
+    if request.method == 'GET':
+        return render(request, 'accounts/recover_password.html')
+    email = request.POST.get("recover_email")
+    # todo send email for recover password
 
 
 def user_profile(request):
