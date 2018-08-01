@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
 ####### Danial imports .Some of them may be redundant!!!
 
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.shortcuts import redirect
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -331,6 +331,8 @@ class LoginView(TemplateView):
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     try:
+        if request.user.is_authenticated:
+            logout(request)
         tmp_user = User.objects.filter(username=request.POST.get("username"))
         if len(tmp_user) == 0:
             return render(request, 'accounts/login.html')
@@ -584,3 +586,13 @@ def error_redirect(request, redirect_address):
 
 class ErrorView(TemplateView):
     template_name = 'accounts/error_page.html'
+
+
+def logout_user(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        return HttpResponse([])
+    logout(request)
+    template = loader.get_template(reverse('accounts:login_view'))
+    return HttpResponse(template.render(request))
