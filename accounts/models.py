@@ -90,7 +90,6 @@ class Benefactor(models.Model):
     gender = models.CharField(max_length=40, null=True)
     age = models.IntegerField(null=True)
     credit = models.FloatField(default=0)
-    score = models.FloatField(default=-1)
 
     def get(self, *args, **kwargs):
         try:
@@ -109,12 +108,23 @@ class Benefactor(models.Model):
                 return True
         return False
 
+    def calculate_score(self):
+        score = 0
+        count = 0
+        score_list = BenefactorScore.objects.filter(benefactor=self)
+        for ability in self.ability_set.all():
+            filtered_score_list = score_list.filter(ability_type=ability.ability_type)
+            count += filtered_score_list.count()
+            for score_obj in filtered_score_list.all():
+                score += score_obj.score
+        if count <= 0:
+            return '-'
+        return score / count
+
 
 class Charity(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
-
     name = models.CharField(max_length=200)
-    score = models.FloatField(default=-1)
     benefactor_history = models.ManyToManyField(Benefactor)
 
     def get(self, *args, **kwargs):
@@ -123,6 +133,17 @@ class Charity(models.Model):
             return ans
         except:
             return None
+
+    def calculate_score(self):
+        score = 0
+        count = 0
+        score_list = CharityScore.objects.filter(charity=self)
+        for score_obj in score_list:
+            count += 1
+            score += score_obj.score
+        if count <= 0:
+            return '-'
+        return score / count
 
 
 class Notification(models.Model):
@@ -169,7 +190,7 @@ class CharityScore(models.Model):
             return None
 
     class Meta:
-        unique_together = (('benefactor', 'charity'), )
+        unique_together = (('benefactor', 'charity'),)
 
 
 class AbilityRequest(models.Model):
@@ -185,3 +206,15 @@ class AbilityRequest(models.Model):
             return None
 
 
+class BenefactorComment(models.Model):
+    commenter = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    commented = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    comment_string = models.CharField(max_length=2048, default='')
+    date_time = models.DateTimeField(auto_now=True)
+
+
+class CharityComment(models.Model):
+    commenter = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    commented = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    comment_string = models.CharField(max_length=2048, default='')
+    date_time = models.DateTimeField(auto_now=True)
