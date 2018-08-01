@@ -269,7 +269,7 @@ class SignUpView(TemplateView):
 
 @csrf_exempt
 def signup(request):
-    try:
+    # try:
 
         test1_user = User.objects.filter(username=request.POST.get("username"))
         test2_user = User.objects.filter(username=request.POST.get("email"))
@@ -318,14 +318,14 @@ def signup(request):
             tmp_benefactor.save()
             tmp_user.save()
             login(request, tmp_user)
-            return render(request, 'accounts/user-profile.html')
+            return HttpResponseRedirect(reverse('user_profile'))
 
-    except:
-        context = {
-            'error_message': 'Sign Up Error!',
-            'redirect_address': 'signup_view'
-        }
-        return render(request, 'accounts/register.html', context)
+    # except:
+    #     context = {
+    #         'error_message': 'Sign Up Error!',
+    #         'redirect_address': 'signup_view'
+    #     }
+    #     return render(request, 'accounts/register.html', context)
 
 
 ####Login
