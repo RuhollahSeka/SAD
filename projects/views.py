@@ -9,6 +9,16 @@ from projects.models import *
 from django.template import loader
 
 
+def get_object(obj_class, *args, **kwargs):
+    try:
+        obj_set = obj_class.objects.filter(*args, **kwargs)
+        if obj_set.count() <= 0:
+            return None
+        return obj_set.all()[0]
+    except:
+        # TODO Raise Super Ultra Exceptional Error
+        return 'Error'
+
 
 # Create your views here.
 
@@ -243,14 +253,14 @@ def edit_project(request, pk):
         return HttpResponse(template.render({'pk': pk, 'error_message': 'Authentication Error!'}, request))
     if request.method is not 'POST':
         return HttpResponse(template.render({'pk': pk, 'error_message': 'Method is not POST!'}, request))
-    project = Project.objects.get(pk=pk)
+    project = get_object(Project, pk=pk)
     try:
         dic = request.POST
         project.project_name = dic['project_name']
         project.project_state = dic['project_state']
         project.description = dic['description']
         if project.type is 'financial':
-            fin_project = FinancialProject.objects.get(project=project)
+            fin_project = get_object(FinancialProject, project=project)
             fin_project.target_money = dic['target_money']
             fin_project.start_date = dic['start_date']
             fin_project.end_date = dic['end_date']
@@ -258,7 +268,7 @@ def edit_project(request, pk):
             fin_project.current_money = dic['current_money']
             fin_project.save()
         else:
-            nf_project = NonFinancialProject.objects.get(project=project)
+            nf_project = get_object(NonFinancialProject, project=project)
             nf_project.ability_type = dic['ability_type']
             nf_project.city = dic['city']
             nf_project.country = dic['country']
@@ -301,7 +311,7 @@ def show_project_data(request, pid):
 
         }
         if project.type is 'financial':
-            fin_project = FinancialProject.objects.get(project=project)
+            fin_project = get_object(FinancialProject, project=project)
             contributions = FinancialContribution.objects.filter(financial_project=fin_project)
             context.update({
                 'start_date': fin_project.start_date,
@@ -311,8 +321,8 @@ def show_project_data(request, pid):
                 'contributions': contributions.all(),
             })
         else:
-            nf_project = NonFinancialProject.objects.get(project=project)
-            date_interval = DateInterval.objects.get(non_financial_project=nf_project)
+            nf_project = get_object(NonFinancialProject, project=project)
+            date_interval = get_object(DateInterval, non_financial_project=nf_project)
             helper = nf_project.project.benefactors
             b_username = None
             b_fullname = None
@@ -335,7 +345,7 @@ def show_project_data(request, pid):
             })
     except:
         context = {
-            'pk': pk,
+            'pk': pid,
             'error_message': 'Error in finding the Project!'
         }
     return HttpResponse(template.render(context, request))
@@ -353,21 +363,21 @@ def contribute_to_project(request, project_id):
     if request.user.is_charity:
         # TODO Raise Account Type Error
         return HttpResponse([])
-    project = Project.objects.get(id=project_id)
+    project = get_object(Project, id=project_id)
     if project.type is not 'financial':
         # TODO Raise Project Type Error
         return HttpResponse([])
-    fin_project = FinancialProject.objects.get(project=project)
+    fin_project = get_object(FinancialProject, project=project)
     try:
         if project.project_state is 'completed':
             # TODO Raise Project Closed Error
             return HttpResponse([])
         amount = float(request.POST.get('money'))
-        benefactor = Benefactor.objects.get(user=request.user)
+        benefactor = get_object(Benefactor, user=request.user)
         if benefactor.credit < amount:
             # TODO Raise Not Enough Money Error
             return HttpResponse([])
-        contribution = FinancialContribution.objects.get(benefactor=benefactor, financial_project=fin_project)
+        contribution = get_object(FinancialContribution, benefactor=benefactor, financial_project=fin_project)
         if contribution is not None:
             contribution.money += amount
             contribution.save()
@@ -397,20 +407,20 @@ def get_project_report(request, project_id):
     if request.user.is_benefactor:
         # TODO Raise Account Type Error
         return HttpResponse([])
-    project = Project.objects.get(id=project_id)
-    charity = Charity.objects.get(user=request.user)
+    project = get_object(Project, id=project_id)
+    charity = get_object(Charity, user=request.user)
     try:
         if project.charity is not charity:
             # TODO Raise Owner Error
             return HttpResponse([])
         if project.type is 'financial':
-            fin_project = FinancialProject.objects.get(project=project)
+            fin_project = get_object(FinancialProject, project=project)
             context = {'report': create_financial_project_report(fin_project),
                        'project_id': project_id}
             # TODO Return Context
             return HttpResponse(context)
         else:
-            nf_project = NonFinancialProject.objects.get(project=project)
+            nf_project = get_object(NonFinancialProject, project=project)
             context = {
                 'report': create_non_financial_project_report(nf_project),
                 'project_id': project_id
@@ -428,7 +438,7 @@ def accept_request(request, rid):
         # TODO Raise Authentication Error
         return HttpResponse([])
     try:
-        req = CooperationRequest.objects.get(id=rid)
+        req = get_object(CooperationRequest, id=rid)
         benefactor = req.benefactor
         charity = req.charity
         if req.state is 'closed':
@@ -438,7 +448,7 @@ def accept_request(request, rid):
             request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
-        project = Project.objects.get(id=req.nonfinancialproject.project.id)
+        project = get_object(Project, id=req.nonfinancialproject.project.id)
         if project.type is 'financial':
             # TODO Raise Project Type Error
             return HttpResponse([])
@@ -474,7 +484,7 @@ def deny_request(request, rid):
         # TODO Raise Authentication Error
         return HttpResponse([])
     try:
-        req = CooperationRequest.objects.get(id=rid)
+        req = get_object(CooperationRequest, id=rid)
         benefactor = req.benefactor
         charity = req.charity
         if req.state is 'closed':
@@ -484,7 +494,7 @@ def deny_request(request, rid):
             request.user.is_charity and request.user is not charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
-        project = Project.objects.get(id=req.nonfinancialproject.project.id)
+        project = get_object(Project, id=req.nonfinancialproject.project.id)
         if project.type is 'financial':
             # TODO Raise Project Type Error
             return HttpResponse([])
