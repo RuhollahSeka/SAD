@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from rest_framework.renderers import JSONRenderer
+from rest_framework.decorators import renderer_classes, api_view
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.parsers import JSONParser
 from django.views.generic import TemplateView
 from django.template import loader
@@ -27,6 +28,7 @@ from projects.models import *
 
 
 @csrf_exempt
+@api_view(['POST', 'GET'])
 def android_test(request):
     data = {
         'first': 'lol',
