@@ -23,6 +23,7 @@ from django.template import loader
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
 from accounts.serializers import *
+from projects.serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from projects.models import *
 
@@ -96,13 +97,16 @@ def android_signup(request):
 
 @csrf_exempt
 def android_financial_project_search(request):
-    project_name = request.POST.get('search_financial_project_name')
-    charity_name = request.POST.get('search_financial_charity_name')
-    benefactor_name = request.POST.get('search_financial_benefactor_name')
-    project_state = request.POST.get('search_financial_project_state')
-    min_progress = request.POST.get('search_financial_min_progress')
-    max_progress = request.POST.get('search_financial_max_progress')
-    min_deadline_date = request.POST.get('search_financial_min_deadline_date')
-    max_deadline_date = request.POST.get('search_financial_max_deadline_date')
+    data = JSONParser().parse(request)
+    project_name = data.get('project_name')
+    charity_name = data.get('charity_name')
+    benefactor_name = data.get('benefactor_name')
+    project_state = data.get('project_state')
+    min_progress = data.get('min_progress')
+    max_progress = data.get('max_progress')
+    min_deadline_date = data.get('min_deadline_date')
+    max_deadline_date = data.get('max_deadline_date')
     project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                 min_progress, max_progress, min_deadline_date, max_deadline_date)
+    result_serializer = FinancialProjectSerializer()
+    return JsonResponse(result_serializer.data, safe=False)
