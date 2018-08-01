@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
 ####### Danial imports .Some of them may be redundant!!!
 
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.shortcuts import redirect
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -327,10 +327,31 @@ class LoginView(TemplateView):
     template_name = "accounts/login.html"
 
 
+def benefactor_dashboard(request):
+    pass
+
+
+def charity_dashboard(request):
+    pass
+
+
+def dashboard(request):
+    user = request.user
+    if not user.is_authenticated:
+        return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
+    if user.is_benefactor:
+        HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
+    if user.is_charity:
+        HttpResponseRedirect(reverse('accounts:charity_dashboard'))
+    else:
+        pass
+
 @csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     try:
+        if request.user.is_authenticated:
+            logout(request)
         tmp_user = User.objects.filter(username=request.POST.get("username"))
         if len(tmp_user) == 0:
             return render(request, 'accounts/login.html')
@@ -353,6 +374,13 @@ def login_user(request):
         template = loader.get_template('accounts/login.html')
 
         return HttpResponse(template.render(context, request))
+
+
+def recover_password(request):
+    if request.method == 'GET':
+        return render(request, 'accounts/recover_password.html')
+    email = request.POST.get("recover_email")
+    # todo send email for recover password
 
 
 def user_profile(request):
@@ -584,3 +612,13 @@ def error_redirect(request, redirect_address):
 
 class ErrorView(TemplateView):
     template_name = 'accounts/error_page.html'
+
+
+def logout_user(request):
+    if not request.user.is_authenticated:
+        # TODO Raise Authentication Error
+        context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        return HttpResponse([])
+    logout(request)
+    template = loader.get_template(reverse('accounts:login_view'))
+    return HttpResponse(template.render(request))

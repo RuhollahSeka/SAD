@@ -264,6 +264,7 @@ def create_new_project(request):
             if request.POST.get("max_age") is not None:
                 non_financial_project.max_age = request.POST.get("max_age")
             non_financial_project.required_gender = request.POST.get("required_gender")
+
             non_financial_project.country = request.POST.get("country")
             non_financial_project.province = request.POST.get("province")
             non_financial_project.city = request.POST.get("city")
