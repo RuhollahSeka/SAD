@@ -12,7 +12,7 @@ urlpatterns = [
     path('login_user/', views.login_user, name='login_user'),
     # path('logout_user/', views.logout_user, name='logout_user'),
     path('recover_password/', views.recover_password, name='recover_password'),
-    path('recover_password/<slug:redirect_address>/',views.error_redirect,name='error_redirect'),
+    path('recover_password/<int:uid>/<slug:rec_str>/', views.recover_pwd,name='recover_pwd'),
 
     path('dashboard/', views.dashboard, name='dashboard'),
     path('benefactor_dashboard/', views.benefactor_dashboard, name='benefactor_dashboard'),

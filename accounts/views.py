@@ -328,11 +328,11 @@ class LoginView(TemplateView):
 
 
 def benefactor_dashboard(request):
-    pass
+    return HttpResponse('hi')
 
 
 def charity_dashboard(request):
-    pass
+    return HttpResponse('hoy')
 
 
 def dashboard(request):
@@ -357,7 +357,7 @@ def login_user(request):
             return render(request, 'accounts/login.html')
         tmp_user = get_object(User, username=request.POST.get("username"))
         if tmp_user.password != request.POST.get("password"):
-            return render(request, 'accounts/login.html', {'error_msg': 'Invalid password -.-'})
+            return render(request, 'accounts/login.html', {'error_msg': 'رمز اشتباهه -.-'})
 
         if tmp_user.is_charity:
 
@@ -370,7 +370,7 @@ def login_user(request):
             return render(request, 'accounts/user-profile.html')
     except:
         # TODO Redirect to Login
-        context = error_context_generate('Login Error', 'Username or Password is Invalid!', 'login_view')
+        context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
         template = loader.get_template('accounts/login.html')
 
         return HttpResponse(template.render(context, request))
@@ -381,6 +381,13 @@ def recover_password(request):
         return render(request, 'accounts/recover_password.html')
     email = request.POST.get("recover_email")
     # todo send email for recover password
+
+
+def recover_pwd(request, uid, rec_str):
+    if request.method == 'GET':
+        # todo
+        return render(request, 'accounts/enter_new_password.html')
+    # todo change password with post request
 
 
 def user_profile(request):
@@ -438,7 +445,7 @@ def user_profile(request):
 @csrf_exempt
 def customize_user_data(request):
     if not request.user.is_authenticated:
-        return render(request, 'accounts/login.html', {'error_message': 'please login first'})
+        return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
     if request.method == 'GET':
         return render(request, 'accounts/user-profile.html')
     try:
@@ -487,7 +494,7 @@ def customize_user_data(request):
 def customize_user(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
-        context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', '')
         return HttpResponse([])
     request.user.password = request.POST.get("password")
     request.user.description = request.POST.get("description")
