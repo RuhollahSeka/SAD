@@ -70,6 +70,8 @@ class User(AbstractUser):
     is_admin = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
     description = models.CharField(max_length=2048, default='')
+    # TODO set initial recover string when creating the user
+    email_recover_string = models.CharField(max_length=64, default='')
 
     def get(self, *args, **kwargs):
         try:

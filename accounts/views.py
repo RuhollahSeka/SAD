@@ -1,3 +1,4 @@
+from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -14,6 +15,15 @@ from django.template import loader
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
 from projects.models import CooperationRequest
+import random, string
+
+possible_characters = string.ascii_letters + string.digits
+ip = '127.0.0.1:8000/'
+
+
+def generate_recover_string(length=32):
+    rng = random.SystemRandom()
+    return "".join([rng.choice(possible_characters) for i in range(length)])
 
 
 def get_object(obj_class, *args, **kwargs):
@@ -298,7 +308,7 @@ def signup(request):
         tmp_user.save()
         if request.POST.get("account_type") == "Charity":
             tmp_user.is_charity = True
-            tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"), score=-1)
+            tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"))
             tmp_charity.save()
             tmp_user.save()
 
@@ -309,7 +319,7 @@ def signup(request):
         else:
             tmp_user.is_benefactor = True
             tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
-                                                       last_name=request.POST.get("last_name"), score=-1,
+                                                       last_name=request.POST.get("last_name"),
                                                        age=request.POST.get("age"), gender=request.POST.get('gender'))
             tmp_benefactor.save()
             tmp_user.save()
@@ -346,6 +356,7 @@ def dashboard(request):
     else:
         pass
 
+
 @csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
@@ -379,15 +390,44 @@ def login_user(request):
 def recover_password(request):
     if request.method == 'GET':
         return render(request, 'accounts/recover_password.html')
-    email = request.POST.get("recover_email")
-    # todo send email for recover password
+    elif request.method == 'POST':
+        email = request.POST.get("recover_email")
+        user_queryset = User.objects.all().filter(email__iexact=email)
+        if user_queryset.count() == 0:
+            # TODO error no such user
+            pass
+        elif user_queryset.count() > 1:
+            # TODO something went wrong
+            pass
+        user = user_queryset[0]
+        current_recover_string = user.email_recover_string
+        user_id = user.id
+        recovery_url = ip + 'accounts/' + user_id + '/' + current_recover_string
+        message = 'برای وارد کردن رمز جدید خود، وارد لینک زیر شوید:' + '\n'
+        message += recovery_url
+        recovery_email = EmailMessage('Password recovery', message, email)
+        recovery_email.send()
+        # TODO return something?
 
 
 def recover_pwd(request, uid, rec_str):
     if request.method == 'GET':
-        # todo
+        # todo what to do here?
         return render(request, 'accounts/enter_new_password.html')
-    # todo change password with post request
+    if request.method == 'POST':
+        password = request.POST.get('recovery_password')
+        user_queryset = User.objects.all().filter(id=uid)
+        if user_queryset.count() != 1:
+            # TODO shitty link
+            pass
+        user = user_queryset[0]
+        recovery_string = user.email_recover_string
+        if recovery_string != rec_str:
+            # TODO shitty link
+            pass
+        user.email_recover_string = generate_recover_string()
+        user.password = password
+        # TODO successful password change
 
 
 def user_profile(request):
