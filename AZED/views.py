@@ -31,7 +31,7 @@ class HomeView(TemplateView):
 ###Error
 
 class ErrorView(TemplateView):
-    template_name = "error.html"
+    template_name = "error_page.html"
 
 
 def error_redirect(request , redirect_address):

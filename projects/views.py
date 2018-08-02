@@ -40,7 +40,7 @@ def find_non_financial_projects_advanced_search_results(request):
     if not request.user.is_authenticated:
         # TODO Raise Auth Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         pass
@@ -87,12 +87,12 @@ def find_non_financial_projects_search_results(request):
     if not request.user.is_authenticated:
         # TODO Raise Auth Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error', 'Charities Cannot Search for Projects', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
     all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
@@ -137,11 +137,11 @@ def find_financial_project_search_results(request):
     if not request.user.is_authenticated:
         # TODO Raise Auth Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         context = error_context_generate('Account Type Error', 'Charities Cannot Search for Projects', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project_name = request.POST.get('search_financial_project_name')
     charity_name = request.POST.get('search_financial_charity_name')
@@ -161,11 +161,11 @@ def find_charity_search_results(request):
     if not request.user.is_authenticated:
         # TODO Raise Auth Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         context = error_context_generate('Account Type Error', 'Charities Cannot Search for Projects', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     charity_name = request.POST.get('search_charity_name')
     min_score = request.POST.get('search_charity_min_score')
@@ -189,11 +189,11 @@ def find_charity_search_results(request):
 def find_benefactor_search_results(request):
     if not request.user.is_authenticated:
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_benefactor:
         context = error_context_generate('Account Type Error', 'Benefactors Cannot Search for Other Benefactors', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     start_date = request.POST.get('search_benefactor_start_date')
     end_date = request.POST.get('search_benefactor_end_date')
@@ -234,7 +234,7 @@ def create_new_project(request):
         if not request.user.is_active:
             context = error_context_generate('Deactivated Account Error',
                                              'Your Account Has Been Marked as Deactivated!', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         project = Project.objects.create()
         project.project_name = request.POST.get('project_name')
@@ -288,7 +288,7 @@ def create_new_project(request):
     else:
         # TODO Fix content
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
 
 
@@ -297,16 +297,16 @@ def edit_project(request, pk):
     template = loader.get_template('path-to-template')
     if not request.user.is_authenticated:
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_active:
         context = error_context_generate('Deactivated Account Error',
                                          'Your Account Has Been Marked as Deactivated!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.method is not 'POST':
         context = error_context_generate('Connection Error', 'Request Method is not POST!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project = get_object(Project, pk=pk)
     try:
@@ -347,7 +347,7 @@ def edit_project(request, pk):
             'error_message': 'Error in finding the Project!'
         }
         context = error_context_generate('Unexpected Error', 'Some of the Required Files Are Damaged or Lost!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     # FIXME maybe all responses should be Redirects / parameters need fixing
     return HttpResponseRedirect([])
@@ -358,7 +358,7 @@ def show_project_data(request, pid):
     if len(projects) <= 0:
         # TODO Raise 404
         context = error_context_generate('Not Found', 'Cannot Find the Requested Project', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project = projects[0]
     # TODO fix template path
@@ -405,7 +405,7 @@ def show_project_data(request, pid):
             })
     except:
         context = error_context_generate('Unexpected Error', 'Some of the Required Files Are Damaged or Lost!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     return HttpResponse(template.render(context, request))
 
@@ -419,38 +419,38 @@ def contribute_to_project(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if not request.user.is_active:
         context = error_context_generate('Deactivated Account Error',
                                          'Your Account Has Been Marked as Deactivated!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type', 'Charities Cannot Contribute to Other Charities\' Projects',
                                          '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project = get_object(Project, id=project_id)
     if project.type is not 'financial':
         # TODO Raise Project Type Error
         context = error_context_generate('Project Type', 'Project Type is Not Financial', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     fin_project = get_object(FinancialProject, project=project)
     try:
         if project.project_state is 'completed':
             # TODO Raise Project Closed Error
             context = error_context_generate('Project Closed', 'Project is Already Closed', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         amount = float(request.POST.get('money'))
         benefactor = get_object(Benefactor, user=request.user)
         if benefactor.credit < amount:
             # TODO Raise Not Enough Money Error
             context = error_context_generate('Low Credits', 'Your Account\'s Credits is not Enough', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         contribution = get_object(FinancialContribution, benefactor=benefactor, financial_project=fin_project)
         if contribution is not None:
@@ -473,7 +473,7 @@ def contribute_to_project(request, project_id):
     except:
         # TODO Raise Unexpected Error
         context = error_context_generate('Unexpected Error', 'Some Required Files are Lost or Damaged!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
 
 
@@ -482,17 +482,17 @@ def get_project_report(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if not request.user.is_active:
         context = error_context_generate('Deactivated Account Error',
                                          'Your Account Has Been Marked as Deactivated!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if request.user.is_benefactor:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error', 'Benefactors Cannot Get Reports on Projects', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project = get_object(Project, id=project_id)
     charity = get_object(Charity, user=request.user)
@@ -500,7 +500,7 @@ def get_project_report(request, project_id):
         if project.charity is not charity:
             # TODO Raise Owner Error
             context = error_context_generate('Owner Error', 'You Are Not The Owner of The Project', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         if project.type is 'financial':
             fin_project = get_object(FinancialProject, project=project)
@@ -519,7 +519,7 @@ def get_project_report(request, project_id):
     except:
         # TODO Raise Unexpected Error
         context = error_context_generate('Unexpected Error', 'Some Required Files are Lost or Damaged!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
 
 
@@ -528,12 +528,12 @@ def accept_request(request, rid):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if not request.user.is_active:
         context = error_context_generate('Deactivated Account Error',
                                          'Your Account Has Been Marked as Deactivated!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         req = get_object(CooperationRequest, id=rid)
@@ -542,7 +542,7 @@ def accept_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             context = error_context_generate('Request Closed', 'Request is Already Closed', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         if (request.user.is_benefactor and request.user is not benefactor.user) or (
                     request.user.is_charity and request.user is not charity.user):
@@ -552,12 +552,12 @@ def accept_request(request, rid):
         if project.type is 'financial':
             # TODO Raise Project Type Error
             context = error_context_generate('Project Type Error', 'Project is Financial', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         if project.benefactors.count() > 0 or project.project_state is not 'open':
             # TODO Raise Project Occupied Error
             context = error_context_generate('Project Occupied', 'Project is Already Taken by Another Benefactor', '')
-            template = loader.get_template(reverse('accounts:error_page'))
+            template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         project.benefactors.add(benefactor)
         if len(charity.benefactor_history.filter(user=benefactor.user)) == 0:
@@ -591,12 +591,12 @@ def deny_request(request, rid):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = sign_in_error()
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if not request.user.is_active:
         context = error_context_generate('Deactivated Account Error',
                                          'Your Account Has Been Marked as Deactivated!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         req = get_object(CooperationRequest, id=rid)
@@ -633,5 +633,5 @@ def deny_request(request, rid):
     except:
         # TODO Raise Unexpected Error
         context = error_context_generate('Unexpected Error', 'Some Required Files are Lost or Damaged!', '')
-        template = loader.get_template(reverse('accounts:error_page'))
+        template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
