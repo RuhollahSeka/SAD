@@ -14,7 +14,7 @@ from django.template import loader
 
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
-from projects.models import CooperationRequest
+from projects.models import CooperationRequest, search_charity, search_benefactor
 from accounts.log_util import Logger
 import random, string
 
@@ -362,11 +362,111 @@ class LoginView(TemplateView):
 
 
 def benefactor_dashboard(request):
-    return HttpResponse('hi')
+    user = request.user
+    if not user.is_authenticated or not user.is_benefactor:
+        # TODO error
+        pass
+    requests = CooperationRequest.objects.filter(type__iexact='c2b').filter(benefactor=user.benefactor).filter(
+        state__iexact='on-hold')
+    notifications = Notification.objects.filter(user=user)
+    user_project_ids = [project.id for project in user.benefactor.project_set]
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
+    non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
+                                                                                                    user_project_ids)
+    if request.method == 'GET':
+        return render(request, 'url', {
+            'requests': list(requests),
+            'a_notification': notifications[0],
+            'notifications': list(notifications),
+            'charity_results': [],
+            'complete_project_count': complete_project_count,
+            'non_complete_project_count': non_complete_project_count
+        })
+    elif request.method == 'POST':
+        post = request.POST
+
+        name = post.get('name')
+        min_score = post.get('min_score')
+        max_score = post.get('max_score')
+        min_related_projects = post.get('min_related_projects')
+        max_related_projects = post.get('max_related_projects')
+        min_finished_projects = post.get('min_finished_projects')
+        max_finished_projects = post.get('max_finished_projects')
+        benefactor_name = post.get('benefactor_name')
+        country = post.get('country')
+        province = post.get('province')
+        city = post.get('city')
+        charity_result = search_charity(name=name, min_score=min_score, max_score=max_score,
+                                        min_related_projects=min_related_projects,
+                                        max_related_projects=max_related_projects,
+                                        min_finished_projects=min_finished_projects,
+                                        max_finished_projects=max_finished_projects, benefactor_name=benefactor_name,
+                                        country=country, province=province, city=city)
+
+        return render(request, 'url', {
+            'requests': list(requests),
+            'a_notification': notifications[0],
+            'notifications': list(notifications),
+            'charity_results': list(charity_result),
+            'complete_project_count': complete_project_count,
+            'non_complete_project_count': non_complete_project_count
+        })
 
 
 def charity_dashboard(request):
-    return HttpResponse('hoy')
+    user = request.user
+    if not user.is_authenticated or not user.is_charity:
+        # TODO error
+        pass
+    requests = CooperationRequest.objects.filter(type__iexact='b2c').filter(benefactor=user.benefactor).filter(
+        state__iexact='on-hold')
+    notifications = Notification.objects.filter(user=user)
+    user_project_ids = [project.id for project in user.charity.project_set]
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
+    non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
+                                                                                                    user_project_ids)
+    if request.method == 'GET':
+        return render(request, 'url', {
+            'requests': list(requests),
+            'a_notification': notifications[0],
+            'notifications': list(notifications),
+            'benefactor_results': [],
+            'complete_project_count': complete_project_count,
+            'non_complete_project_count': non_complete_project_count
+        })
+    elif request.method == 'POST':
+        post = request.POST
+        start_date = post.get('start_date')
+        end_date = post.get('end_date')
+        weekly_schedule = json.loads(post.get('schedule'))
+        schedule = [start_date, end_date, weekly_schedule]
+        min_required_hours = post.get('min_required_hours')
+        min_date_overlap = post.get('min_date_overlap')
+        min_time_overlap = post.get('min_time_overlap')
+        tags = post.get('tags')
+        ability_name = post.get('ability_name')
+        ability_min_score = post.get('ability_min_score')
+        ability_max_score = post.get('ability_max_score')
+        country = post.get('country')
+        province = post.get('province')
+        city = post.get('city')
+        user_min_score = post.get('user_min_score')
+        user_max_score = post.get('user_max_score')
+        gender = post.get('gender')
+        first_name = post.get('first_name')
+        last_name = post.get('last_name')
+        result_benefactor = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap,
+                                                   tags, ability_name, ability_min_score, ability_max_score, country,
+                                                   province, city, user_min_score, user_max_score, gender, first_name,
+                                                   last_name)
+        return render(request, 'url', {
+            'requests': list(requests),
+            'a_notification': notifications[0],
+            'notifications': list(notifications),
+            'benefactor_results': list(result_benefactor),
+            'complete_project_count': complete_project_count,
+            'non_complete_project_count': non_complete_project_count
+        })
 
 
 def dashboard(request):
