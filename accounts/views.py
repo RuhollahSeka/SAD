@@ -668,23 +668,32 @@ def customize_user(request):
                                          'Your Account Has Been Marked as Deactivated!', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    request.user.password = request.POST.get("password")
-    request.user.description = request.POST.get("description")
+    if request.POST.get('password') is not None:
+        request.user.password = request.POST.get("password")
+    if request.POST.get('description') is not None:
+        request.user.description = request.POST.get("description")
     if request.POST.get("province") is not None:
         request.user.contact_info.province = request.POST.get("province")
     if request.POST.get("city") is not None:
         request.user.contact_info.city = request.POST.get("city")
-    request.user.contact_info.address = request.POST.get("address")
-    request.user.contact_info.phone_number = request.POST.get("phone_number")
+    if request.POST.get("address") is not None:
+        request.user.contact_info.address = request.POST.get("address")
+    if request.POST.get("phone_number") is not None:
+        request.user.contact_info.phone_number = request.POST.get("phone_number")
     request.user.save()
     if request.user.is_charity:
-        request.user.charity.name = request.POST.get("name")
+        if request.POST.get("name") is not None:
+            request.user.charity.name = request.POST.get("name")
         request.user.charity.save()
     else:
-        request.user.benefactor.first_name = request.POST.get("first_name")
-        request.user.benefactor.last_name = request.POST.get("last_name")
-        request.user.benefactor.gender = request.POST.get("gender")
-        request.user.benefactor.age = request.POST.get("age")
+        if request.POST.get("first_name") is not None:
+            request.user.benefactor.first_name = request.POST.get("first_name")
+        if request.POST.get("last_name") is not None:
+            request.user.benefactor.last_name = request.POST.get("last_name")
+        if request.POST.get("gender") is not None:
+            request.user.benefactor.gender = request.POST.get("gender")
+        if request.POST.get("age") is not None:
+            request.user.benefactor.age = request.POST.get("age")
         request.user.benefactor.save()
     Logger.account_update(request.user, None, None)
     # TODO Fix Redirect
