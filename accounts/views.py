@@ -50,8 +50,9 @@ def add_ability_to_benefactor(request):
     benefactor_id = request.POST.get('add_ability_benefactor_id')
     if request.user.id != benefactor_id:
         # TODO Return Error
-        error_context_generate('Authentication Error', 'You Don\'t Have Permission to Change this Account!', '')
-        pass
+        context = error_context_generate('Authentication Error', 'You Don\'t Have Permission to Change this Account!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
     ability_type_name = request.POST.get('add_ability_ability_type_name')
     ability_description = request.POST.get('add_ability_description')
@@ -114,11 +115,13 @@ def submit_benefactor_score(request, benefactor_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_benefactor:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error', 'You Can\'t Submit Score for Another Benefactor!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     try:
         charity = get_object(Charity, user=request.user)
         benefactor = get_object(Benefactor, user=get_object(User, username=benefactor_username))
@@ -127,7 +130,8 @@ def submit_benefactor_score(request, benefactor_username):
                                              'You Cannot Submit Score for a Benefactor with Whom You Had no Cooperation!',
                                              '')
             # TODO Raise No_Cooperation Error
-            return HttpResponse([])
+            template = loader.get_template(reverse('accounts:error_page'))
+            return HttpResponse(template.render(context, request))
         ability = get_object(AbilityType, benefactor=benefactor, name=request.POST.get('ability_type'))
         score = charity.benefactorscore_set.get(benefactor=benefactor, charity=charity)
         if score is None:
@@ -139,7 +143,8 @@ def submit_benefactor_score(request, benefactor_username):
     except:
         context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged',
                                          '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
         # TODO raise error
 
 
@@ -147,17 +152,20 @@ def submit_charity_score(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', ' You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         context = error_context_generate('Account Type Error', 'You Can\'t Submit Score for Another Charity!', '')
         # TODO Raise Account Type Error
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     benefactor = get_object(Benefactor, user=request.user)
     if benefactor.charity_set.get(user=get_object(User, username=request.POST.get('charity_username'))).count <= 0:
         context = error_context_generate('No Cooperation Error',
                                          'You Cannot Submit Score for a Charity with Which You Had no Cooperation!', '')
         # TODO Raise No_Cooperation Error
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     try:
         charity = get_object(Charity, user=get_object(User, username=request.POST.get('charity_username')))
         score = benefactor.charityscore_set.get(benefactor=benefactor, charity=charity)
@@ -168,15 +176,17 @@ def submit_charity_score(request):
         return HttpResponseRedirect([])
     except:
         # TODO raise error
-        error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged', '')
-        return HttpResponse([])
+        context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 def submit_ability_request(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
-        error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     try:
         new_request = AbilityRequest.objects.create(type=request.POST.get('type'), name=request.POST.get('name'),
                                                     description=request.POST.get('description'))
@@ -186,14 +196,16 @@ def submit_ability_request(request):
         # TODO Raise Error
         context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged',
                                          '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 def submit_cooperation_request(request, project_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     try:
         # FIXME How should we find the project? I mean which data is given to find the project with?
         project = NonFinancialProject.objects.all().filter(project_id=project_id)
@@ -225,7 +237,8 @@ def submit_cooperation_request(request, project_id):
         }
         context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged',
                                          '')
-        return HttpResponse('error')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 #################################################################
@@ -318,7 +331,8 @@ def signup(request):
 
     except:
         context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'signup_view')
-        return render(request, 'accounts/register.html', context)
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 ####Login
@@ -437,7 +451,8 @@ def user_profile(request):
     except:
         context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
         # TODO Raise Error
-        return HttpResponseRedirect([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 #### Customize User
@@ -488,14 +503,16 @@ def customize_user_data(request):
     except:
         context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
         # TODO Raise Error
-        return HttpResponseRedirect([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 def customize_user(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     request.user.password = request.POST.get("password")
     request.user.description = request.POST.get("description")
     if request.POST.get("province") is not None:
@@ -527,12 +544,14 @@ def add_benefactor_credit(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error',
                                          'I Don\'t Know How You Ended Here But Charities Cannot Add Credits!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     # try:
     benefactor = get_object(Benefactor, user=request.user)
     amount = int(request.POST.get('deposit_amount'))
@@ -553,16 +572,19 @@ def submit_benefactor_commit(request, benefactor_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_benefactor:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error', 'Benefactors Cannot Comment on Other Benefactors', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     benefactor_users = User.objects.filter(username=benefactor_username)
     if benefactor_users.count() <= 0:
         # TODO Raise Not Found Error
         context = error_context_generate('Not Found', 'Requested User Cannot be Found', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     benefactor_user = benefactor_users.all()[0]
     try:
         benefactor = get_object(Benefactor, user=get_object(User, username=benefactor_username))
@@ -571,7 +593,8 @@ def submit_benefactor_commit(request, benefactor_username):
                                              'You Cannot Submit Score for a Benefactor with Whom You Had no Cooperation!',
                                              '')
             # TODO Raise No_Cooperation Error
-            return HttpResponse([])
+            template = loader.get_template(reverse('accounts:error_page'))
+            return HttpResponse(template.render(context, request))
         comment = BenefactorComment.objects.create(commented=benefactor_user.benefactor, commentor=request.user.charity,
                                                    comment_string=request.POST.get('comment_string'))
         # TODO Redirect to Benefactor Profile Page
@@ -579,28 +602,33 @@ def submit_benefactor_commit(request, benefactor_username):
     except:
         # TODO Raise Unexpcted Error
         context = error_context_generate('Unexpected Error', 'Error While Submitting The Comment', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 def submit_charity_commit(request, charity_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error', 'Charities Cannot Comment on Other Charities', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.benefactor.charity_set.get(user=get_object(User, username=charity_username)).count <= 0:
         context = error_context_generate('No Cooperation Error',
                                          'You Cannot Submit Score for a Charity with Which You Had no Cooperation!', '')
         # TODO Raise No_Cooperation Error
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     charity_users = User.objects.filter(username=charity_username)
     if charity_users.count() <= 0:
         # TODO Raise Not Found Error
         context = error_context_generate('Not Found', 'Requested User Cannot be Found', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     charity_user = charity_users.all()[0]
     try:
         comment = CharityComment.objects.create(commented=charity_user.charity, commentor=request.user.benefactor,
@@ -610,7 +638,8 @@ def submit_charity_commit(request, charity_username):
     except:
         # TODO Raise Unexpected Error
         context = error_context_generate('Unexpected Error', 'Error While Submitting The comment', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
 
 
 def error_redirect(request, redirect_address):
@@ -625,7 +654,8 @@ def logout_user(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
-        return HttpResponse([])
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     logout(request)
     template = loader.get_template(reverse('accounts:login_view'))
     return HttpResponse(template.render(request))
