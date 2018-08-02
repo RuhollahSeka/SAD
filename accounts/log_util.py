@@ -86,6 +86,22 @@ class Logger:
                           + str(datetime.datetime.now())
         log.save()
 
+    def submit_comment(self, first_actor, second_actor, log_project):
+        log = Log.objects.create(log_type='submit_score', first_actor=first_actor, second_actor=second_actor,
+                                 datetime=datetime.datetime.now(), log_project=log_project)
+        log.description = 'User ' + first_actor + ' Has Submit a Comment for User ' + second_actor + ' at ' \
+                          + str(datetime.datetime.now())
+        log.save()
+
+    def add_ability_benefactor(self, first_actor, second_actor, log_project):
+        log = Log.objects.create(log_type='add_ability_benefactor', first_actor=first_actor, second_actor=second_actor,
+                                 datetime=datetime.datetime.now(), log_project=log_project)
+        log.description = 'Benefactor ' + first_actor + ' Has Added a New Ability to His/Her Ability List at ' + str(
+            datetime.datetime.now())
+        log.save()
+
+
+
     create_log = {
         'create_account': create_account,
         'account_update': account_update,
@@ -100,6 +116,8 @@ class Logger:
         'accept_request': accept_request,
         'deny_request': deny_request,
         'submit_score': submit_score,
+        'add_ability_benefactor': add_ability_benefactor,
+        'submit_comment': submit_comment,
     }
 
 
