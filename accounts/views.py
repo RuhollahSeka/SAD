@@ -325,8 +325,8 @@ def signup(request):
                                        email=request.POST.get("email"),
                                        contact_info=tmp_contact_info
                                        )
-        Logger.create_account(request.user, None, None)
         tmp_user.save()
+        Logger.create_account(tmp_user, None, None)
         if request.POST.get("account_type") == "Charity":
             tmp_user.is_charity = True
             tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"))
