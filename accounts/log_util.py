@@ -6,35 +6,35 @@ class Logger:
     @staticmethod
     def create_account(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='create_account', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'New Account Created for ' + first_actor + ' at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def account_update(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='account_update', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'Account Updated by ' + first_actor + ' at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def login(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='login', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Logged Into Account at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def logout(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='login', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Logged Out of Account at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def request_submit(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='request_submit', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Submitted a Request for Collaboration Project ' + log_project + \
                           ' to ' + second_actor + ' at ' + str(datetime.datetime.now())
         log.save()
@@ -43,42 +43,42 @@ class Logger:
     def request_new_ability_type(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='request_new_ability_type', first_actor=first_actor,
                                  second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Requested a New Ability Type at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def request_new_ability_tag(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='request_new_ability_tag', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Requested a New Ability Tag at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def create_new_project(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='create_new_project', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'Charity ' + first_actor + ' Has Created a New Project at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def update_project(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='update_project', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'Charity ' + first_actor + ' Has Updated a Project at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def financial_contribution(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='financial_contribution', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Logged Out of Account at ' + str(datetime.datetime.now())
         log.save()
 
     @staticmethod
     def accept_request(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='accept_request', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Accepted User ' + second_actor + '\'s Request on ' + log_project \
                           + ' at ' + str(datetime.datetime.now())
         log.save()
@@ -86,7 +86,7 @@ class Logger:
     @staticmethod
     def deny_request(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='deny_request', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Denied User ' + second_actor + '\'s Request on ' + log_project \
                           + ' at ' + str(datetime.datetime.now())
         log.save()
@@ -94,7 +94,7 @@ class Logger:
     @staticmethod
     def submit_score(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='submit_score', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Submit a Score for User ' + second_actor + ' at ' \
                           + str(datetime.datetime.now())
         log.save()
@@ -102,7 +102,7 @@ class Logger:
     @staticmethod
     def submit_comment(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='submit_score', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + first_actor + ' Has Submit a Comment for User ' + second_actor + ' at ' \
                           + str(datetime.datetime.now())
         log.save()
@@ -110,7 +110,7 @@ class Logger:
     @staticmethod
     def add_ability_benefactor(first_actor, second_actor, log_project):
         log = Log.objects.create(log_type='add_ability_benefactor', first_actor=first_actor, second_actor=second_actor,
-                                 datetime=datetime.datetime.now(), log_project=log_project)
+                                 date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'Benefactor ' + first_actor + ' Has Added a New Ability to His/Her Ability List at ' + str(
             datetime.datetime.now())
         log.save()
