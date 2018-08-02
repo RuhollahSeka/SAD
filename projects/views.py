@@ -282,7 +282,7 @@ def create_new_project(request):
             date_interval.week_schedule = request.POST.get('week_schedule')
             non_financial_project.save()
         projects = request.user.charity.project_set
-        Logger.create_log['create_new_project'](request.user, None, project)
+        Logger.create_new_project(request.user, None, project)
         # TODO Fix redirect path
         return render(request, 'accounts/create-project.html', {'result_set': projects})
     else:
@@ -340,7 +340,7 @@ def edit_project(request, pk):
             nf_project.save()
             date_interval.save()
         project.save()
-        Logger.create_log['update_project'](request.user, None, project)
+        Logger.update_project(request.user, None, project)
     except:
         context = {
             'pk': pk,
@@ -467,7 +467,7 @@ def contribute_to_project(request, project_id):
         if fin_project.project.project_state is 'completed':
             new_notification.description += '\n Project Has Been Completed Successfully!'
         new_notification.save()
-        Logger.create_log['financial_contribution'](request.user, project.charity, project)
+        Logger.financial_contribution(request.user, project.charity, project)
         # TODO Redirect
         return HttpResponseRedirect([])
     except:
@@ -576,9 +576,9 @@ def accept_request(request, rid):
         req.state = 'closed'
         req.save()
         if request.user.is_charity:
-            Logger.create_log['accept_request'](request.user, benefactor.user, project)
+            Logger.accept_request(request.user, benefactor.user, project)
         else:
-            Logger.create_log['accept_request'](request.user, charity.user, project)
+            Logger.accept_request(request.user, charity.user, project)
         # TODO Success Redirect
         return HttpResponse([])
     except:
@@ -625,9 +625,9 @@ def deny_request(request, rid):
             new_notification.save()
         req.save()
         if request.user.is_charity:
-            Logger.create_log['deny_request'](request.user, benefactor.user, project)
+            Logger.deny_request(request.user, benefactor.user, project)
         else:
-            Logger.create_log['deny_request'](request.user, charity.user, project)
+            Logger.deny_request(request.user, charity.user, project)
         # TODO Success Redirect
         return HttpResponse([])
     except:
