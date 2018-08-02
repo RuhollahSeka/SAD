@@ -72,6 +72,7 @@ class User(AbstractUser):
     description = models.CharField(max_length=2048, default='', null=True)
     # TODO set initial recover string when creating the user
     email_recover_string = models.CharField(max_length=64, default='')
+    activation_string = models.CharField(max_length=64, default='')
 
     def get(self, *args, **kwargs):
         try:

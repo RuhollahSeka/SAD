@@ -61,7 +61,8 @@ def add_ability_to_benefactor(request):
     benefactor_id = request.POST.get('add_ability_benefactor_id')
     if request.user.id != benefactor_id:
         # TODO Return Error
-        context = error_context_generate('Authentication Error', 'You Don\'t Have Permission to Change this Account!', '')
+        context = error_context_generate('Authentication Error', 'You Don\'t Have Permission to Change this Account!',
+                                         '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
 
@@ -190,7 +191,8 @@ def submit_charity_score(request):
         return HttpResponseRedirect([])
     except:
         # TODO raise error
-        context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged', '')
+        context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged',
+                                         '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
 
@@ -300,60 +302,65 @@ class SignUpView(TemplateView):
 def signup(request):
     # try:
 
-        test1_user = User.objects.filter(username=request.POST.get("username"))
-        test2_user = User.objects.filter(username=request.POST.get("email"))
-        if test1_user.__len__() != 0 and test2_user.__len__() != 0:
-            return render(request, 'accounts/register.html',
-                          {'error_message': 'Account already exists! Try login or forget password.'})
+    test1_user = User.objects.filter(username=request.POST.get("username"))
+    test2_user = User.objects.filter(username=request.POST.get("email"))
+    if test1_user.__len__() != 0 and test2_user.__len__() != 0:
+        return render(request, 'accounts/register.html',
+                      {'error_message': 'Account already exists! Try login or forget password.'})
 
-        if test1_user.__len__() == 0 and len(test2_user) != 0:
-            return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
+    if test1_user.__len__() == 0 and len(test2_user) != 0:
+        return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
 
-        if len(test1_user) != 0 and len(test2_user) == 0:
-            return render(request, 'accounts/register.html',
-                          {'error_message': 'Username is already taken! try another username.  '})
+    if len(test1_user) != 0 and len(test2_user) == 0:
+        return render(request, 'accounts/register.html',
+                      {'error_message': 'Username is already taken! try another username.  '})
 
-        tmp_contact_info = ContactInfo.objects.create(country="ایران",
-                                                      province=request.POST.get("province"),
-                                                      city=request.POST.get("city"),
-                                                      address=request.POST.get("address"),
-                                                      postal_code=request.POST.get("postal_code"),
-                                                      phone_number=request.POST.get("phone_number")
-                                                      )
-        tmp_user = User.objects.create(username=request.POST.get("username"),
-                                       password=request.POST.get("password"),
-                                       email=request.POST.get("email"),
-                                       contact_info=tmp_contact_info,
-                                       description=request.POST.get("description")
-                                       )
+    tmp_contact_info = ContactInfo.objects.create(country="ایران",
+                                                  province=request.POST.get("province"),
+                                                  city=request.POST.get("city"),
+                                                  address=request.POST.get("address"),
+                                                  postal_code=request.POST.get("postal_code"),
+                                                  phone_number=request.POST.get("phone_number")
+                                                  )
+    tmp_user = User.objects.create(username=request.POST.get("username"), password=request.POST.get("password"),
+                                   email=request.POST.get("email"), contact_info=tmp_contact_info,
+                                   description=request.POST.get("description"))
+    tmp_user.is_active = False
+    tmp_user.save()
+    code = generate_recover_string()
+    message = 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n'
+    message += 'url/' + str(tmp_user.id) + '/' + code
+    tmp_user.activation_string = code
+    email_message = EmailMessage('Activation Email', 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n',
+                                 to=tmp_user.email)
+    email_message.send()
+    Logger.create_account(tmp_user, None, None)
+    if request.POST.get("account_type") == "Charity":
+        tmp_user.is_charity = True
+        tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"))
+        tmp_charity.save()
         tmp_user.save()
-        Logger.create_account(tmp_user, None, None)
-        if request.POST.get("account_type") == "Charity":
-            tmp_user.is_charity = True
-            tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"))
-            tmp_charity.save()
-            tmp_user.save()
 
-            login(request, tmp_user)
-            Logger.login(request.user, None, None)
-            return render(request, 'accounts/charity.html')
+        login(request, tmp_user)
+        Logger.login(request.user, None, None)
+        return render(request, 'accounts/charity.html')
 
 
-        else:
-            tmp_user.is_benefactor = True
-            tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
-                                                       last_name=request.POST.get("last_name"),
-                                                       age=request.POST.get("age"), gender=request.POST.get('gender'))
-            tmp_benefactor.save()
-            tmp_user.save()
-            login(request, tmp_user)
-            Logger.login(request.user, None, None)
-            return HttpResponseRedirect(reverse('accounts:user_profile'))
+    else:
+        tmp_user.is_benefactor = True
+        tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
+                                                   last_name=request.POST.get("last_name"),
+                                                   age=request.POST.get("age"), gender=request.POST.get('gender'))
+        tmp_benefactor.save()
+        tmp_user.save()
+        login(request, tmp_user)
+        Logger.login(request.user, None, None)
+        return HttpResponseRedirect(reverse('accounts:user_profile'))
 
-    # except:
-    #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
-    #     template = loader.get_template('accounts/error_page.html')
-    #     return HttpResponse(template.render(context, request))
+        # except:
+        #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
+        #     template = loader.get_template('accounts/error_page.html')
+        #     return HttpResponse(template.render(context, request))
 
 
 ####Login
@@ -457,9 +464,9 @@ def charity_dashboard(request):
         first_name = post.get('first_name')
         last_name = post.get('last_name')
         result_benefactor = search_benefactor(schedule, min_required_hours, min_date_overlap, min_time_overlap,
-                                                   tags, ability_name, ability_min_score, ability_max_score, country,
-                                                   province, city, user_min_score, user_max_score, gender, first_name,
-                                                   last_name)
+                                              tags, ability_name, ability_min_score, ability_max_score, country,
+                                              province, city, user_min_score, user_max_score, gender, first_name,
+                                              last_name)
         return render(request, 'url', {
             'requests': list(requests),
             'a_notification': notifications[0],
@@ -486,32 +493,32 @@ def dashboard(request):
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     # try:
-        if request.user.is_authenticated:
-            Logger.logout(request.user, None, None)
-            logout(request)
-        tmp_user = User.objects.filter(username=request.POST.get("username"))
-        if len(tmp_user) == 0:
-            return render(request, 'accounts/login.html', {'error_message': 'کاربر موردنظر یافت نشد!'})
-        tmp_user = get_object(User, username=request.POST.get("username"))
-        if tmp_user.password != request.POST.get("password"):
-            return render(request, 'accounts/login.html', {'error_message': 'رمز اشتباهه -.-'})
+    if request.user.is_authenticated:
+        Logger.logout(request.user, None, None)
+        logout(request)
+    tmp_user = User.objects.filter(username=request.POST.get("username"))
+    if len(tmp_user) == 0:
+        return render(request, 'accounts/login.html', {'error_message': 'کاربر موردنظر یافت نشد!'})
+    tmp_user = get_object(User, username=request.POST.get("username"))
+    if tmp_user.password != request.POST.get("password"):
+        return render(request, 'accounts/login.html', {'error_message': 'رمز اشتباهه -.-'})
 
-        if tmp_user.is_charity:
-            login(request, user=tmp_user)
-            Logger.login(request.user, None, None)
-            return render(request, 'accounts/charity.html')
+    if tmp_user.is_charity:
+        login(request, user=tmp_user)
+        Logger.login(request.user, None, None)
+        return render(request, 'accounts/charity.html')
 
-        else:
+    else:
 
-            login(request, tmp_user)
-            Logger.login(request.user, None, None)
-            return HttpResponseRedirect(reverse('accounts:user_profile'))
-    # except:
-    #     # TODO Redirect to Login
-    #     context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
-    #     template = loader.get_template('accounts/login.html')
-    #
-    #     return HttpResponseRedirect(reverse('accounts:user_profile'))
+        login(request, tmp_user)
+        Logger.login(request.user, None, None)
+        return HttpResponseRedirect(reverse('accounts:user_profile'))
+        # except:
+        #     # TODO Redirect to Login
+        #     context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
+        #     template = loader.get_template('accounts/login.html')
+        #
+        #     return HttpResponseRedirect(reverse('accounts:user_profile'))
 
 
 def recover_password(request):
