@@ -14,6 +14,7 @@ from django.template import loader
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
 from projects.models import CooperationRequest
+from accounts.log_util import Logger
 
 
 def get_object(obj_class, *args, **kwargs):
@@ -61,6 +62,7 @@ def add_ability_to_benefactor(request):
     ability = Ability(benefactor=benefactor, ability_type=ability_type, description=ability_description)
     ability.save()
     benefactor.ability_set.add(ability)
+    Logger.create_log['add_ability_benefactor'](request.user, None, None)
     # TODO Fix Path
     return HttpResponseRedirect('path')
 
@@ -139,6 +141,7 @@ def submit_benefactor_score(request, benefactor_username):
                                                    charity=get_object(Charity, user=request.user))
         score.score = int(request.POST.get('score'))
         score.save()
+        Logger.create_log['submit_score'](request.user, benefactor.user, None)
         return HttpResponseRedirect([])
     except:
         context = error_context_generate('Unexpected Error', 'Some of the Data Needed for The Page is Lost or Damaged',
@@ -173,6 +176,7 @@ def submit_charity_score(request):
             score = get_object(CharityScore, charity=charity, benefactor=get_object(Benefactor, user=request.user))
         score.score = int(request.POST.get('score'))
         score.save()
+        Logger.create_log['submit_score'](request.user, charity.user, None)
         return HttpResponseRedirect([])
     except:
         # TODO raise error
@@ -191,6 +195,8 @@ def submit_ability_request(request):
         new_request = AbilityRequest.objects.create(type=request.POST.get('type'), name=request.POST.get('name'),
                                                     description=request.POST.get('description'))
         new_request.save()
+
+        Logger.create_log['request_new_ability_type'](request.user, None, None)
         return HttpResponseRedirect([])
     except:
         # TODO Raise Error
@@ -216,6 +222,7 @@ def submit_cooperation_request(request, project_id):
                                                            datetime=datetime.datetime.now())
             new_notification.description = 'A new Cooperation Request is Received for Project ' + project.project
             new_notification.save()
+            Logger.create_log['request_submit'](request.user, charity.user, project.project)
             request_type = 'b2c'
         else:
             benefactor = get_object(Benefactor, user=get_object(User, username=request.POST.get('username')))
@@ -224,6 +231,7 @@ def submit_cooperation_request(request, project_id):
                                                            datetime=datetime.datetime.now())
             new_notification.description = 'A new Cooperation Request Has Been Received!'
             new_notification.save()
+            Logger.create_log['request_submit'](request.user, benefactor.user, project.project)
             request_type = 'c2b'
         new_request = CooperationRequest.objects.create(benefactor=benefactor, charity=charity, type=request_type,
                                                         description=request.POST.get('description'))
@@ -307,7 +315,7 @@ def signup(request):
                                        email=request.POST.get("email"),
                                        contact_info=tmp_contact_info
                                        )
-
+        Logger.create_log['create_account'](request.user, None, None)
         tmp_user.save()
         if request.POST.get("account_type") == "Charity":
             tmp_user.is_charity = True
@@ -316,6 +324,7 @@ def signup(request):
             tmp_user.save()
 
             login(request, tmp_user)
+            Logger.create_log['login'](request.user, None, None)
             return render(request, 'accounts/charity.html')
 
 
@@ -327,6 +336,7 @@ def signup(request):
             tmp_benefactor.save()
             tmp_user.save()
             login(request, tmp_user)
+            Logger.create_log['login'](request.user, None, None)
             return render(request, 'accounts/user-profile.html')
 
     except:
@@ -365,6 +375,7 @@ def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
     try:
         if request.user.is_authenticated:
+            Logger.create_log['logout'](request.user, None, None)
             logout(request)
         tmp_user = User.objects.filter(username=request.POST.get("username"))
         if len(tmp_user) == 0:
@@ -376,11 +387,13 @@ def login_user(request):
         if tmp_user.is_charity:
 
             login(request, user=tmp_user)
+            Logger.create_log['login'](request.user, None, None)
             return render(request, 'accounts/charity.html')
 
         else:
 
             login(request, tmp_user)
+            Logger.create_log['login'](request.user, None, None)
             return render(request, 'accounts/user-profile.html')
     except:
         # TODO Redirect to Login
@@ -499,6 +512,7 @@ def customize_user_data(request):
                 context["score"] = request.user.charity.score
             except:
                 print(1)
+
         return render(request, 'accounts/user-profile.html', context)
     except:
         context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
@@ -531,7 +545,8 @@ def customize_user(request):
         request.user.benefactor.gender = request.POST.get("gender")
         request.user.benefactor.age = request.POST.get("age")
         request.user.benefactor.save()
-
+    Logger.create_log['account_update'](request.user, None, None)
+    # TODO Fix Redirect
     return render(request, '', )
 
 
@@ -558,6 +573,7 @@ def add_benefactor_credit(request):
     benefactor.credit += amount
     benefactor.save()
     # FIXME Redirect to user profile view
+    Logger.create_log['account_update'](request.user, None, None)
     return HttpResponseRedirect(reverse('user_profile'))
     # except:
     #     context = {
@@ -568,7 +584,7 @@ def add_benefactor_credit(request):
     #     return HttpResponseRedirect(reverse('error'))
 
 
-def submit_benefactor_commit(request, benefactor_username):
+def submit_benefactor_comment(request, benefactor_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
@@ -598,6 +614,7 @@ def submit_benefactor_commit(request, benefactor_username):
         comment = BenefactorComment.objects.create(commented=benefactor_user.benefactor, commentor=request.user.charity,
                                                    comment_string=request.POST.get('comment_string'))
         # TODO Redirect to Benefactor Profile Page
+        Logger.create_log['submit_comment'](request.user, benefactor.user, None)
         return HttpResponseRedirect([])
     except:
         # TODO Raise Unexpcted Error
@@ -634,6 +651,7 @@ def submit_charity_commit(request, charity_username):
         comment = CharityComment.objects.create(commented=charity_user.charity, commentor=request.user.benefactor,
                                                 comment_string=request.POST.get('comment_string'))
         # TODO Redirect to Charity Profile Page
+        Logger.create_log['account_update'](request.user, charity_user, None)
         return HttpResponseRedirect([])
     except:
         # TODO Raise Unexpected Error
@@ -656,6 +674,7 @@ def logout_user(request):
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
         template = loader.get_template(reverse('accounts:error_page'))
         return HttpResponse(template.render(context, request))
+    Logger.create_log['logout'](request.user, None, None)
     logout(request)
     template = loader.get_template(reverse('accounts:login_view'))
     return HttpResponse(template.render(request))
