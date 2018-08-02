@@ -318,13 +318,18 @@ def signup(request):
                                                   postal_code=request.POST.get("postal_code"),
                                                   phone_number=request.POST.get("phone_number")
                                                   )
-    tmp_user = User.objects.create(username=request.POST.get("username"),
-                                   password=request.POST.get("password"),
-                                   email=request.POST.get("email"),
-                                   contact_info=tmp_contact_info,
-                                   description=request.POST.get("description")
-                                   )
+    tmp_user = User.objects.create(username=request.POST.get("username"), password=request.POST.get("password"),
+                                   email=request.POST.get("email"), contact_info=tmp_contact_info,
+                                   description=request.POST.get("description"))
+    tmp_user.is_active = False
     tmp_user.save()
+    code = generate_recover_string()
+    message = 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n'
+    message += 'url/' + str(tmp_user.id) + '/' + code
+    tmp_user.activation_string = code
+    email_message = EmailMessage('Activation Email', 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n',
+                                 to=tmp_user.email)
+    email_message.send()
     Logger.create_account(tmp_user, None, None)
     if request.POST.get("account_type") == "Charity":
         tmp_user.is_charity = True
@@ -353,6 +358,20 @@ def signup(request):
 #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
 #     template = loader.get_template('accounts/error_page.html')
 #     return HttpResponse(template.render(context, request))
+
+
+def activate_user(request, uid, activation_string):
+    # TODO any security stuff?
+    user = User.objects.filter(id=uid)
+    if user.count() != 1:
+        # TODO shitty link
+        pass
+    user = user[0]
+    if user.activation_string != activation_string:
+        # TODO shitty link
+        pass
+    user.is_active = True
+    # TODO activation success
 
 
 ####Login

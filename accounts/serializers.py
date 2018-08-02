@@ -28,7 +28,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('is_charity', 'is_benefactor', 'is_admin', 'contact_info', 'username', 'password', 'is_authenticated',
-                  'notification_set', 'log_first_actor', 'log_second_actor', 'email_recover_string', 'description')
+                  'notification_set', 'log_first_actor', 'log_second_actor', 'email_recover_string', 'description',
+                  'activation_string')
 
 
 class BenefactorSerializer(serializers.ModelSerializer):
