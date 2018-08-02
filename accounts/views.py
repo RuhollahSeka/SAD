@@ -363,6 +363,20 @@ def signup(request):
         #     return HttpResponse(template.render(context, request))
 
 
+def activate_user(request, uid, activation_string):
+    # TODO any security stuff?
+    user = User.objects.filter(id=uid)
+    if user.count() != 1:
+        # TODO shitty link
+        pass
+    user = user[0]
+    if user.activation_string != activation_string:
+        # TODO shitty link
+        pass
+    user.is_active = True
+    # TODO activation success
+
+
 ####Login
 
 class LoginView(TemplateView):
