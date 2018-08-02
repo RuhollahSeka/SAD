@@ -514,6 +514,7 @@ def user_profile(request):
 def customize_user_data(request):
     if not request.user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
+
     if request.method == 'GET':
         return render(request, 'accounts/user-profile.html')
     try:
@@ -567,6 +568,11 @@ def customize_user(request):
         context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', '')
         template = loader.get_template(reverse('accounts:error_page'))
         return HttpResponse(template.render(context, request))
+    if not request.user.is_active:
+        context = error_context_generate('Deactivated Account Error',
+                                         'Your Account Has Been Marked as Deactivated!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     request.user.password = request.POST.get("password")
     request.user.description = request.POST.get("description")
     if request.POST.get("province") is not None:
@@ -601,6 +607,11 @@ def add_benefactor_credit(request):
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
         template = loader.get_template(reverse('accounts:error_page'))
         return HttpResponse(template.render(context, request))
+    if not request.user.is_active:
+        context = error_context_generate('Deactivated Account Error',
+                                         'Your Account Has Been Marked as Deactivated!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
     if request.user.is_charity:
         # TODO Raise Account Type Error
         context = error_context_generate('Account Type Error',
@@ -628,6 +639,11 @@ def submit_benefactor_comment(request, benefactor_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
+    if not request.user.is_active:
+        context = error_context_generate('Deactivated Account Error',
+                                         'Your Account Has Been Marked as Deactivated!', '')
         template = loader.get_template(reverse('accounts:error_page'))
         return HttpResponse(template.render(context, request))
     if request.user.is_benefactor:
@@ -667,6 +683,11 @@ def submit_charity_commit(request, charity_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        template = loader.get_template(reverse('accounts:error_page'))
+        return HttpResponse(template.render(context, request))
+    if not request.user.is_active:
+        context = error_context_generate('Deactivated Account Error',
+                                         'Your Account Has Been Marked as Deactivated!', '')
         template = loader.get_template(reverse('accounts:error_page'))
         return HttpResponse(template.render(context, request))
     if request.user.is_charity:
