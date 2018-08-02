@@ -47,17 +47,35 @@ def android_user_list(request):
 
 
 @csrf_exempt
-def android_login(request):
+@api_view(['POST', 'GET'])
+def rest_login(request):
     data = JSONParser().parse(request)
     username = data.get('username')
     password = data.get('password')
-    user = User.objects.all().filter(username__iexact=username).filter(password__iexact=password)
-    user_serializer = UserSerializer(user, many=True)
-    return JsonResponse(user_serializer.data, safe=False)
+    user_queryset = User.objects.all().filter(username__iexact=username).filter(password__iexact=password)
+    if user_queryset.count() != 1:
+        return Response([])
+    return Response([{}])
 
 
 @csrf_exempt
-def android_signup(request):
+@api_view(['POST', 'GET'])
+def rest_username_check(request):
+    data = JSONParser().parse(request)
+    username = data.get('username')
+    if User.objects.filter(username=username).count() > 0:
+        return Response({
+            'continue': False
+        })
+    else:
+        return Response({
+            'continue': True
+        })
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def rest_signup(request):
     data = JSONParser().parse(request)
     username = data.get('username')
     email = data.get('email')
@@ -65,24 +83,32 @@ def android_signup(request):
     province = data.get('province')
     city = data.get('city')
     address = data.get('address')
+    phone_number = data.get('phone_number')
+    postal_code = data.get('postal_code')
     is_benefactor = data.get('is_benefactor')
     is_charity = data.get('is_charity')
+    description = data.get('description')
+
     first_name = data.get('first_name')
     last_name = data.get('last_name')
     age = data.get('age')
     gender = data.get('gender')
 
+    charity_name = data.get('charity_name')
+
     user = User.objects.all().filter(username__iexact=username)
-    user_serializer = UserSerializer(user, many=True)
 
     if user.count() > 0:
-        return JsonResponse(user_serializer.data, safe=False)
-    contact_info = ContactInfo(country='Iran', province=province, city=city, address=address)
+        return Response({
+            'success': False
+        })
+    contact_info = ContactInfo(country='Iran', province=province, city=city, address=address, phone_number=phone_number,
+                               postal_code=postal_code)
     contact_info.save()
 
     if is_benefactor:
         user = User(username=username, email=email, password=password, is_benefactor=is_benefactor,
-                    is_charity=is_charity)
+                    description=description, is_charity=is_charity)
         user.save()
         benefactor = Benefactor(first_name=first_name, last_name=last_name, age=age, gender=gender, user=user)
         benefactor.save()
@@ -90,23 +116,104 @@ def android_signup(request):
         user = User(username=username, email=email, password=password, is_benefactor=is_benefactor,
                     is_charity=is_charity)
         user.save()
-        charity = Charity(user=user, name=first_name + last_name)
+        charity = Charity(user=user, name=charity_name)
         charity.save()
-    return JsonResponse(user_serializer.data, safe=False)
+    return Response({
+        'success': True
+    })
 
 
 @csrf_exempt
-def android_financial_project_search(request):
+def rest_financial_project_search(request):
     data = JSONParser().parse(request)
-    project_name = data.get('project_name')
-    charity_name = data.get('charity_name')
-    benefactor_name = data.get('benefactor_name')
-    project_state = data.get('project_state')
+    project_name = data.get('proj_name')
+    charity_name = data.get('inst_name')
     min_progress = data.get('min_progress')
     max_progress = data.get('max_progress')
-    min_deadline_date = data.get('min_deadline_date')
-    max_deadline_date = data.get('max_deadline_date')
-    project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
-                                                min_progress, max_progress, min_deadline_date, max_deadline_date)
-    result_serializer = FinancialProjectSerializer()
+    min_deadline_date = data.get('min_deadline')
+    max_deadline_date = data.get('max_deadline')
+    # TODO search for non finished projects
+    project_queryset = search_financial_project(project_name=project_name, charity_name=charity_name,
+                                                min_progress=min_progress, max_progress=max_progress,
+                                                min_deadline_date=min_deadline_date, max_deadline_date=max_deadline_date)
+    result_serializer = FinancialProjectSerializer(project_queryset, many=True)
     return JsonResponse(result_serializer.data, safe=False)
+
+
+@csrf_exempt
+def rest_non_financial_projects_search(request):
+    if not request.user.is_authenticated:
+        return Response({
+            'success': False
+        })
+    # if request.user.is_charity:
+    #     # TODO Raise Account Type Error
+    #     context = error_context_generate('Account Type Error', 'Charities Cannot Search for Projects', '')
+    #     template = loader.get_template(reverse('accounts:error_page'))
+    #     return HttpResponse(template.render(context, request))
+    all_ability_types = [ability_type.name for ability_type in AbilityType.objects.all()]
+    all_ability_tags = [ability_tag.name for ability_tag in AbilityTag.objects.all()]
+
+    if request.method == 'GET':
+        return Response({
+
+        })
+    data = JSONParser().parse(request)
+
+    project_name = data.get('search_non_financial_project_name')
+    charity_name = data.get('search_non_financial_charity_name')
+    project_state = data.get('search_non_financial_project_state')
+    ability_name = data.get('search_non_financial_ability_name')
+    tags = data.get('search_non_financial_tags')
+    project_queryset = search_non_financial_project(project_name=project_name, charity_name=charity_name,
+                                                    project_state=project_state, ability_name=ability_name, tags=tags)
+    result_serializer = NonFinancialProjectSerializer(project_queryset, many=True)
+    return JsonResponse(result_serializer.data, safe=False)
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def rest_user_projects(request):
+    data = JSONParser().parse(request)
+    username = data.get('username')
+    benefactor = User.objects.filter(username__iexact=username)[0].benefactor
+    projects = []
+    for project in benefactor.project_set:
+        projects.append({
+            'proj_name': project.project_name,
+            'state': project.project_state,
+            'description': project.description
+        })
+    return Response(projects)
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def rest_user_profile(request):
+    # TODO check security stuff
+
+    data = JSONParser().parse(request)
+    given_username = data.get('username')
+    user = User.objects.filter(username__iexact=given_username)[0]
+
+    return Response({
+        'username': user.username,
+        'email': user.email,
+        'password': user.password,
+        'province': user.contact_info.province,
+        'city': user.contact_info.city,
+        'address': user.contact_info.address,
+        'is_benefactor': user.is_benefactor,
+        'is_charity': user.is_charity,
+        'first_name': user.benefactor.first_name if user.is_benefactor else user.charity.name,
+        'last_name': user.benefactor.last_name if user.is_benefactor else None,
+        'age': user.benefactor.age if user.is_benefactor else None,
+        'gender': user.benefactor.gender if user.is_benefactor else None
+    })
+
+
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def rest_get_tags(request):
+    tags = [tag.name for tag in AbilityTag.objects.all()]
+    return Response(tags)
