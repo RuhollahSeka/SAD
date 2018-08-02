@@ -69,7 +69,7 @@ class User(AbstractUser):
     is_benefactor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
-    description = models.CharField(max_length=2048, default='')
+    description = models.CharField(max_length=2048, default='', null=True)
     # TODO set initial recover string when creating the user
     email_recover_string = models.CharField(max_length=64, default='')
 

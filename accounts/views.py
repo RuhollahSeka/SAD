@@ -347,7 +347,7 @@ def signup(request):
             tmp_user.save()
             login(request, tmp_user)
             Logger.login(request.user, None, None)
-            return render(request, 'accounts/user-profile.html')
+            return HttpResponseRedirect(reverse('accounts:user_profile'))
 
     # except:
     #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
@@ -484,19 +484,18 @@ def dashboard(request):
 @csrf_exempt
 def login_user(request):
     # tmp_user = get_object_or_404(User,username=request.POST.get("username"),password=request.POST.get("password"))
-    try:
+    # try:
         if request.user.is_authenticated:
             Logger.logout(request.user, None, None)
             logout(request)
         tmp_user = User.objects.filter(username=request.POST.get("username"))
         if len(tmp_user) == 0:
-            return render(request, 'accounts/login.html')
+            return render(request, 'accounts/login.html', {'error_message': 'کاربر موردنظر یافت نشد!'})
         tmp_user = get_object(User, username=request.POST.get("username"))
         if tmp_user.password != request.POST.get("password"):
-            return render(request, 'accounts/login.html', {'error_msg': 'رمز اشتباهه -.-'})
+            return render(request, 'accounts/login.html', {'error_message': 'رمز اشتباهه -.-'})
 
         if tmp_user.is_charity:
-
             login(request, user=tmp_user)
             Logger.login(request.user, None, None)
             return render(request, 'accounts/charity.html')
@@ -505,13 +504,13 @@ def login_user(request):
 
             login(request, tmp_user)
             Logger.login(request.user, None, None)
-            return render(request, 'accounts/user-profile.html')
-    except:
-        # TODO Redirect to Login
-        context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
-        template = loader.get_template('accounts/login.html')
-
-        return HttpResponse(template.render(context, request))
+            return HttpResponseRedirect(reverse('accounts:user_profile'))
+    # except:
+    #     # TODO Redirect to Login
+    #     context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
+    #     template = loader.get_template('accounts/login.html')
+    #
+    #     return HttpResponseRedirect(reverse('accounts:user_profile'))
 
 
 def recover_password(request):
@@ -560,52 +559,48 @@ def recover_pwd(request, uid, rec_str):
 def user_profile(request):
     if not request.user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'please login first'})
-    try:
-        print(request.user)
-        context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
-                   "country": request.user.contact_info.country, "province": request.user.contact_info.province,
-                   "city": request.user.contact_info.city, "address": request.user.contact_info.address,
-                   "phone_number": request.user.contact_info.phone_number}
-        if request.user.is_benefactor:
-            # try:
-            benefactor = get_object(Benefactor, user=request.user)
-            context['user'] = benefactor
-            context['benefactor'] = benefactor
-            projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
-            context['project_count'] = len(projects)
-            abilities = benefactor.ability_set.all()
-            if benefactor.score == -1:
-                score = '-'
-            else:
-                score = 0
-                for ability in abilities:
-                    score += ability.score
-                score /= abilities
-            print(request)
-            context['score'] = score
-            context["first_name"] = benefactor.first_name
-            context["last_name"] = benefactor.last_name
-            context["gender"] = benefactor.gender
-            context["age"] = benefactor.age
-            context["credit"] = benefactor.credit
-            print(context)
-            # print(context.__str__())
-            # except:
-            #     print(1)
+    print(request.user.is_charity)
+    print(request.user.is_benefactor)
+    # try:
+    print(request.user)
+    context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
+               "country": request.user.contact_info.country, "province": request.user.contact_info.province,
+               "city": request.user.contact_info.city, "address": request.user.contact_info.address,
+               "phone_number": request.user.contact_info.phone_number}
+    if request.user.is_benefactor:
+        # try:
+        benefactor = get_object(Benefactor, user=request.user)
+        context['user'] = benefactor
+        context['benefactor'] = benefactor
+        projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
+        context['project_count'] = len(projects)
+        abilities = benefactor.ability_set.all()
+        score = benefactor.calculate_score()
+        print(request)
+        context['score'] = score
+        context["first_name"] = benefactor.first_name
+        context["last_name"] = benefactor.last_name
+        context["gender"] = benefactor.gender
+        context["age"] = benefactor.age
+        context["credit"] = benefactor.credit
+        print(context)
+        # print(context.__str__())
+        # except:
+        #     print(1)
 
-        else:
-            try:
-                charity = get_object(Charity, user=request.user)
-                context["name"] = charity.name
-                context["score"] = charity.score
-            except:
-                print(1)
-        return render(request, 'accounts/user-profile.html', context)
-    except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
-        # TODO Raise Error
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
+    else:
+        try:
+            charity = get_object(Charity, user=request.user)
+            context["name"] = charity.name
+            context["score"] = charity.score
+        except:
+            print(1)
+    return render(request, 'accounts/user-profile.html', context)
+    # except:
+    #     context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
+    #     # TODO Raise Error
+    #     template = loader.get_template('accounts/error_page.html')
+    #     return HttpResponse(template.render(context, request))
 
 
 #### Customize User
@@ -616,7 +611,7 @@ def customize_user_data(request):
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
 
     if request.method == 'GET':
-        return render(request, 'accounts/user-profile.html')
+        return HttpResponseRedirect('accounts/user-profile.html')
     try:
         notifications = Notification.objects.filter(user=request.user).all()
         context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
@@ -693,7 +688,7 @@ def customize_user(request):
         request.user.benefactor.save()
     Logger.account_update(request.user, None, None)
     # TODO Fix Redirect
-    return render(request, '', )
+    return HttpResponseRedirect(reverse('accounts:user_profile'))
 
 
     # if not request.user.is_authenticated :
@@ -832,10 +827,10 @@ class ErrorView(TemplateView):
 def logout_user(request):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
-        context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
+        context = error_context_generate('Authentication Error', 'You are not Signed In!', 'accounts:login_view')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     Logger.logout(request.user, None, None)
     logout(request)
-    template = loader.get_template(reverse('accounts:login_view'))
+    template = loader.get_template('accounts/login.html')
     return HttpResponse(template.render(request))
