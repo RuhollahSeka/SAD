@@ -323,7 +323,8 @@ def signup(request):
         tmp_user = User.objects.create(username=request.POST.get("username"),
                                        password=request.POST.get("password"),
                                        email=request.POST.get("email"),
-                                       contact_info=tmp_contact_info
+                                       contact_info=tmp_contact_info,
+                                       description=request.POST.get("description")
                                        )
         tmp_user.save()
         Logger.create_account(tmp_user, None, None)
@@ -566,7 +567,7 @@ def user_profile(request):
     context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
                "country": request.user.contact_info.country, "province": request.user.contact_info.province,
                "city": request.user.contact_info.city, "address": request.user.contact_info.address,
-               "phone_number": request.user.contact_info.phone_number}
+               "phone_number": request.user.contact_info.phone_number, 'description': request.user.description}
     if request.user.is_benefactor:
         # try:
         benefactor = get_object(Benefactor, user=request.user)
