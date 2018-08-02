@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('is_charity', 'is_benefactor', 'is_admin', 'contact_info', 'username', 'password', 'is_authenticated',
-                  'notification_set', 'log_first_actor', 'log_second_actor')
+                  'notification_set', 'log_first_actor', 'log_second_actor', 'email_recover_string', 'description')
 
 
 class BenefactorSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class BenefactorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Benefactor
-        fields = ('first_name', 'last_name', 'gender', 'age', 'credit', 'score', 'charity_set', 'benefactorscore_set',
+        fields = ('first_name', 'last_name', 'gender', 'age', 'credit', 'charity_set', 'benefactorscore_set',
                   'charityscore_set', 'cooperationrequest_set', 'user', 'ability_set', 'project_set',
                   'dateinterval_set', 'financialcontribution_set')
 
@@ -47,7 +47,7 @@ class CharitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Charity
-        fields = ('name', 'score', 'benefactor_history', 'benefactorscore_set', 'charityscore_set',
+        fields = ('name', 'benefactor_history', 'benefactorscore_set', 'charityscore_set',
                   'cooperationrequest_set', 'user', 'project_set')
 
 

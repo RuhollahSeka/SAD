@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     # 'accounts',
 ]
 
@@ -126,3 +127,13 @@ STATIC_URL = '/static/'
 AUTH_USER_MODEL = 'accounts.User'
 
 CSRF_COOKIE_SECURE = False
+
+EMAIL_USE_TLS = True
+
+EMAIL_HOST = 'smtp.gmail.com'
+
+EMAIL_HOST_USER = 'mersad.inc@gmail.com'
+
+EMAIL_HOST_PASSWORD = 'mersadinc1!'
+
+EMAIL_PORT = 587

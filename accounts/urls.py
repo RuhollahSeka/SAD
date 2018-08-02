@@ -24,8 +24,9 @@ urlpatterns = [
     path('user_profile/', views.user_profile, name='user_profile'),
     path('error_page/', views.ErrorView.as_view(), name='error_page'),
 
-    path('android-login', android_views.android_login, name='android_login'),
-    path('android-signup', android_views.android_signup, name='android_signup')
+    path('android-login', android_views.rest_login, name='android_login'),
+    path('android-signup', android_views.rest_signup, name='android_signup'),
+    path('android-test', android_views.android_test, name='test')
 ]
 
 

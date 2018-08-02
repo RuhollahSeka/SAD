@@ -292,7 +292,6 @@ class Log(models.Model):
             return None
 
 
-# The project field is one to one so I put it in the NonFinancialProject class
 class CooperationRequest(models.Model):
     type = models.CharField(max_length=64, default='')
     state = models.CharField(max_length=16, default='On-Hold')

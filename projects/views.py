@@ -581,12 +581,12 @@ def deny_request(request, rid):
             # TODO Raise Project Type Error
             return HttpResponse([])
         if request.user.is_benefactor:
-            new_notification = Notification.objects.create(type='request_accept', user=charity.user,
+            new_notification = Notification.objects.create(type='request_deny', user=charity.user,
                                                            datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
         else:
-            new_notification = Notification.objects.create(type='request_accept', user=benefactor.user,
+            new_notification = Notification.objects.create(type='request_deny', user=benefactor.user,
                                                            datetime=datetime.datetime.now())
             new_notification.description = 'Your Cooperation Request for Project ' + project + ' Has Been Denied'
             new_notification.save()
