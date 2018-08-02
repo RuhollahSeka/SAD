@@ -277,7 +277,7 @@ class SignUpView(TemplateView):
 
 @csrf_exempt
 def signup(request):
-    try:
+    # try:
 
         test1_user = User.objects.filter(username=request.POST.get("username"))
         test2_user = User.objects.filter(username=request.POST.get("email"))
@@ -292,7 +292,7 @@ def signup(request):
             return render(request, 'accounts/register.html',
                           {'error_message': 'Username is already taken! try another username.  '})
 
-        tmp_contact_info = ContactInfo.objects.create(country="Iran",
+        tmp_contact_info = ContactInfo.objects.create(country="ایران",
                                                       province=request.POST.get("province"),
                                                       city=request.POST.get("city"),
                                                       address=request.POST.get("address"),
@@ -326,9 +326,9 @@ def signup(request):
             login(request, tmp_user)
             return render(request, 'accounts/user-profile.html')
 
-    except:
-        context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'signup_view')
-        return render(request, 'accounts/register.html', context)
+    # except:
+    #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'signup_view')
+    #     return render(request, 'accounts/register.html', context)
 
 
 ####Login

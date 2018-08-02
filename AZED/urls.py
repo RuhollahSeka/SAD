@@ -16,6 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+
+
 urlpatterns = [
 
     path('accounts/', include('accounts.urls')),
@@ -23,10 +25,13 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     
-    path('',views.HomeView.as_view(),name='Home'),
+    path('',views.index, name='Home'),
 
     path('error/',views.ErrorView.as_view(),name='error_page'),
     path('error/red=<slug:redirect_address>/',views.error_redirect,name='error_redirect'),
+    path('index/', views.index, name='index'),
+    path('contact/', views.contact, name='contact'),
+    path('about/', views.about, name='about'),
 
     #path('accounts/signup/charityf/', views.CharitySignUpView.as_view(), name='charity_signupf'),
 

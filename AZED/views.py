@@ -1,5 +1,5 @@
 from django.contrib.auth import login
-from django.shortcuts import redirect,get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -33,6 +33,18 @@ class HomeView(TemplateView):
 class ErrorView(TemplateView):
     template_name = "error.html"
 
+
 def error_redirect(request , redirect_address):
     return HttpResponseRedirect(reverse(redirect_address))
 
+
+def index(request):
+    return render(request, 'accounts/index.html')
+
+
+def contact(request):
+    return render(request, 'accounts/contact.html')
+
+
+def about(request):
+    return render(request, 'accounts/about.html')
