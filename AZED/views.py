@@ -1001,6 +1001,7 @@ def admin_add_benefactor_comment(request):
             comment = BenefactorComment.objects.create(commenter=charity, commented=benefactor, ability=ability)
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin')
         # TODO Raise Error
@@ -1021,6 +1022,7 @@ def admin_edit_benefactor_comment(request, comment_id):
     try:
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
         # TODO Raise Error
@@ -1040,6 +1042,7 @@ def admin_delete_benefactor_comment(request, comment_id):
         return HttpResponse(template.render(context, request))
     try:
         comment.delete()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
         # TODO Raise Error
@@ -1059,6 +1062,7 @@ def admin_add_charity_comment(request):
             comment = CharityComment.objects.create(commenter=benefactor, commented=charity)
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin')
         # TODO Raise Error
@@ -1079,6 +1083,7 @@ def admin_edit_charity_comment(request, comment_id):
     try:
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
         # TODO Raise Error
@@ -1098,6 +1103,7 @@ def admin_delete_charity_comment(request, comment_id):
         return HttpResponse(template.render(context, request))
     try:
         comment.delete()
+        return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
         # TODO Raise Error
@@ -1122,6 +1128,7 @@ def admin_add_benefactor_score(request):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
         # TODO Raise Error
@@ -1145,6 +1152,7 @@ def admin_edit_benefactor_score(request, score_id):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing score!', 'admin')
         # TODO Raise Error
@@ -1164,6 +1172,7 @@ def admin_delete_benefactor_score(request, score_id):
         return HttpResponse(template.render(context, request))
     try:
         score.delete()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Deleting score!', 'admin')
         # TODO Raise Error
@@ -1186,6 +1195,7 @@ def admin_add_charity_score(request):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
         # TODO Raise Error
@@ -1209,6 +1219,7 @@ def admin_edit_charity_score(request, score_id):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
         # TODO Raise Error
@@ -1228,6 +1239,7 @@ def admin_delete_charity_score(request, score_id):
         return HttpResponse(template.render(context, request))
     try:
         score.delete()
+        return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
         # TODO Raise Error
