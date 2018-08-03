@@ -77,53 +77,6 @@ def add_ability_to_benefactor(request):
     # TODO Fix Path
     return HttpResponseRedirect('path')
 
-
-def admin_get_request_related_stuff(request):
-    all_ability_requests = AbilityRequest.objects.all()
-    all_cooperation_requests = CooperationRequest.objects.all()
-    all_notifications = Notification.objects.all()
-    all_logs = Log.objects.all()
-    # FIXME fix url
-    return render(request, 'url', {
-        'all_ability_requests': all_ability_requests,
-        'all_cooperation_requests': all_cooperation_requests,
-        'all_notifications': all_notifications,
-        'all_logs': all_logs
-    })
-
-
-def admin_get_charities(request):
-    charities = Charity.objects.all()
-    # FIXME fix url
-    return render(request, 'url', {
-        'all_charities': list(charities)
-    })
-
-
-def admin_get_benefactors(request):
-    benefactors = Benefactor.objects.all()
-    # FIXME fix url
-    return render(request, 'url', {
-        'all_benefactors': list(benefactors)
-    })
-
-
-def admin_first_page_data(request):
-    benefactor_len = len(Benefactor.objects.all())
-    charity_len = len(Charity.objects.all())
-    project_len = len(Project.objects.all())
-    all_money_spent = 0
-    for financial_project in FinancialProject.objects.all():
-        all_money_spent += financial_project.current_money
-    # FIXME fix url
-    return render(request, 'url', {
-        'benefactor_len': benefactor_len,
-        'charity_len': charity_len,
-        'project_len': project_len,
-        'all_money_spent': all_money_spent
-    })
-
-
 def submit_benefactor_score(request, benefactor_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
@@ -383,57 +336,6 @@ def activate_user(request, uid, activation_string):
 
 class LoginView(TemplateView):
     template_name = "accounts/login.html"
-
-
-def admin_dashboard(request):
-    user = request.user
-    if not user.is_authenticated:
-        context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', 'accounts:login_view')
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
-    if not user.is_active:
-        context = error_context_generate('Deactivated Account Error',
-                                         'Your Account Has Been Marked as Deactivated!', 'Home')
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
-    if not user.is_admin:
-        context = error_context_generate('Account Type Error',
-                                         'Only Admins can Access This Page', 'Home')
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
-    try:
-        charity_count = Charity.objects.all().count()
-        benefactor_count = Benefactor.objects.all().count()
-        project_count = Project.objects.all().count()
-        contributions_sum = 0
-        for cont in FinancialContribution.objects.all():
-            contributions_sum += cont.money
-        tag_count = AbilityTag.objects.all().count()
-        ability_type_count = AbilityType.objects.count()
-        score_count = BenefactorScore.objects.count()
-        score_count += CharityScore.objects.count()
-        comment_count = BenefactorComment.objects.count()
-        comment_count += CharityComment.objects.count()
-        inactive_users = User.objects.filter(is_active=False).all()
-        context = {
-            'charity_count':charity_count,
-            'benefactor_count':benefactor_count,
-            'project_count': project_count,
-            'contributions_sum': contributions_sum,
-            'tag_count': tag_count,
-            'ability_type_count': ability_type_count,
-            'score_count': score_count,
-            'comment_count': comment_count,
-            'inactive_users': inactive_users
-        }
-        # TODO Fix template path and Redirect
-        template = loader.get_template('path-to-template')
-        return HttpResponse(template.render(context, request))
-    except:
-        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
-        # TODO Raise Error
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
 
 
 def benefactor_dashboard(request):
@@ -923,3 +825,4 @@ def logout_user(request):
     logout(request)
     template = loader.get_template('accounts/login.html')
     return HttpResponse(template.render(request, {}))
+
