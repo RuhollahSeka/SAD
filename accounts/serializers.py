@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('is_charity', 'is_benefactor', 'is_admin', 'contact_info', 'username', 'password', 'is_authenticated',
                   'notification_set', 'log_first_actor', 'log_second_actor', 'email_recover_string', 'description',
-                  'activation_string')
+                  'activation_string', 'generalrequest_set')
 
 
 class BenefactorSerializer(serializers.ModelSerializer):
@@ -83,3 +83,11 @@ class AbilityRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = AbilityRequest
         fields = ('type', 'name', 'description')
+
+
+class GeneralRequestSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = GeneralRequest
+        fields = ('user', 'description')

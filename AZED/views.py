@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.core.mail import EmailMessage
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,7 +11,7 @@ from accounts.log_util import Logger
 from accounts.models import *
 
 ###Home
-from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log
+from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest
 from projects.views import error_context_generate, get_object
 
 
@@ -30,6 +31,13 @@ def handle_admin_security(request):
                                          'Only Admins can Access This Page', 'Home')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+
+
+def add_request(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
 
 
 class HomeView(TemplateView):
@@ -207,8 +215,10 @@ def deactivate_user(request, uid):
         return secure
     user = get_object(User, id=uid)
     try:
-        user.is_active = False
+        user.admin_approved = False
         user.save()
+        mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=user.email)
+        mail.send()
         return HttpResponseRedirect(reverse(''))
     except:
         if user.is_benefactor:
@@ -228,8 +238,10 @@ def activate_user(request, uid):
         return secure
     user = get_object(User, id=uid)
     try:
-        user.is_active = True
+        user.admin_approved = True
         user.save()
+        mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=user.email)
+        mail.send()
         return HttpResponseRedirect(reverse(''))
     except:
         if user.is_benefactor:

@@ -19,7 +19,7 @@ from accounts.log_util import Logger
 import random, string
 
 possible_characters = string.ascii_letters + string.digits
-ip = '127.0.0.1:8000/'
+ip = 'http://127.0.0.1:8000/accounts/'
 
 
 def generate_recover_string(length=32):
@@ -278,10 +278,9 @@ def signup(request):
     tmp_user.save()
     code = generate_recover_string()
     message = 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n'
-    message += 'url/' + str(tmp_user.id) + '/' + code
+    message += ip + 'activate/' + str(tmp_user.id) + '/' + code
     tmp_user.activation_string = code
-    email_message = EmailMessage('Activation Email', 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n',
-                                 to=[tmp_user.email])
+    email_message = EmailMessage('Activation Email', message, to=[tmp_user.email])
     email_message.send()
     Logger.create_account(tmp_user, None, None)
     if request.POST.get("account_type") == "Charity":
@@ -328,6 +327,7 @@ def activate_user(request, uid, activation_string):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     user.is_active = True
+    user.save(update_fields=['is_active'])
     # TODO activation success
     return HttpResponseRedirect(reverse('Home'))
 
