@@ -389,6 +389,7 @@ def admin_add_benefactor(request):
                                    email=request.POST.get("email"), contact_info=tmp_contact_info,
                                    description=request.POST.get("description"))
     tmp_user.is_active = True
+    tmp_user.admin_approved = True
     tmp_user.save()
     Logger.create_account(tmp_user, None, None)
     # if request.POST.get("account_type") == "Charity":
@@ -483,9 +484,9 @@ def admin_edit_benefactor(request, uid):
         if request.POST.get("phone_number") is not None:
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
-        if request.POST.get("first_name") is not None:
+        if request.POST.get("first_name") is not None and len(request.POST.get("first_name")) > 0:
             user.benefactor.first_name = request.POST.get("first_name")
-        if request.POST.get("last_name") is not None:
+        if request.POST.get("last_name") is not None and len(request.POST.get("last_name")) > 0:
             user.benefactor.last_name = request.POST.get("last_name")
         if request.POST.get("gender") is not None:
             user.benefactor.gender = request.POST.get("gender")
@@ -531,6 +532,7 @@ def admin_add_charity(request):
                                    email=request.POST.get("email"), contact_info=tmp_contact_info,
                                    description=request.POST.get("description"))
     tmp_user.is_active = True
+    tmp_user.admin_approved = True
     tmp_user.save()
     Logger.create_account(tmp_user, None, None)
     # if request.POST.get("account_type") == "Charity":
@@ -617,7 +619,7 @@ def admin_edit_charity(request, uid):
         if request.POST.get("phone_number") is not None:
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
-        if request.POST.get("name") is not None:
+        if request.POST.get("name") is not None and len(request.POST.get("name")) > 0:
             user.charity.name = request.POST.get("name")
         user.charity.save()
         Logger.account_update(user, None, None)
@@ -707,8 +709,8 @@ def admin_get_comments(request):
         return HttpResponse(template.render(context, request))
 
 
-def admin_add_comment(request):
-    secure = handle_admin_security(request)
-    if type(secure) == HttpResponse:
-        return secure
-    try:
+# def admin_add_comment(request):
+#     secure = handle_admin_security(request)
+#     if type(secure) == HttpResponse:
+#         return secure
+#     try:
