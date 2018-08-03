@@ -147,8 +147,8 @@ class SearchTestCase(TestCase):
         }
         results = search_benefactor([start_date, end_date, schedule], min_required_hours=4)
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0][1], 5)
-        self.assertEqual(results[0][2], 240)
+        self.assertEqual(results[0][5], 5)
+        self.assertEqual(results[0][6], 240)
 
         schedule = {
             'sat': [[9, 30, 12, 30]],

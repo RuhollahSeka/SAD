@@ -182,7 +182,9 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         result_benefactors = result_benefactors.filter(user_id__in=[data[0] for data in schedule_filtered])
 
     benefactor_list = list(result_benefactors)
-    final_results = [(benefactor, data[1], data[2]) for benefactor, data in zip(benefactor_list, schedule_filtered)]
+    final_results = [[benefactor.first_name, benefactor.last_name, benefactor.calculate_score(),
+                      benefactor.number_of_finished_projects(), benefactor.number_of_all_projects(), data[1], data[2]]
+                     for benefactor, data in zip(benefactor_list, schedule_filtered)]
 
     return final_results
 
