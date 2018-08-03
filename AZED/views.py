@@ -568,16 +568,16 @@ def admin_get_tags(request):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
         return secure
-    try:
-        tags = AbilityTag.objects.all()
-        context = {'tags': tags}
-        template = loader.get_template('accounts/admin-tag.html')
-        return HttpResponse(template.render(context, request))
-    except:
-        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin')
-        # TODO Raise Error
-        template = loader.get_template('accounts/error_page.html')
-        return HttpResponse(template.render(context, request))
+    # try:
+    tags = AbilityTag.objects.all()
+    context = {'tags': tags}
+    template = loader.get_template('accounts/admin-tag.html')
+    return HttpResponse(template.render(context, request))
+    # except:
+    #     context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin')
+    #     # TODO Raise Error
+    #     template = loader.get_template('accounts/error_page.html')
+    #     return HttpResponse(template.render(context, request))
 
 
 def admin_first_page_data(request):
@@ -1327,7 +1327,7 @@ def admin_add_ability_tag(request):
             tag = AbilityTag.objects.create(name=request.POST.get('name'))
         tag.description = request.POST.get('description')
         tag.save()
-        return HttpResponseRedirect('admin_tags')
+        return HttpResponseRedirect(reverse('admin_tags'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Creating Ability Tag!', 'admin_tags')
         # TODO Raise Error

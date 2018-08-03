@@ -445,7 +445,7 @@ def charity_dashboard(request):
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
                                                                                                     user_project_ids).count()
     if request.method == 'GET':
-        return render(request, 'accounts/charity-profile.html', {
+        return render(request, 'accounts/charity-dashboard.html', {
             'requests': list(requests),
             'a_notification': notifications[0] if notifications.count() != 0 else None,
             'have_notification': True if notifications.count() > 0 else False,
@@ -479,7 +479,7 @@ def charity_dashboard(request):
                                               tags, ability_name, ability_min_score, ability_max_score, country,
                                               province, city, user_min_score, user_max_score, gender, first_name,
                                               last_name)
-        return render(request, 'url', {
+        return render(request, 'accounts/charity-dashboard.html', {
             'requests': list(requests),
             'a_notification': notifications[0] if notifications.count() != 0 else None,
             'have_notification': True if notifications.count() > 0 else False,
