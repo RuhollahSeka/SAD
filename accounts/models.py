@@ -180,7 +180,7 @@ class Charity(models.Model):
             if min_score == 0:
                 return True
             return False
-        return min_score < score < max_score
+        return float(min_score) <= score <= float(max_score)
 
 
 class Notification(models.Model):

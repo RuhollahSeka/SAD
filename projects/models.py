@@ -190,16 +190,18 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
                    min_finished_projects=0, max_finished_projects=math.inf, benefactor_name=None, country=None
                    , province=None, city=None):
-    filtered_ids = [charity.id for charity in Charity.objects.all() if charity.has_score(min_score, max_score)]
+    filtered_ids = [charity.user.id for charity in Charity.objects.all() if charity.has_score(min_score, max_score)]
     result_charities = Charity.objects.filter(user_id__in=filtered_ids)
-    filtered_ids = [charity.id for charity in result_charities if
-                    max_related_projects >
-                    Project.objects.related_charity_filter_count(charity) > min_related_projects and
-                    max_finished_projects >
-                    Project.objects.finished_charity_filter_count(charity) > min_finished_projects]
+    print(list(result_charities))
+    filtered_ids = [charity.user.id for charity in result_charities if
+                    int(max_related_projects) >=
+                    Project.objects.related_charity_filter_count(charity) >= int(min_related_projects) and
+                    int(max_finished_projects) >=
+                    Project.objects.finished_charity_filter_count(charity) >= int(min_finished_projects)]
     result_charities = result_charities.filter(user_id__in=filtered_ids)
     if name is not None:
         result_charities = result_charities.filter(name__icontains=name)
+        print(list(result_charities))
     if country is not None:
         result_charities = result_charities.filter(user__contactinfo__country__iexact=country)
     if province is not None:
@@ -211,9 +213,11 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
                       | Benefactor.objects.all().filter(last_name__icontains=benefactor_name)
         filtered_ids = []
         for benefactor in benefactors:
-            filtered_ids.extend([charity.id for charity in result_charities if
+            filtered_ids.extend([charity.user.id for charity in result_charities if
                                  benefactor.charity_set.filter(pk=charity.pk).exists()])
         result_charities = result_charities.filter(user_id__in=filtered_ids)
+    print(name)
+    print(list(result_charities))
     return result_charities
 
 
