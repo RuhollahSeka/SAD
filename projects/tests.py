@@ -45,7 +45,7 @@ def create_dateinterval(start_date=datetime.date(2018, 1, 1), end_date=datetime.
 def create_charity(username='pk-charity', password='password', description=None, country='iran', province='tehran',
                    city='tehran', postal_code='1234567810', address='nowhere', phone_number='09123456789',
                    charity_name='my charity'):
-    (user, contact_info) = create_user(username=username, password=password, is_benefactor=True,
+    (user, contact_info) = create_user(username=username, password=password, is_charity=True,
                                        description=description, country=country, province=province, city=city,
                                        postal_code=postal_code, address=address, phone_number=phone_number)
     charity = Charity(user=user, name=charity_name)
@@ -167,6 +167,20 @@ class SearchTestCase(TestCase):
         results = search_benefactor([start_date, end_date, schedule], min_required_hours=2)
         self.assertEqual(len(results), 0)
 
+    def test_delete_user(self):
+        user = User.objects.filter(is_benefactor=True)[0]
+        user.delete()
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Benefactor.objects.count(), 0)
+
+        user = User.objects.filter(is_charity=True)[0]
+        user.delete()
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Charity.objects.count(), 0)
+
+        self.assertEqual(AbilityTag.objects.count(), 1)
+        self.assertEqual(AbilityType.objects.count(), 1)
+
     def test_non_financial_project_search_schedule(self):
         user = User.objects.filter(username__iexact='pkms')[0]
 
@@ -205,3 +219,11 @@ class SearchTestCase(TestCase):
 
         results = search_non_financial_project(ability_name='ability')
         self.assertEqual(len(results), 0)
+
+    def test_delete_non_financial_project(self):
+        project = Project.objects.all()[0]
+        project.delete()
+        self.assertEqual(Project.objects.count(), 0)
+        self.assertEqual(NonFinancialProject.objects.count(), 0)
+        self.assertEqual(AbilityType.objects.count(), 1)
+        self.assertEqual(AbilityTag.objects.count(), 1)

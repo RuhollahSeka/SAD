@@ -11,7 +11,8 @@ from accounts.log_util import Logger
 from accounts.models import *
 
 ###Home
-from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest
+from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest, \
+    NonFinancialProject, DateInterval
 from projects.views import error_context_generate, get_object
 
 
@@ -38,7 +39,7 @@ def add_request(request):
     if type(secure) == HttpResponse:
         return secure
     data = request.POST
-    type = data.get('request_type')
+    request_type = data.get('request_type')
     state = data.get('request_state')
     benefactor_id = data.get('benefactor_id')
     charity_id = data.get('charity_id')
@@ -52,7 +53,7 @@ def add_request(request):
         # TODO error
         pass
 
-    cooperation_request = CooperationRequest(type=type, state=state, benefactor=benefactor_user.benefactor,
+    cooperation_request = CooperationRequest(type=request_type, state=state, benefactor=benefactor_user.benefactor,
                                              charity=charity_user.charity, project=project, description=description)
     cooperation_request.save()
     # TODO add request
@@ -143,6 +144,174 @@ def add_new_admin(request):
     except:
         # TODO some error?
         pass
+
+
+def create_project(charity, type, project_name='my project', description='this is my project', project_state='open'):
+    project = Project(charity=charity, type=type, project_name=project_name, description=description,
+                      project_state=project_state)
+    project.save()
+    return project
+
+
+def add_non_financial_project(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    data = request.POST
+    project_name = data.get('project_name')
+    description = data.get('description')
+    project_state = data.get('project_state')
+    charity_id = data.get('charity_id')
+    charity_user = get_object(User, id=charity_id)
+    if charity_user is None:
+        # TODO some error
+        pass
+    try:
+        ability_type_id = data.get('ability_type_id')
+        ability_type = get_object(AbilityType, id=ability_type_id)
+        if ability_type is None:
+            # TODO some error
+            pass
+        project = create_project(charity_user.charity, 'non-financial', project_name, description, project_state)
+        min_age = data.get('min_age')
+        max_age = data.get('max_age')
+        required_gender = data.get('required_gender')
+        country = data.get('country')
+        province = data.get('province')
+        city = data.get('city')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        schedule = data.get('schedule')
+        non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
+                                                    max_age=max_age, required_gender=required_gender, country=country,
+                                                    province=province, city=city)
+        non_financial_project.save()
+        dateinterval = DateInterval(begin_date=start_date, end_date=end_date,
+                                    non_financial_project=non_financial_project)
+        dateinterval.to_json(schedule)
+        dateinterval.save()
+
+        # TODO success
+    except:
+        # TODO some error
+        pass
+
+
+def edit_non_financial_project(request, pid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
+    project = get_object(Project, id=pid)
+    if project is None or project.non_financial_project is None:
+        # TODO some error
+        pass
+    non_financial_project = project.non_financial_project
+    if request.method == 'GET':
+        # TODO url?
+        return render(request, 'url', {
+            'charity_id': project.charity.id,
+            'project_name': project.project_name,
+            'description': project.description,
+            'project_state': project.project_state,
+            'ability_type_id': non_financial_project.ability_type.id,
+            'min_age': non_financial_project.min_age,
+            'max_age': non_financial_project.max_age,
+            'required_gender': non_financial_project.required_gender,
+            'country': non_financial_project.country,
+            'province': non_financial_project.province,
+            'city': non_financial_project.city,
+            'start_date': non_financial_project.dateinterval.begin_date,
+            'end_date': non_financial_project.dateinterval.end_date,
+            'schedule': non_financial_project.dateinterval.from_json()
+        })
+    elif request.method == 'POST':
+        data = request.POST
+        charity_id = data.get('charity_id')
+        if charity_id is None:
+            charity_id = project.charity.id
+        ability_type_id = data.get('ability_type_id')
+        if ability_type_id is None:
+            ability_type_id = non_financial_project.ability_type.id
+        charity_user = get_object(User, id=charity_id)
+        ability_type = get_object(AbilityType, id=ability_type_id)
+        if charity_user is None or ability_type is None:
+            # TODO some error
+            pass
+        project_name = data.get('project_name')
+        if not (project_name is None or len(project_name) == 0):
+            project.project_name = project_name
+        description = data.get('description')
+        if not (description is None or len(description) == 0):
+            project.description = description
+        project_state = data.get('project_state')
+        if not (project_state is None or len(project_state) == 0):
+            project.project_state = project_state
+        min_age = data.get('min_age')
+        if not (min_age is None):
+            non_financial_project.min_age = min_age
+        max_age = data.get('max_age')
+        if not (max_age is None):
+            non_financial_project.max_age = max_age
+        required_gender = data.get('required_gender')
+        if not (required_gender is None or len(required_gender) == 0):
+            non_financial_project.required_gender = required_gender
+        country = data.get('country')
+        if not (country is None or len(country) == 0):
+            non_financial_project.country = country
+        province = data.get('province')
+        if not (province is None or len(province) == 0):
+            non_financial_project.province = province
+        city = data.get('city')
+        if not (city is None or len(city) == 0):
+            non_financial_project.city = city
+        start_date = data.get('start_date')
+        if not (start_date is None):
+            non_financial_project.dateinterval.begin_date = start_date
+        end_date = data.get('end_date')
+        if not (end_date is None):
+            non_financial_project.dateinterval.end_date = end_date
+        schedule = data.get('schedule')
+        if not (schedule is None or len(schedule) == 0):
+            non_financial_project.dateinterval.to_json(schedule)
+
+        project.save()
+        non_financial_project.save()
+        # TODO url?
+        return render(request, 'url', {})
+    # TODO do something?
+
+
+def delete_non_financial_project(request, pid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    project = get_object(Project, id=pid)
+    if project is None:
+        # TODO some error
+        pass
+    try:
+        project.delete()
+    except:
+        # TODO something
+        pass
+    # TODO idk, do something?
+
+
+def delete_financial_project(request, pid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    project = get_object(Project, id=pid)
+    if project is None:
+        # TODO some error
+        pass
+    try:
+        project.delete()
+    except:
+        # TODO something
+        pass
+    # TODO idk, do something?
 
 
 class HomeView(TemplateView):

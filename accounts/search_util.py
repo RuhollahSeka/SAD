@@ -101,7 +101,7 @@ def find_overlapped_dateintervals_days(dateinterval_set, start_date, end_date):
             useful_dateintervals.append([dateinterval.from_json(), overlapped_days])
 
     if all_overlapped_days == 0:
-        return useful_dateintervals, 0
+        return useful_dateintervals, 0, date_diff_days
 
     for useful_dateinterval in useful_dateintervals:
         useful_dateinterval[1] /= all_overlapped_days
