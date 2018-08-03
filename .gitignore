@@ -89,5 +89,5 @@ local_settings.py
 db.sqlite3
 
 # This project specific stuff
-.idea
+.idea/
 venv
