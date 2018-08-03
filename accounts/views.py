@@ -327,6 +327,7 @@ def activate_user(request, uid, activation_string):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     user.is_active = True
+    user.save(update_fields=['is_active'])
     # TODO activation success
     return HttpResponseRedirect(reverse('Home'))
 
