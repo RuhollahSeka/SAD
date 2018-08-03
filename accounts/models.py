@@ -68,6 +68,7 @@ class User(AbstractUser):
     is_charity = models.BooleanField(default=False)
     is_benefactor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    admin_approved = models.BooleanField(default=False)
     contact_info = models.OneToOneField(ContactInfo, on_delete=models.DO_NOTHING, default='')
     description = models.CharField(max_length=2048, default='', null=True)
     # TODO set initial recover string when creating the user
@@ -218,6 +219,11 @@ class AbilityRequest(models.Model):
             return ans
         except:
             return None
+
+
+class GeneralRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
+    description = models.CharField(max_length=1024)
 
 
 class BenefactorComment(models.Model):

@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.core.mail import EmailMessage
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,7 +10,7 @@ from accounts.forms import CharitySignUpForm
 from accounts.models import *
 
 ###Home
-from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log
+from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest
 from projects.views import error_context_generate, get_object
 
 
@@ -29,6 +30,33 @@ def handle_admin_security(request):
                                          'Only Admins can Access This Page', 'Home')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+
+
+def approve_user(request, uid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    users = User.objects.filter(id=uid)
+    if users.count() != 1:
+        # TODO some error
+        pass
+    user = users.get()
+    user.admin_approved = True
+    mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=user.email)
+    mail.send()
+
+
+def reject_user(request, uid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    users = User.objects.filter(id=uid)
+    if users.count() != 1:
+        # TODO some error
+        pass
+    user = users.get()
+    mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=user.email)
+    mail.send()
 
 
 class HomeView(TemplateView):
