@@ -3,8 +3,6 @@ from django.db import models
 from accounts.search_util import *
 import datetime, json
 
-from projects.models import Ability
-
 
 class AbilityTypeManager(models.Manager):
     def find_ability_ids(self, ability_name=None, ability_tags=None):
@@ -139,6 +137,13 @@ class Benefactor(models.Model):
         return score / count
 
 
+class Ability(models.Model):
+    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
+    score = models.IntegerField(default=-1)
+    description = models.CharField(max_length=512, default='')
+
+
 class Charity(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, default='')
     name = models.CharField(max_length=200)
@@ -169,6 +174,43 @@ class Notification(models.Model):
     date_time = models.DateTimeField(default=datetime.datetime(2018, 1, 1, 0, 0))
     description = models.CharField(max_length=2048, null=True)
 
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
+
+class AbilityRequest(models.Model):
+    type = models.CharField(max_length=64, default='')
+    name = models.CharField(max_length=64, default='')
+    description = models.CharField(max_length=2048, null=True)
+
+    def get(self, *args, **kwargs):
+        try:
+            ans = self.objects.get(*args, **kwargs)
+            return ans
+        except:
+            return None
+
+
+
+class BenefactorComment(models.Model):
+    commenter = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    commented = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    ability = models.ForeignKey(Ability, on_delete=models.CASCADE, default='')
+    comment_string = models.CharField(max_length=2048, default='')
+    date_time = models.DateTimeField(auto_now=True)
+
+
+class CharityComment(models.Model):
+    commenter = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    commented = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
+    comment_string = models.CharField(max_length=2048, default='')
+    date_time = models.DateTimeField(auto_now=True)
+
+    @staticmethod
     def get(self, *args, **kwargs):
         try:
             ans = self.objects.get(*args, **kwargs)
@@ -210,34 +252,7 @@ class CharityScore(models.Model):
         unique_together = (('benefactor', 'charity'),)
 
 
-class AbilityRequest(models.Model):
-    type = models.CharField(max_length=64, default='')
-    name = models.CharField(max_length=64, default='')
-    description = models.CharField(max_length=2048, null=True)
-
-    def get(self, *args, **kwargs):
-        try:
-            ans = self.objects.get(*args, **kwargs)
-            return ans
-        except:
-            return None
-
-
 class GeneralRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default='')
     description = models.CharField(max_length=1024)
 
-
-class BenefactorComment(models.Model):
-    commenter = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
-    commented = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
-    ability = models.ForeignKey(Ability, on_delete=models.CASCADE, default='')
-    comment_string = models.CharField(max_length=2048, default='')
-    date_time = models.DateTimeField(auto_now=True)
-
-
-class CharityComment(models.Model):
-    commenter = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
-    commented = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
-    comment_string = models.CharField(max_length=2048, default='')
-    date_time = models.DateTimeField(auto_now=True)

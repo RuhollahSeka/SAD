@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from django.template import loader
 from rest_framework.response import Response
 
-from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
+from projects.models import FinancialProject, NonFinancialProject, Project, Log
 from accounts.models import *
 
 ####### Danial imports .Some of them may be redundant!!!

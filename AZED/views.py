@@ -11,7 +11,7 @@ from accounts.log_util import Logger
 from accounts.models import *
 
 ###Home
-from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest
+from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log
 from projects.views import error_context_generate, get_object
 
 
@@ -134,7 +134,7 @@ def add_new_admin(request):
     contact_info = ContactInfo()
     contact_info.save()
     new_admin = User(is_admin=True, is_active=True, admin_approved=True, username=username, password=password,
-                     contact_info=contact_info)
+                     contact_info=contact_info, email=email)
     new_admin.save()
     mail = EmailMessage('Admin Promotion', 'شما به عنوان ادمین سایت مرساد انتخاب شدید.', to=[email])
     mail.send()

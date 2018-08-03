@@ -2,7 +2,7 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability, FinancialContribution
+from projects.models import FinancialProject, NonFinancialProject, Project, Log, FinancialContribution
 ####### Danial imports .Some of them may be redundant!!!
 
 from django.contrib.auth import login, logout

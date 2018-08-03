@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import *
+from accounts.models import Charity, Benefactor, AbilityType, has_matched_schedule, User
 
 from django.db import models
 
@@ -18,20 +18,6 @@ class ProjectManager(models.Manager):
     def related_charity_filter_count(self, charity):
         return super().all().filter(charity=charity).count()
 
-
-class Ability(models.Model):
-    benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
-    score = models.IntegerField(default=-1)
-    description = models.CharField(max_length=512, default='')
-
-    @staticmethod
-    def get(self, *args, **kwargs):
-        try:
-            ans = self.objects.get(*args, **kwargs)
-            return ans
-        except:
-            return None
 
 
 class Project(models.Model):
@@ -320,3 +306,5 @@ class CooperationRequest(models.Model):
             return ans
         except:
             return None
+
+
