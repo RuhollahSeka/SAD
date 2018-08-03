@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 from accounts.log_util import create_financial_project_report, create_non_financial_project_report, Logger
+from accounts.models import AbilityTag, Notification
+from accounts.search_util import create_query_schedule
 from projects.models import *
 from django.template import loader
 

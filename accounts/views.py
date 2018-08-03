@@ -698,6 +698,7 @@ def customize_user(request):
     if request.POST.get("phone_number") is not None:
         request.user.contact_info.phone_number = request.POST.get("phone_number")
     request.user.save()
+    request.user.contact_info.save()
     if request.user.is_charity:
         if request.POST.get("name") is not None:
             request.user.charity.name = request.POST.get("name")

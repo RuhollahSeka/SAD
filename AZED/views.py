@@ -293,6 +293,7 @@ def admin_dashboard(request):
         comment_count += CharityComment.objects.count()
         inactive_users = User.objects.filter(admin_approved=False, is_active=True).all()
         request_list = list(AbilityRequest.objects.all())
+        admins = list(User.objects.filter(is_admin=True))
         context = {
             'charity_count': charity_count,
             'benefactor_count': benefactor_count,
@@ -304,6 +305,7 @@ def admin_dashboard(request):
             'comment_count': comment_count,
             'inactive_users': inactive_users,
             'request_list': request_list,
+            'admins': admins,
         }
         # TODO Fix template path and Redirect
         template = loader.get_template('accounts/admin.html')
@@ -369,15 +371,19 @@ def admin_add_benefactor(request):
     test1_user = User.objects.filter(username=request.POST.get("username"))
     test2_user = User.objects.filter(username=request.POST.get("email"))
     if test1_user.__len__() != 0 and test2_user.__len__() != 0:
-        return render(request, 'accounts/register.html',
-                      {'error_message': 'Account already exists!'})
+        context = error_context_generate('Invalid Data', 'Account already exists!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     if test1_user.__len__() == 0 and len(test2_user) != 0:
-        return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
+        context = error_context_generate('Invalid Data', 'Email is Already Taken!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     if len(test1_user) != 0 and len(test2_user) == 0:
-        return render(request, 'accounts/register.html',
-                      {'error_message': 'Username is already taken! try another username.'})
+        context = error_context_generate('Invalid Data', 'Username is Already Taken!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     tmp_contact_info = ContactInfo.objects.create(country="ایران",
                                                   province=request.POST.get("province"),
@@ -485,6 +491,7 @@ def admin_edit_benefactor(request, uid):
         if request.POST.get("phone_number") is not None:
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
+        user.contact_info.save()
         if request.POST.get("first_name") is not None and len(request.POST.get("first_name")) > 0:
             user.benefactor.first_name = request.POST.get("first_name")
         if request.POST.get("last_name") is not None and len(request.POST.get("last_name")) > 0:
@@ -512,15 +519,19 @@ def admin_add_charity(request):
     test1_user = User.objects.filter(username=request.POST.get("username"))
     test2_user = User.objects.filter(username=request.POST.get("email"))
     if test1_user.__len__() != 0 and test2_user.__len__() != 0:
-        return render(request, 'accounts/register.html',
-                      {'error_message': 'Account already exists!'})
+        context = error_context_generate('Invalid Data', 'Account already exists!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     if test1_user.__len__() == 0 and len(test2_user) != 0:
-        return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
+        context = error_context_generate('Invalid Data', 'Email is Already Taken!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     if len(test1_user) != 0 and len(test2_user) == 0:
-        return render(request, 'accounts/register.html',
-                      {'error_message': 'Username is already taken! try another username.'})
+        context = error_context_generate('Invalid Data', 'Username is Already Taken!', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     tmp_contact_info = ContactInfo.objects.create(country="ایران",
                                                   province=request.POST.get("province"),
@@ -620,6 +631,7 @@ def admin_edit_charity(request, uid):
         if request.POST.get("phone_number") is not None:
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
+        user.contact_info.save()
         if request.POST.get("name") is not None and len(request.POST.get("name")) > 0:
             user.charity.name = request.POST.get("name")
         user.charity.save()
@@ -710,8 +722,41 @@ def admin_get_comments(request):
         return HttpResponse(template.render(context, request))
 
 
-# def admin_add_comment(request):
-#     secure = handle_admin_security(request)
-#     if type(secure) == HttpResponse:
-#         return secure
-#     try:
+def admin_add_benefactor_comment(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        ability = get_object(Ability, id=request.POST.get('ability_id'))
+        charity = get_object(Charity, id=request.POST.get('charity'))
+        benefactor = ability.benefactor
+        comment = get_object(BenefactorComment, commenter=charity, commented=benefactor, ability=ability)
+        if comment is None:
+            comment = BenefactorComment.objects.create(commenter=charity, commented=benefactor, ability=ability)
+        comment.comment_string = request.POST.get('comment_string')
+        comment.save()
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_edit_benefactor_comment(request, comment_id):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    comment = get_object(BenefactorComment, id=comment_id)
+    if comment is None:
+        # TODO Error Comment
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    try:
+        comment.comment_string = request.POST.get('comment_string')
+        comment.save()
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Editting Comment!', 'admin')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
