@@ -198,16 +198,45 @@ def add_non_financial_project(request):
         pass
 
 
+def add_financial_project(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    data = request.POST
+    project_name = data.get('project_name')
+    description = data.get('description')
+    project_state = data.get('project_state')
+    charity_id = data.get('charity_id')
+    charity_user = get_object(User, id=charity_id)
+    if charity_user is None:
+        # TODO some error
+        pass
+    try:
+        project = create_project(charity_user.charity, 'financial', project_name, description, project_state)
+        target_money = data.get('target_money')
+        current_money = data.get('current_money')
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        financial_project = FinancialProject(project=project, target_money=target_money, current_money=current_money,
+                                             start_date=start_date, end_date=end_date)
+        financial_project.save()
+
+        # TODO success
+    except:
+        # TODO some error
+        pass
+
+
 def edit_non_financial_project(request, pid):
     secure = handle_admin_security(request)
     if type(secure) is HttpResponse:
         return secure
 
     project = get_object(Project, id=pid)
-    if project is None or project.non_financial_project is None:
+    if project is None or project.nonfinancialproject is None:
         # TODO some error
         pass
-    non_financial_project = project.non_financial_project
+    non_financial_project = project.nonfinancialproject
     if request.method == 'GET':
         # TODO url?
         return render(request, 'url', {
@@ -275,12 +304,71 @@ def edit_non_financial_project(request, pid):
         schedule = data.get('schedule')
         if not (schedule is None or len(schedule) == 0):
             non_financial_project.dateinterval.to_json(schedule)
-
+        non_financial_project.dateinterval.save()
         project.save()
         non_financial_project.save()
         # TODO url?
         return render(request, 'url', {})
     # TODO do something?
+
+
+def edit_financial_project(request, pid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
+    project = get_object(Project, id=pid)
+    if project is None or project.financialproject is None:
+        # TODO some error
+        pass
+    financial_project = project.financialproject
+    if request.method == 'GET':
+        # TODO url?
+        return render(request, 'url', {
+            'charity_id': project.charity.id,
+            'project_name': project.project_name,
+            'description': project.description,
+            'project_state': project.project_state,
+            'target_money': financial_project.target_money,
+            'current_money': financial_project.current_money,
+            'start_date': financial_project.start_date,
+            'end_date': financial_project.end_date
+        })
+    elif request.method == 'POST':
+        data = request.POST
+        charity_id = data.get('charity_id')
+        if charity_id is None:
+            charity_id = project.charity.id
+        charity_user = get_object(User, id=charity_id)
+        if charity_user is None:
+            # TODO some error
+            pass
+        project_name = data.get('project_name')
+        if not (project_name is None or len(project_name) == 0):
+            project.project_name = project_name
+        description = data.get('description')
+        if not (description is None or len(description) == 0):
+            project.description = description
+        project_state = data.get('project_state')
+        if not (project_state is None or len(project_state) == 0):
+            project.project_state = project_state
+        target_money = data.get('target_money')
+        if not (target_money is None or len(target_money) == 0):
+            financial_project.target = target_money
+        current_money = data.get('current_money')
+        if not (current_money is None or len(current_money) == 0):
+            financial_project.current_money = current_money
+        start_date = data.get('start_date')
+        if not (start_date is None or len(start_date) == 0):
+            financial_project.start_date = start_date
+        end_date = data.get('end_date')
+        if not (end_date is None or len(end_date) == 0):
+            financial_project.end_date = end_date
+        project.save()
+        financial_project.save()
+        # TODO url?
+        return render(request, 'url', {})
+        # TODO do something?
 
 
 def delete_non_financial_project(request, pid):
