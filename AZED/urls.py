@@ -26,7 +26,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('',views.index, name='Home'),
-
     path('error/',views.ErrorView.as_view(),name='error_page'),
     path('error/red=<slug:redirect_address>/',views.error_redirect,name='error_redirect'),
     path('index/', views.index, name='index'),

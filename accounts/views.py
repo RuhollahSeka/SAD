@@ -2,7 +2,7 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability
+from projects.models import FinancialProject, NonFinancialProject, Project, Log, Ability, FinancialContribution
 ####### Danial imports .Some of them may be redundant!!!
 
 from django.contrib.auth import login, logout
@@ -365,16 +365,21 @@ def signup(request):
 
 def activate_user(request, uid, activation_string):
     # TODO any security stuff?
-    user = User.objects.filter(id=uid)
-    if user.count() != 1:
+    users = User.objects.filter(id=uid)
+    if users.count() != 1:
         # TODO shitty link
-        pass
-    user = user[0]
+        context = error_context_generate('Activation Error', 'Something Went Wrong in Activating Your Account!', 'Home')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    user = users[0]
     if user.activation_string != activation_string:
         # TODO shitty link
-        pass
+        context = error_context_generate('Invalid Key Error', 'Your Provided Activation Key is not Valid', 'Home')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     user.is_active = True
     # TODO activation success
+    return HttpResponseRedirect(reverse('Home'))
 
 
 ####Login
@@ -383,13 +388,64 @@ class LoginView(TemplateView):
     template_name = "accounts/login.html"
 
 
+def admin_dashboard(request):
+    user = request.user
+    if not user.is_authenticated:
+        context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', 'accounts:login_view')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_active:
+        context = error_context_generate('Deactivated Account Error',
+                                         'Your Account Has Been Marked as Deactivated!', 'Home')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_admin:
+        context = error_context_generate('Account Type Error',
+                                         'Only Admins can Access This Page', 'Home')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    try:
+        charity_count = Charity.objects.all().count()
+        benefactor_count = Benefactor.objects.all().count()
+        project_count = Project.objects.all().count()
+        contributions_sum = 0
+        for cont in FinancialContribution.objects.all():
+            contributions_sum += cont.money
+        tag_count = AbilityTag.objects.all().count()
+        ability_type_count = AbilityType.objects.count()
+        score_count = BenefactorScore.objects.count()
+        score_count += CharityScore.objects.count()
+        comment_count = BenefactorComment.objects.count()
+        comment_count += CharityComment.objects.count()
+        inactive_users = User.objects.filter(is_active=False).all()
+        context = {
+            'charity_count':charity_count,
+            'benefactor_count':benefactor_count,
+            'project_count': project_count,
+            'contributions_sum': contributions_sum,
+            'tag_count': tag_count,
+            'ability_type_count': ability_type_count,
+            'score_count': score_count,
+            'comment_count': comment_count,
+            'inactive_users': inactive_users
+        }
+        # TODO Fix template path and Redirect
+        template = loader.get_template('path-to-template')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
 def benefactor_dashboard(request):
     user = request.user
     if not user.is_authenticated or not user.is_benefactor:
         # TODO error
         pass
     requests = CooperationRequest.objects.filter(type__iexact='c2b').filter(benefactor=user.benefactor).filter(
-        state__iexact='on-hold')
+            state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
     user_project_ids = [project.id for project in user.benefactor.project_set]
     complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
@@ -441,7 +497,7 @@ def charity_dashboard(request):
         # TODO error
         pass
     requests = CooperationRequest.objects.filter(type__iexact='b2c').filter(benefactor=user.benefactor).filter(
-        state__iexact='on-hold')
+            state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
     user_project_ids = [project.id for project in user.charity.project_set]
     complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
