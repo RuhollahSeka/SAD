@@ -33,33 +33,6 @@ def handle_admin_security(request):
         return HttpResponse(template.render(context, request))
 
 
-def approve_user(request, uid):
-    secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
-        return secure
-    users = User.objects.filter(id=uid)
-    if users.count() != 1:
-        # TODO some error
-        pass
-    user = users.get()
-    user.admin_approved = True
-    mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=user.email)
-    mail.send()
-
-
-def reject_user(request, uid):
-    secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
-        return secure
-    users = User.objects.filter(id=uid)
-    if users.count() != 1:
-        # TODO some error
-        pass
-    user = users.get()
-    mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=user.email)
-    mail.send()
-
-
 class HomeView(TemplateView):
     template_name = "base.html"
 
@@ -235,8 +208,10 @@ def deactivate_user(request, uid):
         return secure
     user = get_object(User, id=uid)
     try:
-        user.is_active = False
+        user.admin_approved = False
         user.save()
+        mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=user.email)
+        mail.send()
         return HttpResponseRedirect(reverse(''))
     except:
         if user.is_benefactor:
@@ -256,8 +231,10 @@ def activate_user(request, uid):
         return secure
     user = get_object(User, id=uid)
     try:
-        user.is_active = True
+        user.admin_approved = True
         user.save()
+        mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=user.email)
+        mail.send()
         return HttpResponseRedirect(reverse(''))
     except:
         if user.is_benefactor:
