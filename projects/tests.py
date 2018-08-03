@@ -185,6 +185,8 @@ class SearchTestCase(TestCase):
         self.assertEqual(AbilityTag.objects.count(), 1)
         self.assertEqual(AbilityType.objects.count(), 1)
 
+        self.assertEqual(ContactInfo.objects.count(), 0)
+
     def test_non_financial_project_search_schedule(self):
         user = User.objects.filter(username__iexact='pkms')[0]
 

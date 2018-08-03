@@ -82,6 +82,10 @@ class User(AbstractUser):
         except:
             return None
 
+    def delete(self, using=None, keep_parents=False):
+        self.contact_info.delete()
+        return super().delete(using, keep_parents)
+
     def __str__(self):
         return 'Username: ' + self.username
 
