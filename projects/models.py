@@ -190,8 +190,7 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
                    min_finished_projects=0, max_finished_projects=math.inf, benefactor_name=None, country=None
                    , province=None, city=None):
-    filtered_ids = [charity.id for charity in Charity.objects.all() if
-                    min_score <= charity.calculate_score() <= max_score]
+    filtered_ids = [charity.id for charity in Charity.objects.all() if charity.has_score(min_score, max_score)]
     result_charities = Charity.objects.filter(user_id__in=filtered_ids)
     filtered_ids = [charity.id for charity in result_charities if
                     max_related_projects >

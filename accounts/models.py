@@ -174,6 +174,14 @@ class Charity(models.Model):
             return '-'
         return score / count
 
+    def has_score(self, min_score, max_score):
+        score = self.calculate_score()
+        if str(score) == '-':
+            if min_score == 0:
+                return True
+            return False
+        return min_score < score < max_score
+
 
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')
