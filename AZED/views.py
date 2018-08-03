@@ -33,6 +33,13 @@ def handle_admin_security(request):
         return HttpResponse(template.render(context, request))
 
 
+def add_request(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
+
+
 class HomeView(TemplateView):
     template_name = "base.html"
 
