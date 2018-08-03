@@ -107,9 +107,11 @@ class NonFinancialProject(models.Model):
         except:
             return None
 
-    def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, schedule):
+    def search_filter(self, min_date_overlap, min_required_hours, min_time_overlap, dateintervals):
+        full_schedule = [self.dateinterval.begin_date, self.dateinterval.end_date, self.dateinterval.from_json()]
         return \
-            has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, schedule, self.dateinterval)[0]
+            has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap, full_schedule,
+                                 dateinterval_set=dateintervals)[0]
 
     def __str__(self):
         return self.project.__str__()
@@ -158,8 +160,11 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         tags = []
 
     schedule_filtered = []
+    result_benefactors = Benefactor.objects.all()
 
-    result_benefactors = Benefactor.objects.all().filter(score__lte=user_max_score).filter(score__gte=user_min_score)
+    result_ids = [benefactor.user.id for benefactor in result_benefactors if
+                  benefactor.has_score(user_min_score, user_max_score)]
+    result_benefactors = Benefactor.objects.filter(user_id__in=result_ids)
     if first_name is not None:
         result_benefactors = result_benefactors.filter(first_name__icontains=first_name)
     if last_name is not None:
@@ -174,16 +179,16 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         result_benefactors = result_benefactors.filter(user__contactinfo__city__iexact=city)
 
     ability_type_ids = AbilityType.objects.find_ability_ids(ability_name, tags)
-    result_ids = [benefactor.id for benefactor in result_benefactors if
+    result_ids = [benefactor.user.id for benefactor in result_benefactors if
                   benefactor.has_ability(ability_type_ids, ability_min_score, ability_max_score)]
-    result_benefactors = result_benefactors.filter(id__in=result_ids)
+    result_benefactors = result_benefactors.filter(user_id__in=result_ids)
 
     if wanted_schedule is not None:
         schedule_data = [benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap,
                                                   wanted_schedule) for benefactor in result_benefactors]
-        schedule_filtered = [(benefactor.id, data[1], data[2]) for
+        schedule_filtered = [(benefactor.user.id, data[1], data[2]) for
                              benefactor, data in zip(result_benefactors, schedule_data) if data[0]]
-        result_benefactors = result_benefactors.filter(id__in=[data[0] for data in schedule_filtered])
+        result_benefactors = result_benefactors.filter(user_id__in=[data[0] for data in schedule_filtered])
 
     benefactor_list = list(result_benefactors)
     final_results = [(benefactor, data[1], data[2]) for benefactor, data in zip(benefactor_list, schedule_filtered)]
@@ -249,9 +254,9 @@ def search_financial_project(project_name=None, charity_name=None, benefactor_na
 
 
 def search_non_financial_project(project_name=None, charity_name=None, benefactor_name=None, project_state=None,
-                                 ability_name=None, tags=None, wanted_schedule=None, min_required_hours=0,
+                                 ability_name=None, tags=None, wanted_schedules=None, min_required_hours=0,
                                  min_date_overlap=30, min_time_overlap=50, age=None, gender=None, country=None,
-                                 province=None, city=None):
+                                 province=None, city=None, user_id=None):
     result_projects = NonFinancialProject.objects.all()
     result_projects = filter_projects(result_projects, project_name, charity_name, benefactor_name, project_state)
 
@@ -265,13 +270,21 @@ def search_non_financial_project(project_name=None, charity_name=None, benefacto
         result_projects = result_projects.filter(province__iexact=province)
     if city is not None:
         result_projects = result_projects.filter(city__iexact=city)
-    if wanted_schedule is not None:
+    if user_id is not None:
+        benefactor = Benefactor.objects.filter(user_id=user_id)[0]
+        filter_ids = [project.project.id for project in result_projects if
+                      project.search_filter(min_date_overlap, min_required_hours, min_time_overlap,
+                                            benefactor.dateinterval_set)]
+        result_projects = result_projects.filter(project_id__in=filter_ids)
+    elif wanted_schedules is not None:
+        dateinterval = DateInterval(begin_date=wanted_schedules[0], end_date=wanted_schedules[1])
+        dateinterval.to_json(wanted_schedules[2])
         filter_ids = [project.id for project in result_projects if
-                      project.search_filter(min_date_overlap, min_required_hours, min_time_overlap, wanted_schedule)]
-        result_projects = result_projects.filter(id__in=filter_ids)
+                      project.search_filter(min_date_overlap, min_required_hours, min_time_overlap, [dateinterval])]
+        result_projects = result_projects.filter(project_id__in=filter_ids)
     ability_type_ids = AbilityType.objects.find_ability_ids(ability_name, tags)
-    filter_ids = [project.id for project in result_projects if project.ability_type.id in ability_type_ids]
-    result_projects = result_projects.filter(id__in=filter_ids)
+    filter_ids = [project.project.id for project in result_projects if project.ability_type.id in ability_type_ids]
+    result_projects = result_projects.filter(project_id__in=filter_ids)
     return result_projects
 
 
