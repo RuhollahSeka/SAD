@@ -96,7 +96,7 @@ def edit_request(request, rid):
         cooperation_request.save()
         # TODO url?
         return render(request, 'url', {})
-    # TODO do something?
+        # TODO do something?
 
 
 def delete_cooperation_request(request, rid):
@@ -309,7 +309,7 @@ def edit_non_financial_project(request, pid):
         non_financial_project.save()
         # TODO url?
         return render(request, 'url', {})
-    # TODO do something?
+        # TODO do something?
 
 
 def edit_financial_project(request, pid):
@@ -384,7 +384,7 @@ def delete_non_financial_project(request, pid):
     except:
         # TODO something
         pass
-    # TODO idk, do something?
+        # TODO idk, do something?
 
 
 def delete_financial_project(request, pid):
@@ -400,7 +400,7 @@ def delete_financial_project(request, pid):
     except:
         # TODO something
         pass
-    # TODO idk, do something?
+        # TODO idk, do something?
 
 
 class HomeView(TemplateView):
@@ -949,7 +949,7 @@ def admin_get_scores(request):
         score_logs = list(Log.objects.filter(log_type='submit_score').all())
         context = {
             'scores': score_list,
-            'score_logs':score_logs
+            'score_logs': score_logs
         }
         # TODO Fix Path
         template = loader.get_template('path-to-template')
@@ -993,7 +993,8 @@ def admin_add_benefactor_comment(request):
         ability_type = get_object(Ability, id=request.POST.get('ability_type'))
         ability = benefactor.ability_set.filter(ability_type=ability_type).all()[0]
         if ability is None:
-            context = error_context_generate('Not Found', 'Requested Benefactor Does Not Have such Ability', 'admin')
+            context = error_context_generate('Not Found', 'Requested Benefactor Does Not Have such Ability',
+                                             'admin_comment')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         comment = get_object(BenefactorComment, commenter=charity, commented=benefactor, ability=ability)
@@ -1003,7 +1004,7 @@ def admin_add_benefactor_comment(request):
         comment.save()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1016,7 +1017,7 @@ def admin_edit_benefactor_comment(request, comment_id):
     comment = get_object(BenefactorComment, id=comment_id)
     if comment is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_comment')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
@@ -1024,7 +1025,7 @@ def admin_edit_benefactor_comment(request, comment_id):
         comment.save()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1037,14 +1038,14 @@ def admin_delete_benefactor_comment(request, comment_id):
     comment = get_object(BenefactorComment, id=comment_id)
     if comment is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_comment')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         comment.delete()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1064,7 +1065,7 @@ def admin_add_charity_comment(request):
         comment.save()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1077,7 +1078,7 @@ def admin_edit_charity_comment(request, comment_id):
     comment = get_object(CharityComment, id=comment_id)
     if comment is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_comment')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
@@ -1085,7 +1086,7 @@ def admin_edit_charity_comment(request, comment_id):
         comment.save()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1098,14 +1099,14 @@ def admin_delete_charity_comment(request, comment_id):
     comment = get_object(CharityComment, id=comment_id)
     if comment is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_comment')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         comment.delete()
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin_comment')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1130,7 +1131,7 @@ def admin_add_benefactor_score(request):
         score.save()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1143,7 +1144,7 @@ def admin_edit_benefactor_score(request, score_id):
     score = get_object(BenefactorScore, id=score_id)
     if score is None:
         # TODO Error score
-        context = error_context_generate('Not Found', 'Requested score Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested score Cannot be Found', 'admin_score')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
@@ -1154,7 +1155,7 @@ def admin_edit_benefactor_score(request, score_id):
         score.save()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Editing score!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Editing score!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1167,14 +1168,14 @@ def admin_delete_benefactor_score(request, score_id):
     score = get_object(BenefactorScore, id=score_id)
     if score is None:
         # TODO Error score
-        context = error_context_generate('Not Found', 'Requested Score Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Score Cannot be Found', 'admin_score')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         score.delete()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Deleting score!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Deleting score!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1197,7 +1198,7 @@ def admin_add_charity_score(request):
         score.save()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1210,7 +1211,7 @@ def admin_edit_charity_score(request, score_id):
     score = get_object(CharityScore, id=score_id)
     if score is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_score')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
@@ -1221,7 +1222,7 @@ def admin_edit_charity_score(request, score_id):
         score.save()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1234,14 +1235,181 @@ def admin_delete_charity_score(request, score_id):
     score = get_object(CharityScore, id=score_id)
     if score is None:
         # TODO Error Comment
-        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin')
+        context = error_context_generate('Not Found', 'Requested Comment Cannot be Found', 'admin_score')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         score.delete()
         return HttpResponseRedirect(reverse('admin_score'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin')
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Comment!', 'admin_score')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+
+
+def admin_add_ability_tag(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        tag = get_object(AbilityTag, name=request.POST.get('name'))
+        if tag is None:
+            tag = AbilityTag.objects.create(name=request.POST.get('name'))
+        tag.description = request.POST.get('description')
+        tag.save()
+        return HttpResponseRedirect('admin_tags')
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Creating Ability Tag!', 'admin_tags')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_edit_ability_tag(request, tag_id):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        tag = get_object(AbilityTag, id=tag_id)
+        if tag is None:
+            # TODO Error Ability Tag
+            context = error_context_generate('Not Found', 'Requested Ability Tag Cannot be Found', 'admin_tags')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+        name = request.POST.get('name')
+        if name is not None and len(name) > 0:
+            tag.name = name
+        description = request.POST.get('description')
+        if description is not None and len(description) > 0:
+            tag.description = request.POST.get('description')
+        tag.save()
+        return HttpResponseRedirect(reverse('admin_tags'))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Editing Ability Tag!', 'admin_tags')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_delete_ability_tag(request, tag_id):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        tag = get_object(AbilityTag, id=tag_id)
+        if tag is None:
+            # TODO Error Ability Tag
+            context = error_context_generate('Not Found', 'Requested Ability Tag Cannot be Found', 'admin_tags')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+        for ability_type in list(tag.abilitytype_set.all()):
+            ability_type.tags.remove(tag)
+        tag.delete()
+        return HttpResponseRedirect(reverse('admin_tags'))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Ability Tag!', 'admin_tags')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_add_ability_type(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        tags = json.loads(request.POST.get('tags'))
+        if tags is None:
+            # TODO Error Ability Tag
+            context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
+                                             'admin_type')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+        ability_type = get_object(AbilityType, name=request.POST.get('name'))
+        if ability_type is None:
+            ability_type = AbilityType.objects.create(name=request.POST.get('name'))
+        ability_type.description = request.POST.get('description')
+        for tag_name in tags:
+            tag = get_object(AbilityTag, name=tag_name)
+            if tag is None:
+                # TODO Error Ability Tag
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+            ability_type.tags.add(tag)
+        ability_type.save()
+        return HttpResponseRedirect('admin_type')
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Creating Ability Type!', 'admin_type')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_edit_ability_type(request, type_id):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:
+        tags = []
+        tags_json = request.POST.get('tags')
+        if tags_json is not None and len(tags_json) > 0:
+            tags = json.loads(request.POST.get('tags'))
+            if tags is None:
+                # TODO Error Ability Tag
+                context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
+                                                 'admin_type')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+        ability_type = get_object(AbilityType, id=type_id)
+        if ability_type is None:
+            # TODO Error Ability Tag
+            context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+        name = request.POST.get('name')
+        if name is not None and len(name) > 0:
+            ability_type.name = name
+        description = request.POST.get('description')
+        if description is not None and len(description) > 0:
+            ability_type.description = description
+        if type(tags) is dict: # FIXME Wanna check if tags is a json object
+            ability_type.tags.clear()
+            for tag_name in tags:
+                tag = get_object(AbilityTag, name=tag_name)
+                if tag is None:
+                    # TODO Error Ability Tag
+                    context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                    template = loader.get_template('accounts/error_page.html')
+                    return HttpResponse(template.render(context, request))
+                ability_type.tags.add(tag)
+        ability_type.save()
+        return HttpResponseRedirect('admin_type')
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Editing Ability Type!', 'admin_type')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def delete_ability_type(request, type_id):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    ability_type = get_object(AbilityType, id=type_id)
+    if ability_type is None:
+        # TODO Error Ability Tag
+        context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    try:
+        ability_type.delete()
+        return HttpResponseRedirect('admin_type')
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Ability Type!', 'admin_type')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
