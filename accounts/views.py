@@ -456,15 +456,15 @@ def dashboard(request):
     if not user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
     if not user.is_active:
-        context = error_context_generate('Inactive Account', 'Your Account is Not Active', 'Home')
+        context = error_context_generate('Inactive Account', 'Your Account is Not Activated Yet', 'Home')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if user.is_benefactor:
         HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
-    if user.is_charity:
+    elif user.is_charity:
         HttpResponseRedirect(reverse('accounts:charity_dashboard'))
     else:
-        pass
+        HttpResponseRedirect(reverse('admin_dashboard'))
 
 
 @csrf_exempt

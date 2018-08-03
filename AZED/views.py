@@ -10,7 +10,7 @@ from accounts.models import *
 
 ###Home
 from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log
-from projects.views import error_context_generate
+from projects.views import error_context_generate, get_object
 
 
 def handle_admin_security(request):
@@ -193,6 +193,38 @@ def admin_dashboard(request):
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def deactivate_user(request, uid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        user = get_object(User, id=uid)
+        user.is_active = False
+        user.save()
+        return HttpResponseRedirect(reverse(''))
+    except:
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', '')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def activate_user(request, uid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        user = get_object(User, id=uid)
+        user.is_active = True
+        user.save()
+        return HttpResponseRedirect(reverse(''))
+    except:
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', '')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
