@@ -130,19 +130,20 @@ def add_new_admin(request):
     username = data.get('username')
     password = data.get('password')
     email = data.get('email')
-    try:
-        contact_info = ContactInfo()
-        contact_info.save()
-        new_admin = User(is_admin=True, is_active=True, admin_approved=True, username=username, password=password,
-                         contact_info=contact_info)
-        new_admin.save()
-        mail = EmailMessage('Admin Promotion', 'شما به عنوان ادمین سایت مرساد انتخاب شدید.', to=email)
-        mail.send()
-        # TODO success?
-        pass
-    except:
-        # TODO some error?
-        pass
+    # try:
+    contact_info = ContactInfo()
+    contact_info.save()
+    new_admin = User(is_admin=True, is_active=True, admin_approved=True, username=username, password=password,
+                     contact_info=contact_info)
+    new_admin.save()
+    mail = EmailMessage('Admin Promotion', 'شما به عنوان ادمین سایت مرساد انتخاب شدید.', to=[email])
+    mail.send()
+    return HttpResponseRedirect(reverse('admin'))
+    # except:
+    #     context = error_context_generate('Add Error',
+    #                                      'اضافه کردن ادمین با مشکل روبرو شد!', 'admin')
+    #     template = loader.get_template('accounts/error_page.html')
+    #     return HttpResponse(template.render(context, request))
 
 
 class HomeView(TemplateView):
@@ -248,10 +249,10 @@ def admin_get_tags(request):
     try:
         tags = AbilityTag.objects.all()
         context = {'tags': tags}
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-tag.html')
         return HttpResponse(template.render(context, request))
     except:
-        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -290,7 +291,7 @@ def admin_dashboard(request):
         score_count += CharityScore.objects.count()
         comment_count = BenefactorComment.objects.count()
         comment_count += CharityComment.objects.count()
-        inactive_users = User.objects.filter(is_active=False).all()
+        inactive_users = User.objects.filter(admin_approved=False, is_active=True).all()
         request_list = list(AbilityRequest.objects.all())
         context = {
             'charity_count': charity_count,
@@ -322,9 +323,9 @@ def deactivate_user(request, uid):
     try:
         user.admin_approved = False
         user.save()
-        mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=user.email)
+        mail = EmailMessage('Account Rejected', 'حساب کاربری شما رد شد.', to=[user.email])
         mail.send()
-        return HttpResponseRedirect(reverse(''))
+        return HttpResponseRedirect(reverse('admin'))
     except:
         if user.is_benefactor:
             context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
@@ -660,10 +661,10 @@ def admin_get_contributions(request):
             'contributions': FinancialContribution.objects.all()
         }
         # TODO Fix Template Path
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-tx.html')
         return HttpResponse(template.render(context, request))
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -683,7 +684,7 @@ def admin_get_scores(request):
         template = loader.get_template('path-to-template')
         return HttpResponse(template.render(context, request))
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -703,7 +704,7 @@ def admin_get_comments(request):
         template = loader.get_template('path-to-template')
         return HttpResponse(template.render(context, request))
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))

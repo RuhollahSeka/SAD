@@ -312,7 +312,9 @@ def signup(request):
         tmp_user.save()
         login(request, tmp_user)
         Logger.login(request.user, None, None)
-        return HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
+        template = loader.get_template('accounts/login.html')
+        context = {'error_message': 'لطفاً ایمیل خود را تایید کنید.'}
+        return HttpResponse(template.render(context, request))
 
 
 # except:
@@ -349,9 +351,19 @@ class LoginView(TemplateView):
 
 def benefactor_dashboard(request):
     user = request.user
-    if not user.is_authenticated or not user.is_benefactor:
+    if not user.is_authenticated:
         # TODO error
-        pass
+        context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', 'accounts:login_view')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_active:
+        context = error_context_generate('Authentication Error', 'لطفاً اکانت خود را تایید کنید', 'accounts:login_view')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_benefactor:
+        context = error_context_generate('Access Denied', 'شما اجازه دسترسی به این بخش را ندارید', 'accounts:dashboard')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
     requests = CooperationRequest.objects.filter(type__iexact='c2b').filter(benefactor=user.benefactor).filter(
             state__iexact='on-hold')
@@ -405,19 +417,29 @@ def benefactor_dashboard(request):
 
 def charity_dashboard(request):
     user = request.user
-    if not user.is_authenticated or not user.is_charity:
+    if not user.is_authenticated:
         # TODO error
-        pass
-    requests = CooperationRequest.objects.filter(type__iexact='b2c').filter(benefactor=user.benefactor).filter(
+        context = error_context_generate('Authentication Error', 'لطفاً اول وارد شوید', 'accounts:login_view')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_active:
+        context = error_context_generate('Authentication Error', 'لطفاً اکانت خود را تایید کنید', 'accounts:login_view')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    if not user.is_charity:
+        context = error_context_generate('Access Denied', 'شما اجازه دسترسی به این بخش را ندارید', 'accounts:dashboard')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+    requests = CooperationRequest.objects.filter(type__iexact='b2c').filter(charity=user.charity).filter(
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
-    user_project_ids = [project.id for project in user.charity.project_set]
-    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(
-            id__in=user_project_ids).count()
+    user_project_ids = [project.id for project in list(user.charity.project_set.all())]
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids).count()
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
                                                                                                     user_project_ids).count()
     if request.method == 'GET':
-        return render(request, 'url', {
+        return render(request, 'accounts/charity-profile.html', {
             'requests': list(requests),
             'a_notification': notifications[0] if notifications.count() != 0 else None,
             'have_notification': True if notifications.count() > 0 else False,
@@ -467,7 +489,7 @@ def dashboard(request):
     if not user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
     if not user.is_active:
-        context = error_context_generate('Inactive Account', 'Your Account is Not Activated Yet', 'Home')
+        context = error_context_generate('Inactive Account', 'Your Account is Not Activated Yet', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if user.is_benefactor:
@@ -475,7 +497,7 @@ def dashboard(request):
     elif user.is_charity:
         return HttpResponseRedirect(reverse('accounts:charity_dashboard'))
     else:
-        return HttpResponseRedirect(reverse('admin_dashboard'))
+        return HttpResponseRedirect(reverse('admin'))
 
 
 @csrf_exempt
@@ -491,7 +513,8 @@ def login_user(request):
     tmp_user = get_object(User, username=request.POST.get("username"))
     if tmp_user.password != request.POST.get("password"):
         return render(request, 'accounts/login.html', {'error_message': 'رمز اشتباهه -.-'})
-
+    if not tmp_user.is_active:
+        return render(request, 'accounts/login.html', {'error_message': 'لطفاً حساب خود را تایید کنید.'})
     if tmp_user.is_charity:
         login(request, user=tmp_user)
         Logger.login(request.user, None, None)
@@ -613,16 +636,13 @@ def user_profile(request):
 def customize_user_data(request):
     if not request.user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
-
-    if request.method == 'GET':
-        return HttpResponseRedirect('accounts/user-profile.html')
     try:
         notifications = Notification.objects.filter(user=request.user).all()
         context = {"type": request.user.is_charity, "username": request.user.username, "email": request.user.email,
                    "country": request.user.contact_info.country, "province": request.user.contact_info.province,
                    "city": request.user.contact_info.city, "address": request.user.contact_info.address,
                    "phone_number": request.user.contact_info.phone_number, "description": request.user.description,
-                   "notifications": notifications}
+                   "notifications": notifications, 'password': request.user.password}
         if request.user.is_benefactor:
             try:
                 benefactor = get_object(Benefactor, user=request.user)
