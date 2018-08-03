@@ -304,7 +304,7 @@ def edit_project(request, pk):
                                          'Your Account Has Been Marked as Deactivated!', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    if request.method is not 'POST':
+    if request.method != 'POST':
         context = error_context_generate('Connection Error', 'Request Method is not POST!', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -433,7 +433,7 @@ def contribute_to_project(request, project_id):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     project = get_object(Project, id=project_id)
-    if project.type is not 'financial':
+    if project.type != 'financial':
         # TODO Raise Project Type Error
         context = error_context_generate('Project Type', 'Project Type is Not Financial', '')
         template = loader.get_template('accounts/error_page.html')
@@ -497,7 +497,7 @@ def get_project_report(request, project_id):
     project = get_object(Project, id=project_id)
     charity = get_object(Charity, user=request.user)
     try:
-        if project.charity is not charity:
+        if project.charity != charity:
             # TODO Raise Owner Error
             context = error_context_generate('Owner Error', 'You Are Not The Owner of The Project', '')
             template = loader.get_template('accounts/error_page.html')
@@ -544,8 +544,8 @@ def accept_request(request, rid):
             context = error_context_generate('Request Closed', 'Request is Already Closed', '')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (
-                    request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user != benefactor.user) or (
+                    request.user.is_charity and request.user != charity.user):
             # TODO Raise Authentication Error
             context = error_context_generate('Access Error', 'You Don\'t Have Permission to Accept This Request', '')
         project = get_object(Project, id=req.nonfinancialproject.project.id)
@@ -554,7 +554,7 @@ def accept_request(request, rid):
             context = error_context_generate('Project Type Error', 'Project is Financial', '')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        if project.benefactors.count() > 0 or project.project_state is not 'open':
+        if project.benefactors.count() > 0 or project.project_state != 'open':
             # TODO Raise Project Occupied Error
             context = error_context_generate('Project Occupied', 'Project is Already Taken by Another Benefactor', '')
             template = loader.get_template('accounts/error_page.html')
@@ -605,8 +605,8 @@ def deny_request(request, rid):
         if req.state is 'closed':
             # TODO Raise Request State Error
             return HttpResponse([])
-        if (request.user.is_benefactor and request.user is not benefactor.user) or (
-                    request.user.is_charity and request.user is not charity.user):
+        if (request.user.is_benefactor and request.user != benefactor.user) or (
+                    request.user.is_charity and request.user != charity.user):
             # TODO Raise Authentication Error
             return HttpResponse([])
         project = get_object(Project, id=req.nonfinancialproject.project.id)

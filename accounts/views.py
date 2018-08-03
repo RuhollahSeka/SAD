@@ -616,14 +616,7 @@ def customize_user_data(request):
                 benefactor = get_object(Benefactor, user=request.user)
                 projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
                 context['project_count'] = len(projects)
-                abilities = benefactor.ability_set.all()
-                if benefactor.score <= 0:
-                    score = 'N/A'
-                else:
-                    score = 0
-                    for ability in abilities:
-                        score += ability.score
-                    score /= len(abilities)
+                score = benefactor.calculate_score()
                 context['score'] = score
                 context["first_name"] = benefactor.first_name
                 context["last_name"] = benefactor.last_name
@@ -637,7 +630,7 @@ def customize_user_data(request):
         else:
             try:
                 context["name"] = request.user.charity.name
-                context["score"] = request.user.charity.score
+                context["score"] = request.user.charity.calculate_score()
             except:
                 print(1)
 
