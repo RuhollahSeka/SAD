@@ -101,7 +101,7 @@ class Logger:
 
     @staticmethod
     def submit_comment(first_actor, second_actor, log_project):
-        log = Log.objects.create(log_type='submit_score', first_actor=first_actor, second_actor=second_actor,
+        log = Log.objects.create(log_type='submit_comment', first_actor=first_actor, second_actor=second_actor,
                                  date_time=datetime.datetime.now(), log_project=log_project)
         log.description = 'User ' + str(first_actor) + ' Has Submit a Comment for User ' + str(second_actor) + ' at ' \
                           + str(datetime.datetime.now())
