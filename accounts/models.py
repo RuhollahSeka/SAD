@@ -106,10 +106,21 @@ class Benefactor(models.Model):
                                     dateinterval_set=self.dateinterval_set)
 
     def has_ability(self, ability_type_ids, ability_min_score, ability_max_score):
+        if self.ability_set.count() == 0:
+            return True
+
         for ability in self.ability_set.all():
             if ability.ability_type.id in ability_type_ids and ability_min_score < ability.score < ability_max_score:
                 return True
         return False
+
+    def has_score(self, min_score, max_score):
+        score = self.calculate_score()
+        if str(score) == '-':
+            if min_score == 0:
+                return True
+            return False
+        return min_score < score < max_score
 
     def calculate_score(self):
         score = 0

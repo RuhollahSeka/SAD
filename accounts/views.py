@@ -267,7 +267,6 @@ def submit_cooperation_request(request, project_id):
 # ignore this block
 
 
-
 class CharitySignUpView(CreateView):
     model = User
     form_class = CharitySignUpForm
@@ -287,9 +286,6 @@ class CharitySignUpView(CreateView):
 #################################################################
 #################################################################
 #################################################################
-
-
-
 
 
 #####Signup
@@ -343,7 +339,7 @@ def signup(request):
 
         login(request, tmp_user)
         Logger.login(request.user, None, None)
-        return render(request, 'accounts/charity.html')
+        return HttpResponseRedirect(reverse('accounts:user_profile'))
 
 
     else:
@@ -355,12 +351,13 @@ def signup(request):
         tmp_user.save()
         login(request, tmp_user)
         Logger.login(request.user, None, None)
-        return HttpResponseRedirect(reverse('accounts:user_profile'))
+        return HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
 
-        # except:
-        #     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
-        #     template = loader.get_template('accounts/error_page.html')
-        #     return HttpResponse(template.render(context, request))
+
+# except:
+#     context = error_context_generate('Signup Error!', 'Error While Creating New Account!', 'accounts:signup_view')
+#     template = loader.get_template('accounts/error_page.html')
+#     return HttpResponse(template.render(context, request))
 
 
 def activate_user(request, uid, activation_string):
@@ -447,14 +444,15 @@ def benefactor_dashboard(request):
     requests = CooperationRequest.objects.filter(type__iexact='c2b').filter(benefactor=user.benefactor).filter(
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
-    user_project_ids = [project.id for project in user.benefactor.project_set]
-    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
+    user_project_ids = [project.id for project in user.benefactor.project_set.all()]
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids).count()
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
-                                                                                                    user_project_ids)
+                                                                                                    user_project_ids).count()
     if request.method == 'GET':
         return render(request, 'accounts/user-dashboard.html', {
             'requests': list(requests),
-            'a_notification': notifications[0],
+            'a_notification': notifications[0] if notifications.count() != 0 else None,
+            'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
             'charity_results': [],
             'complete_project_count': complete_project_count,
@@ -481,9 +479,10 @@ def benefactor_dashboard(request):
                                         max_finished_projects=max_finished_projects, benefactor_name=benefactor_name,
                                         country=country, province=province, city=city)
 
-        return render(request, 'url', {
+        return render(request, 'accounts/user-dashboard.html', {
             'requests': list(requests),
-            'a_notification': notifications[0],
+            'a_notification': notifications[0] if notifications.count() != 0 else None,
+            'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
             'charity_results': list(charity_result),
             'complete_project_count': complete_project_count,
@@ -500,13 +499,14 @@ def charity_dashboard(request):
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
     user_project_ids = [project.id for project in user.charity.project_set]
-    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids)
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids).count()
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
-                                                                                                    user_project_ids)
+                                                                                                    user_project_ids).count()
     if request.method == 'GET':
         return render(request, 'url', {
             'requests': list(requests),
-            'a_notification': notifications[0],
+            'a_notification': notifications[0] if notifications.count() != 0 else None,
+            'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
             'benefactor_results': [],
             'complete_project_count': complete_project_count,
@@ -539,7 +539,8 @@ def charity_dashboard(request):
                                               last_name)
         return render(request, 'url', {
             'requests': list(requests),
-            'a_notification': notifications[0],
+            'a_notification': notifications[0] if notifications.count() != 0 else None,
+            'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
             'benefactor_results': list(result_benefactor),
             'complete_project_count': complete_project_count,
@@ -582,13 +583,15 @@ def login_user(request):
 
         login(request, tmp_user)
         Logger.login(request.user, None, None)
-        return HttpResponseRedirect(reverse('accounts:user_profile'))
-        # except:
-        #     # TODO Redirect to Login
-        #     context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
-        #     template = loader.get_template('accounts/login.html')
-        #
-        #     return HttpResponseRedirect(reverse('accounts:user_profile'))
+        return HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
+
+
+# except:
+#     # TODO Redirect to Login
+#     context = error_context_generate('Login Error', 'رمز یا ایمیل درست وارد نشده است', 'login_view')
+#     template = loader.get_template('accounts/login.html')
+#
+#     return HttpResponseRedirect(reverse('accounts:user_profile'))
 
 
 def recover_password(request):
@@ -777,7 +780,6 @@ def customize_user(request):
     # TODO Fix Redirect
     return HttpResponseRedirect(reverse('accounts:user_profile'))
 
-
     # if not request.user.is_authenticated :
     # return 1 #fixme redirect to error.html with appropriate context
 
@@ -920,4 +922,4 @@ def logout_user(request):
     Logger.logout(request.user, None, None)
     logout(request)
     template = loader.get_template('accounts/login.html')
-    return HttpResponse(template.render(request))
+    return HttpResponse(template.render(request, {}))
