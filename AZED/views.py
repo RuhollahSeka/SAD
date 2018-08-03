@@ -37,7 +37,112 @@ def add_request(request):
     secure = handle_admin_security(request)
     if type(secure) is HttpResponse:
         return secure
+    data = request.POST
+    type = data.get('request_type')
+    state = data.get('request_state')
+    benefactor_id = data.get('benefactor_id')
+    charity_id = data.get('charity_id')
+    project_id = data.get('project_id')
+    description = data.get('description')
 
+    benefactor_user = get_object(User, id=benefactor_id)
+    charity_user = get_object(User, id=charity_id)
+    project = get_object(Project, id=project_id)
+    if benefactor_user is None or charity_user is None or project is None:
+        # TODO error
+        pass
+
+    cooperation_request = CooperationRequest(type=type, state=state, benefactor=benefactor_user.benefactor,
+                                             charity=charity_user.charity, project=project, description=description)
+    cooperation_request.save()
+    # TODO add request
+
+
+def edit_request(request, rid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
+    cooperation_request = get_object(CooperationRequest, id=rid)
+    if cooperation_request is None:
+        # TODO some error
+        pass
+    if request.method == 'GET':
+        # TODO url?
+        return render(request, 'url', {
+            'request_type': cooperation_request.type,
+            'benefactor_id': cooperation_request.benefactor.user.id,
+            'charity_id': cooperation_request.charity.user.id,
+            'project_id': cooperation_request.project.id,
+            'description': cooperation_request.description
+        })
+    elif request.method == 'POST':
+        data = request.POST
+        benefactor_id = data.get('benefactor_id')
+        charity_id = data.get('charity_id')
+        project_id = data.get('project_id')
+        benefactor_user  = get_object(User, id=benefactor_id)
+        charity_user = get_object(User, id=charity_id)
+        project = get_object(Project, id=project_id)
+        if benefactor_user is None or charity_user is None or project is None:
+            # TODO error
+            pass
+        cooperation_request.type = data.get('type')
+        cooperation_request.benefactor = benefactor_user.benefactor
+        cooperation_request.charity = benefactor_user.charity
+        cooperation_request.project = project
+        cooperation_request.description = data.get('description')
+        cooperation_request.save()
+        # TODO url?
+        return render(request, 'url', {})
+    # TODO do something?
+
+
+def delete_cooperation_request(request, rid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    cooperation_request = get_object(CooperationRequest, id=rid)
+    if cooperation_request is None:
+        # TODO error
+        pass
+    cooperation_request.delete()
+    # TODO delete success
+
+
+def delete_ability_request(request, rid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    ability_request = get_object(AbilityRequest, id=rid)
+    if ability_request is None:
+        # TODO error
+        pass
+    ability_request.delete()
+    # TODO delete success
+
+
+def add_new_admin(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    data = request.POST
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+    try:
+        contact_info = ContactInfo()
+        contact_info.save()
+        new_admin = User(is_admin=True, is_active=True, admin_approved=True, username=username, password=password,
+                         contact_info=contact_info)
+        new_admin.save()
+        mail = EmailMessage('Admin Promotion', 'شما به عنوان ادمین سایت مرساد انتخاب شدید.', to=email)
+        mail.send()
+        # TODO success?
+        pass
+    except:
+        # TODO some error?
+        pass
 
 
 class HomeView(TemplateView):
