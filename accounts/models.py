@@ -3,6 +3,8 @@ from django.db import models
 from accounts.search_util import *
 import datetime, json
 
+from projects.models import Ability
+
 
 class AbilityTypeManager(models.Manager):
     def find_ability_ids(self, ability_name=None, ability_tags=None):
@@ -176,7 +178,7 @@ class Notification(models.Model):
 
 
 class BenefactorScore(models.Model):
-    ability_type = models.ForeignKey(AbilityType, on_delete=models.CASCADE, default='')
+    ability = models.ForeignKey(Ability, on_delete=models.CASCADE, default='')
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     charity = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     score = models.IntegerField(default=-1)
@@ -189,7 +191,7 @@ class BenefactorScore(models.Model):
             return None
 
     class Meta:
-        unique_together = (('ability_type', 'benefactor', 'charity'),)
+        unique_together = (('ability', 'benefactor', 'charity'),)
 
 
 class CharityScore(models.Model):
@@ -229,6 +231,7 @@ class GeneralRequest(models.Model):
 class BenefactorComment(models.Model):
     commenter = models.ForeignKey(Charity, on_delete=models.CASCADE, default='')
     commented = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
+    ability = models.ForeignKey(Ability, on_delete=models.CASCADE, default='')
     comment_string = models.CharField(max_length=2048, default='')
     date_time = models.DateTimeField(auto_now=True)
 

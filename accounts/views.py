@@ -77,7 +77,8 @@ def add_ability_to_benefactor(request):
     # TODO Fix Path
     return HttpResponseRedirect('path')
 
-def submit_benefactor_score(request, benefactor_username):
+
+def submit_benefactor_score(request, ability_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
@@ -88,18 +89,26 @@ def submit_benefactor_score(request, benefactor_username):
         context = error_context_generate('Account Type Error', 'You Can\'t Submit Score for Another Benefactor!', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+    ability = get_object(Ability, id=ability_id)
+    if ability is None:
+        # TODO Raise Not Found Error
+        context = error_context_generate('Not Found', 'Requested Ability Cannot be Found', 'accounts:charity_dashboard')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     try:
-        charity = get_object(Charity, user=request.user)
-        benefactor = get_object(Benefactor, user=get_object(User, username=benefactor_username))
-        if charity.benefactor_history.filter(user=benefactor.user).count() <= 0:
+        benefactor = ability.benefactor
+        charity = ability.charity
+        charity_projects = [nf_project for nf_project in charity.project_set if nf_project.type != 'financial']
+        if len([project for project in NonFinancialProject.objects.all() if
+                project.project in charity_projects and project.ability_type is ability.ability_type]) <= 0:
             context = error_context_generate('No Cooperation Error',
-                                             'You Cannot Submit Score for a Benefactor with Whom You Had no Cooperation!',
-                                             '')
+                                             'You Cannot Submit a Score for a Benefactor with Whom You Had no ' +
+                                             'Cooperation On This Ability Type!',
+                                             'accounts:charity_dashboard')
             # TODO Raise No_Cooperation Error
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        ability = get_object(AbilityType, benefactor=benefactor, name=request.POST.get('ability_type'))
-        score = charity.benefactorscore_set.get(benefactor=benefactor, charity=charity)
+        score = charity.benefactorscore_set.filter(benefactor=benefactor, charity=charity).all()[0]
         if score is None:
             score = BenefactorScore.objects.create(ability_type=ability, benefactor=benefactor,
                                                    charity=get_object(Charity, user=request.user))
@@ -115,7 +124,7 @@ def submit_benefactor_score(request, benefactor_username):
         # TODO raise error
 
 
-def submit_charity_score(request):
+def submit_charity_score(request, charity_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', ' You are not Signed In!', '')
@@ -134,8 +143,8 @@ def submit_charity_score(request):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
-        charity = get_object(Charity, user=get_object(User, username=request.POST.get('charity_username')))
-        score = benefactor.charityscore_set.get(benefactor=benefactor, charity=charity)
+        charity = get_object(Charity, user=get_object(User, username=charity_username))
+        score = benefactor.charityscore_set.filter(benefactor=benefactor, charity=charity).all()[0]
         if score is None:
             score = get_object(CharityScore, charity=charity, benefactor=get_object(Benefactor, user=request.user))
         score.score = int(request.POST.get('score'))
@@ -348,7 +357,8 @@ def benefactor_dashboard(request):
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
     user_project_ids = [project.id for project in user.benefactor.project_set.all()]
-    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids).count()
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(
+            id__in=user_project_ids).count()
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
                                                                                                     user_project_ids).count()
     if request.method == 'GET':
@@ -402,7 +412,8 @@ def charity_dashboard(request):
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
     user_project_ids = [project.id for project in user.charity.project_set]
-    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(id__in=user_project_ids).count()
+    complete_project_count = Project.objects.filter(project_state__iexact='completed').filter(
+            id__in=user_project_ids).count()
     non_complete_project_count = Project.objects.filter(project_state__iexact='in-progress').filter(id__in=
                                                                                                     user_project_ids).count()
     if request.method == 'GET':
@@ -496,6 +507,7 @@ def login_user(request):
         login(request, tmp_user)
         Logger.login(request.user, None, None)
         return HttpResponseRedirect(reverse('admin'))
+
 
 # except:
 #     # TODO Redirect to Login
@@ -723,7 +735,7 @@ def add_benefactor_credit(request):
     #     return HttpResponseRedirect(reverse('error'))
 
 
-def submit_benefactor_comment(request, benefactor_username):
+def submit_benefactor_comment(request, ability_id):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
@@ -739,24 +751,34 @@ def submit_benefactor_comment(request, benefactor_username):
         context = error_context_generate('Account Type Error', 'Benefactors Cannot Comment on Other Benefactors', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    benefactor_users = User.objects.filter(username=benefactor_username)
-    if benefactor_users.count() <= 0:
+    ability = get_object(Ability, id=ability_id)
+    # benefactor_users = User.objects.filter(username=benefactor_username)
+    if ability is None:
         # TODO Raise Not Found Error
-        context = error_context_generate('Not Found', 'Requested User Cannot be Found', '')
+        context = error_context_generate('Not Found', 'Requested Ability Cannot be Found', 'accounts:charity_dashboard')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    benefactor_user = benefactor_users.all()[0]
     try:
-        benefactor = get_object(Benefactor, user=get_object(User, username=benefactor_username))
-        if request.user.charity.benefactor_history.filter(user=benefactor.user).count() <= 0:
+        benefactor = ability.benefactor
+        charity = ability.charity
+        charity_projects = [nf_project for nf_project in charity.project_set if nf_project.type != 'financial']
+        if len([project for project in NonFinancialProject.objects.all() if
+                project.project in charity_projects and project.ability_type is ability.ability_type]) <= 0:
             context = error_context_generate('No Cooperation Error',
-                                             'You Cannot Submit Score for a Benefactor with Whom You Had no Cooperation!',
-                                             '')
+                                             'You Cannot Submit a Comment for a Benefactor with Whom You Had no ' +
+                                             'Cooperation On This Ability Type!',
+                                             'accounts:charity_dashboard')
             # TODO Raise No_Cooperation Error
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        comment = BenefactorComment.objects.create(commented=benefactor_user.benefactor, commentor=request.user.charity,
-                                                   comment_string=request.POST.get('comment_string'))
+        comment_set = benefactor.benefactorcomment_set.filter(benefactor=benefactor, ability=ability, charity=charity).all()
+        if comment_set.count() <= 0:
+            comment = BenefactorComment.objects.create(commented=benefactor, commentor=request.user.charity,
+                                                   ability=ability, comment_string=request.POST.get('comment_string'))
+        else:
+            comment = comment_set[0]
+            comment.comment_string = request.POST.get('comment_string')
+            comment.save()
         # TODO Redirect to Benefactor Profile Page
         Logger.submit_comment(request.user, benefactor.user, None)
         return HttpResponseRedirect([])
@@ -767,7 +789,7 @@ def submit_benefactor_comment(request, benefactor_username):
         return HttpResponse(template.render(context, request))
 
 
-def submit_charity_commit(request, charity_username):
+def submit_charity_comment(request, charity_username):
     if not request.user.is_authenticated:
         # TODO Raise Authentication Error
         context = error_context_generate('Authentication Error', 'You are not Signed In!', '')
@@ -785,7 +807,7 @@ def submit_charity_commit(request, charity_username):
         return HttpResponse(template.render(context, request))
     if request.user.benefactor.charity_set.get(user=get_object(User, username=charity_username)).count <= 0:
         context = error_context_generate('No Cooperation Error',
-                                         'You Cannot Submit Score for a Charity with Which You Had no Cooperation!', '')
+                                         'You Cannot Submit a Comment for a Charity with Which You Had no Cooperation!', '')
         # TODO Raise No_Cooperation Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -797,6 +819,15 @@ def submit_charity_commit(request, charity_username):
         return HttpResponse(template.render(context, request))
     charity_user = charity_users.all()[0]
     try:
+        charity = charity_user.charity
+        comment_set = charity.charitycomment_set.filter(benefactor=request.user.benefactor, charity=charity).all()
+        if comment_set.count() <= 0:
+            comment = CharityComment.objects.create(commented=charity, commentor=request.user.benefactor,
+                                                   comment_string=request.POST.get('comment_string'))
+        else:
+            comment = comment_set[0]
+            comment.comment_string = request.POST.get('comment_string')
+            comment.save()
         comment = CharityComment.objects.create(commented=charity_user.charity, commentor=request.user.benefactor,
                                                 comment_string=request.POST.get('comment_string'))
         # TODO Redirect to Charity Profile Page
@@ -827,4 +858,3 @@ def logout_user(request):
     logout(request)
     template = loader.get_template('accounts/login.html')
     return HttpResponse(template.render({}, request))
-

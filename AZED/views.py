@@ -705,3 +705,10 @@ def admin_get_comments(request):
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+
+
+def admin_add_comment(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    try:

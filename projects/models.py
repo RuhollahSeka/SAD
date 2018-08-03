@@ -144,6 +144,7 @@ class FinancialContribution(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
     financial_project = models.ForeignKey(FinancialProject, on_delete=models.CASCADE, default='')
     money = models.FloatField(default=0)
+    date_time = models.DateTimeField(auto_now=True)
 
     def get(self, *args, **kwargs):
         try:
