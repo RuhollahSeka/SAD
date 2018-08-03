@@ -452,7 +452,8 @@ def charity_dashboard(request):
             'notifications': list(notifications),
             'benefactor_results': [],
             'complete_project_count': complete_project_count,
-            'non_complete_project_count': non_complete_project_count
+            'non_complete_project_count': non_complete_project_count,
+            'ability_tags': list(AbilityTag.objects.all()),
         })
     elif request.method == 'POST':
         post = request.POST
