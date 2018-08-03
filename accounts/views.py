@@ -281,7 +281,7 @@ def signup(request):
     message += 'url/' + str(tmp_user.id) + '/' + code
     tmp_user.activation_string = code
     email_message = EmailMessage('Activation Email', 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n',
-                                 to=tmp_user.email)
+                                 to=[tmp_user.email])
     email_message.send()
     Logger.create_account(tmp_user, None, None)
     if request.POST.get("account_type") == "Charity":
@@ -343,6 +343,7 @@ def benefactor_dashboard(request):
     if not user.is_authenticated or not user.is_benefactor:
         # TODO error
         pass
+
     requests = CooperationRequest.objects.filter(type__iexact='c2b').filter(benefactor=user.benefactor).filter(
             state__iexact='on-hold')
     notifications = Notification.objects.filter(user=user)
@@ -454,6 +455,10 @@ def dashboard(request):
     user = request.user
     if not user.is_authenticated:
         return render(request, 'accounts/login.html', {'error_message': 'لطفاً اول وارد شوید'})
+    if not user.is_active:
+        context = error_context_generate('Inactive Account', 'Your Account is Not Active', 'Home')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     if user.is_benefactor:
         HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
     if user.is_charity:

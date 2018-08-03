@@ -127,6 +127,22 @@ def admin_get_benefactors(request):
         return HttpResponse(template.render(context, request))
 
 
+def admin_get_tags(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        tags = AbilityTag.objects.all()
+        context = {'tags': tags}
+        template = loader.get_template('path-to-template')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
 def admin_first_page_data(request):
     benefactor_len = len(Benefactor.objects.all())
     charity_len = len(Charity.objects.all())
