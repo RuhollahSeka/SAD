@@ -952,7 +952,7 @@ def admin_get_scores(request):
             'score_logs':score_logs
         }
         # TODO Fix Path
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-score.html')
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin')
@@ -974,7 +974,7 @@ def admin_get_comments(request):
             'comment_logs': comment_logs,
         }
         # TODO Fix Path
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-comment.html')
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin')

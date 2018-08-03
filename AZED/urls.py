@@ -27,15 +27,39 @@ urlpatterns = [
     path('admin/', views.admin_dashboard, name='admin'),
     path('admin/charity/', views.admin_get_charities, name='admin_charity'),
     path('admin/benefactor/', views.admin_get_benefactors, name='admin_benefactor'),
-    path('admin/activate_user/uid=<int:uid>/', views.activate_user, name='admin_activate'),
-    path('admin/deactivate_user/uid=<int:uid>/', views.deactivate_user, name='admin_deactivate'),
+
+    path('admin/activate_user/uid=<int:uid>/', views.activate_user, name='activate_user'),
+    path('admin/deactivate_user/uid=<int:uid>/', views.deactivate_user, name='deactivate_user'),
+    path('admin/delete_user/uid=<int:uid>', views.admin_delete_user, name='delete_user'),
+
     path('admin/ability_tags/', views.admin_get_tags, name='admin_tags'),
     path('admin/tx/', views.admin_get_contributions, name='admin_tx'),
+    path('admin/score/', views.admin_get_scores, name='admin_score'),
+    path('admin/comment/', views.admin_get_comments, name='admin_comment'),
+
+    path('admin/delete_benefactor_score/score_id=<int:score_id>/', views.admin_delete_benefactor_score, name='delete_benefactor_score'),
+    path('admin/delete_charity_score/score_id=<int:score_id>/', views.admin_delete_charity_score, name='delete_charity_score'),
+    path('admin/edit_ben_score/score_id=<int:score_id>/', views.admin_edit_benefactor_score, name='edit_benefactor_score'),
+    path('admin/edit_char_score/score_id=<int:score_id>/', views.admin_edit_charity_score, name='edit_charity_score'),
+    path('admin/add_benefactor_score/', views.admin_add_benefactor_score, name='add_benefactor_score'),
+    path('admin/add_charity_score/', views.admin_add_charity_score, name='add_charity_score'),
+
+    path('admin/delete_benefactor_comment/comment_id=<int:comment_id>/', views.admin_delete_benefactor_comment, name='delete_benefactor_comment'),
+    path('admin/delete_charity_comment/comment_id=<int:comment_id>/', views.admin_delete_charity_comment, name='delete_charity_comment'),
+    path('admin/edit_ben_comment/comment_id=<int:comment_id>/', views.admin_edit_benefactor_comment, name='edit_benefactor_comment'),
+    path('admin/edit_char_comment/comment_id=<int:comment_id>/', views.admin_edit_charity_comment, name='edit_charity_comment'),
+    path('admin/add_benefactor_comment/', views.admin_add_benefactor_comment, name='add_benefactor_comment'),
+    path('admin/add_charity_comment/', views.admin_add_charity_comment, name='add_charity_comment'),
+
     path('admin/add_admin/', views.add_new_admin, name='add_admin'),
-    path('admin/add_tag/', views.add_new_admin, name='add_admin'),
+    path('admin/add_tag/', views.admin_get_tags, name='admin_tag'),
+
+
     path('admin/add_benefactor/', views.admin_add_benefactor, name='add_benefactor'),
     path('admin/edit_benefactor/uid=<int:uid>/', views.admin_edit_benefactor, name='edit_benefactor'),
     path('admin/add_charity/', views.admin_add_charity, name='add_charity'),
+    path('admin/edit_charity/uid=<int:uid>/', views.admin_edit_benefactor, name='edit_benefactor'),
+
 
     path('', views.index, name='Home'),
     path('error/',views.ErrorView.as_view(),name='error_page'),
