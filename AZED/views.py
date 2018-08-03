@@ -34,29 +34,38 @@ def handle_admin_security(request):
         return HttpResponse(template.render(context, request))
 
 
+
 def add_request(request):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
         return secure
     data = request.POST
-    request_type = data.get('request_type')
-    state = data.get('request_state')
-    benefactor_id = data.get('benefactor_id')
-    charity_id = data.get('charity_id')
-    project_id = data.get('project_id')
-    description = data.get('description')
+    try:
+        request_type = data.get('request_type')
+        state = data.get('request_state')
+        benefactor_id = int(data.get('benefactor_id'))
+        charity_id = int(data.get('charity_id'))
+        project_id =int(data.get('project_id'))
+        description = data.get('description')
 
-    benefactor_user = get_object(User, id=benefactor_id)
-    charity_user = get_object(User, id=charity_id)
-    project = get_object(Project, id=project_id)
-    if benefactor_user is None or charity_user is None or project is None:
-        # TODO error
-        pass
+        benefactor_user = get_object(User, id=benefactor_id)
+        charity_user = get_object(User, id=charity_id)
+        project = get_object(Project, id=project_id)
+        if benefactor_user is None or charity_user is None or project is None:
+            context = error_context_generate('Not Found', 'Some of The Requested Files Cannot Be Found',
+                                             'admin_request')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
 
-    cooperation_request = CooperationRequest(type=request_type, state=state, benefactor=benefactor_user.benefactor,
-                                             charity=charity_user.charity, project=project, description=description)
-    cooperation_request.save()
-    # TODO add request
+        cooperation_request = CooperationRequest(type=request_type, state=state, benefactor=benefactor_user.benefactor,
+                                                 charity=charity_user.charity, project=project, description=description)
+        cooperation_request.save()
+        return HttpResponseRedirect(reverse('admin_request'))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Creating the Requested Request',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 def edit_request(request, rid):
@@ -66,8 +75,10 @@ def edit_request(request, rid):
 
     cooperation_request = get_object(CooperationRequest, id=rid)
     if cooperation_request is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Request Cannot Be Found',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     if request.method == 'GET':
         # TODO url?
         return render(request, 'url', {
@@ -79,24 +90,30 @@ def edit_request(request, rid):
         })
     elif request.method == 'POST':
         data = request.POST
-        benefactor_id = data.get('benefactor_id')
-        charity_id = data.get('charity_id')
-        project_id = data.get('project_id')
-        benefactor_user = get_object(User, id=benefactor_id)
-        charity_user = get_object(User, id=charity_id)
-        project = get_object(Project, id=project_id)
-        if benefactor_user is None or charity_user is None or project is None:
-            # TODO error
-            pass
-        cooperation_request.type = data.get('type')
-        cooperation_request.benefactor = benefactor_user.benefactor
-        cooperation_request.charity = benefactor_user.charity
-        cooperation_request.project = project
-        cooperation_request.description = data.get('description')
-        cooperation_request.save()
-        # TODO url?
-        return render(request, 'url', {})
-        # TODO do something?
+        try:
+            benefactor_id = int(data.get('benefactor_id'))
+            charity_id = int(data.get('charity_id'))
+            project_id = int(data.get('project_id'))
+            benefactor_user = get_object(User, id=benefactor_id)
+            charity_user = get_object(User, id=charity_id)
+            project = get_object(Project, id=project_id)
+            if benefactor_user is None or charity_user is None or project is None:
+                context = error_context_generate('Not Found', 'Some of The Requested Files Cannot Be Found',
+                                                 'admin_request')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+            cooperation_request.type = data.get('type')
+            cooperation_request.benefactor = benefactor_user.benefactor
+            cooperation_request.charity = benefactor_user.charity
+            cooperation_request.project = project
+            cooperation_request.description = data.get('description')
+            cooperation_request.save()
+            return HttpResponseRedirect(reverse('admin_request'))
+        except:
+            context = error_context_generate('Unexpected Error', 'Error in Editing the Requested Request',
+                                             'admin_request')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
 
 
 def delete_cooperation_request(request, rid):
@@ -105,10 +122,18 @@ def delete_cooperation_request(request, rid):
         return secure
     cooperation_request = get_object(CooperationRequest, id=rid)
     if cooperation_request is None:
-        # TODO error
-        pass
-    cooperation_request.delete()
-    # TODO delete success
+        context = error_context_generate('Not Found', 'Requested Request Cannot Be Found',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    try:
+        cooperation_request.delete()
+        return HttpResponseRedirect(reverse('admin_request'))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Deleting the Requested Request',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 def delete_ability_request(request, rid):
@@ -117,10 +142,19 @@ def delete_ability_request(request, rid):
         return secure
     ability_request = get_object(AbilityRequest, id=rid)
     if ability_request is None:
-        # TODO error
-        pass
-    ability_request.delete()
-    # TODO delete success
+        context = error_context_generate('Not Found', 'Requested Request Cannot Be Found',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+    try:
+        ability_request.delete()
+        return HttpResponseRedirect(reverse('admin_request'))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error in Deleting the Requested Request',
+                                         'admin_request')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
 
 
 def add_new_admin(request):
@@ -134,8 +168,8 @@ def add_new_admin(request):
     # try:
     contact_info = ContactInfo()
     contact_info.save()
-    new_admin = User(is_admin=True, is_active=True, admin_approved=True, username=username, password=password,
-                     contact_info=contact_info, email=email)
+    new_admin = User.objects.create(is_admin=True, is_active=True, admin_approved=True, username=username,
+                                    password=password, contact_info=contact_info, email=email)
     new_admin.save()
     mail = EmailMessage('Admin Promotion', 'شما به عنوان ادمین سایت مرساد انتخاب شدید.', to=[email])
     mail.send()
@@ -162,17 +196,21 @@ def add_non_financial_project(request):
     project_name = data.get('project_name')
     description = data.get('description')
     project_state = data.get('project_state')
-    charity_id = data.get('charity_id')
+    charity_id = int(data.get('charity_id'))
     charity_user = get_object(User, id=charity_id)
     if charity_user is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Charity Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     try:
-        ability_type_id = data.get('ability_type_id')
+        ability_type_id = int(data.get('ability_type_id'))
         ability_type = get_object(AbilityType, id=ability_type_id)
         if ability_type is None:
-            # TODO some error
-            pass
+            context = error_context_generate('Not Found', 'Requested Ability Type Cannot Be Found',
+                                             'admin_project')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
         project = create_project(charity_user.charity, 'non-financial', project_name, description, project_state)
         min_age = data.get('min_age')
         max_age = data.get('max_age')
@@ -191,11 +229,12 @@ def add_non_financial_project(request):
                                     non_financial_project=non_financial_project)
         dateinterval.to_json(schedule)
         dateinterval.save()
-
-        # TODO success
+        return HttpResponseRedirect('admin_project')
     except:
-        # TODO some error
-        pass
+        context = error_context_generate('Unexpected Error', 'Error in Creating the Requested Project',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 def add_financial_project(request):
@@ -206,11 +245,13 @@ def add_financial_project(request):
     project_name = data.get('project_name')
     description = data.get('description')
     project_state = data.get('project_state')
-    charity_id = data.get('charity_id')
+    charity_id = int(data.get('charity_id'))
     charity_user = get_object(User, id=charity_id)
     if charity_user is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Charity Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     try:
         project = create_project(charity_user.charity, 'financial', project_name, description, project_state)
         target_money = data.get('target_money')
@@ -220,11 +261,13 @@ def add_financial_project(request):
         financial_project = FinancialProject(project=project, target_money=target_money, current_money=current_money,
                                              start_date=start_date, end_date=end_date)
         financial_project.save()
-
-        # TODO success
+        return HttpResponseRedirect('admin_project')
     except:
-        # TODO some error
-        pass
+        context = error_context_generate('Unexpected Error', 'Error in Creating the Requested Project',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
 
 
 def edit_non_financial_project(request, pid):
@@ -234,8 +277,10 @@ def edit_non_financial_project(request, pid):
 
     project = get_object(Project, id=pid)
     if project is None or project.nonfinancialproject is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Project Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     non_financial_project = project.nonfinancialproject
     if request.method == 'GET':
         # TODO url?
@@ -257,59 +302,65 @@ def edit_non_financial_project(request, pid):
         })
     elif request.method == 'POST':
         data = request.POST
-        charity_id = data.get('charity_id')
-        if charity_id is None:
-            charity_id = project.charity.id
-        ability_type_id = data.get('ability_type_id')
-        if ability_type_id is None:
-            ability_type_id = non_financial_project.ability_type.id
-        charity_user = get_object(User, id=charity_id)
-        ability_type = get_object(AbilityType, id=ability_type_id)
-        if charity_user is None or ability_type is None:
-            # TODO some error
-            pass
-        project_name = data.get('project_name')
-        if not (project_name is None or len(project_name) == 0):
-            project.project_name = project_name
-        description = data.get('description')
-        if not (description is None or len(description) == 0):
-            project.description = description
-        project_state = data.get('project_state')
-        if not (project_state is None or len(project_state) == 0):
-            project.project_state = project_state
-        min_age = data.get('min_age')
-        if not (min_age is None):
-            non_financial_project.min_age = min_age
-        max_age = data.get('max_age')
-        if not (max_age is None):
-            non_financial_project.max_age = max_age
-        required_gender = data.get('required_gender')
-        if not (required_gender is None or len(required_gender) == 0):
-            non_financial_project.required_gender = required_gender
-        country = data.get('country')
-        if not (country is None or len(country) == 0):
-            non_financial_project.country = country
-        province = data.get('province')
-        if not (province is None or len(province) == 0):
-            non_financial_project.province = province
-        city = data.get('city')
-        if not (city is None or len(city) == 0):
-            non_financial_project.city = city
-        start_date = data.get('start_date')
-        if not (start_date is None):
-            non_financial_project.dateinterval.begin_date = start_date
-        end_date = data.get('end_date')
-        if not (end_date is None):
-            non_financial_project.dateinterval.end_date = end_date
-        schedule = data.get('schedule')
-        if not (schedule is None or len(schedule) == 0):
-            non_financial_project.dateinterval.to_json(schedule)
-        non_financial_project.dateinterval.save()
-        project.save()
-        non_financial_project.save()
-        # TODO url?
-        return render(request, 'url', {})
-        # TODO do something?
+        try:
+            charity_id = int(data.get('charity_id'))
+            if charity_id is None:
+                charity_id = project.charity.id
+            ability_type_id = int(data.get('ability_type_id'))
+            if ability_type_id is None:
+                ability_type_id = non_financial_project.ability_type.id
+            charity_user = get_object(User, id=charity_id)
+            ability_type = get_object(AbilityType, id=ability_type_id)
+            if charity_user is None or ability_type is None:
+                context = error_context_generate('Not Found', 'Requested Charity or Ability Type Cannot Be Found',
+                                                 'admin_project')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+            project_name = data.get('project_name')
+            if not (project_name is None or len(project_name) == 0):
+                project.project_name = project_name
+            description = data.get('description')
+            if not (description is None or len(description) == 0):
+                project.description = description
+            project_state = data.get('project_state')
+            if not (project_state is None or len(project_state) == 0):
+                project.project_state = project_state
+            min_age = data.get('min_age')
+            if not (min_age is None):
+                non_financial_project.min_age = min_age
+            max_age = data.get('max_age')
+            if not (max_age is None):
+                non_financial_project.max_age = max_age
+            required_gender = data.get('required_gender')
+            if not (required_gender is None or len(required_gender) == 0):
+                non_financial_project.required_gender = required_gender
+            country = data.get('country')
+            if not (country is None or len(country) == 0):
+                non_financial_project.country = country
+            province = data.get('province')
+            if not (province is None or len(province) == 0):
+                non_financial_project.province = province
+            city = data.get('city')
+            if not (city is None or len(city) == 0):
+                non_financial_project.city = city
+            start_date = data.get('start_date')
+            if not (start_date is None):
+                non_financial_project.dateinterval.begin_date = start_date
+            end_date = data.get('end_date')
+            if not (end_date is None):
+                non_financial_project.dateinterval.end_date = end_date
+            schedule = data.get('schedule')
+            if not (schedule is None or len(schedule) == 0):
+                non_financial_project.dateinterval.to_json(schedule)
+            non_financial_project.dateinterval.save()
+            project.save()
+            non_financial_project.save()
+            return HttpResponseRedirect(reverse('admin_project'))
+        except:
+            context = error_context_generate('Unexpected Error', 'Error in Editing the Requested Project',
+                                             'admin_project')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
 
 
 def edit_financial_project(request, pid):
@@ -319,8 +370,10 @@ def edit_financial_project(request, pid):
 
     project = get_object(Project, id=pid)
     if project is None or project.financialproject is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Project Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     financial_project = project.financialproject
     if request.method == 'GET':
         # TODO url?
@@ -336,39 +389,43 @@ def edit_financial_project(request, pid):
         })
     elif request.method == 'POST':
         data = request.POST
-        charity_id = data.get('charity_id')
-        if charity_id is None:
-            charity_id = project.charity.id
-        charity_user = get_object(User, id=charity_id)
-        if charity_user is None:
-            # TODO some error
-            pass
-        project_name = data.get('project_name')
-        if not (project_name is None or len(project_name) == 0):
-            project.project_name = project_name
-        description = data.get('description')
-        if not (description is None or len(description) == 0):
-            project.description = description
-        project_state = data.get('project_state')
-        if not (project_state is None or len(project_state) == 0):
-            project.project_state = project_state
-        target_money = data.get('target_money')
-        if not (target_money is None or len(target_money) == 0):
-            financial_project.target = target_money
-        current_money = data.get('current_money')
-        if not (current_money is None or len(current_money) == 0):
-            financial_project.current_money = current_money
-        start_date = data.get('start_date')
-        if not (start_date is None or len(start_date) == 0):
-            financial_project.start_date = start_date
-        end_date = data.get('end_date')
-        if not (end_date is None or len(end_date) == 0):
-            financial_project.end_date = end_date
-        project.save()
-        financial_project.save()
-        # TODO url?
-        return render(request, 'url', {})
-        # TODO do something?
+        try:
+            charity_id = int(data.get('charity_id'))
+            if charity_id is None:
+                charity_id = project.charity.id
+            charity_user = get_object(User, id=charity_id)
+            if charity_user is None:
+                # TODO some error
+                pass
+            project_name = data.get('project_name')
+            if not (project_name is None or len(project_name) == 0):
+                project.project_name = project_name
+            description = data.get('description')
+            if not (description is None or len(description) == 0):
+                project.description = description
+            project_state = data.get('project_state')
+            if not (project_state is None or len(project_state) == 0):
+                project.project_state = project_state
+            target_money = data.get('target_money')
+            if not (target_money is None or len(target_money) == 0):
+                financial_project.target = target_money
+            current_money = data.get('current_money')
+            if not (current_money is None or len(current_money) == 0):
+                financial_project.current_money = current_money
+            start_date = data.get('start_date')
+            if not (start_date is None or len(start_date) == 0):
+                financial_project.start_date = start_date
+            end_date = data.get('end_date')
+            if not (end_date is None or len(end_date) == 0):
+                financial_project.end_date = end_date
+            project.save()
+            financial_project.save()
+            return HttpResponseRedirect(reverse('admin_project'))
+        except:
+            context = error_context_generate('Unexpected Error', 'Error in Editing the Requested Project',
+                                             'admin_project')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
 
 
 def delete_non_financial_project(request, pid):
@@ -377,14 +434,18 @@ def delete_non_financial_project(request, pid):
         return secure
     project = get_object(Project, id=pid)
     if project is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Project Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     try:
         project.delete()
+        return HttpResponseRedirect(reverse('admin_project'))
     except:
-        # TODO something
-        pass
-        # TODO idk, do something?
+        context = error_context_generate('Unexpected Error', 'Error in Deleting the Requested Project',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 def delete_financial_project(request, pid):
@@ -393,14 +454,18 @@ def delete_financial_project(request, pid):
         return secure
     project = get_object(Project, id=pid)
     if project is None:
-        # TODO some error
-        pass
+        context = error_context_generate('Not Found', 'Requested Project Cannot Be Found',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
     try:
         project.delete()
+        return HttpResponseRedirect(reverse('admin_project'))
     except:
-        # TODO something
-        pass
-        # TODO idk, do something?
+        context = error_context_generate('Unexpected Error', 'Error in Deleting the Requested Project',
+                                         'admin_project')
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 class HomeView(TemplateView):
@@ -988,9 +1053,9 @@ def admin_add_benefactor_comment(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
-        charity = get_object(Charity, id=request.POST.get('charity')).charity
-        ability_type = get_object(Ability, id=request.POST.get('ability_type'))
+        benefactor = get_object(User, id=int(request.POST.get('benefactor'))).benefactor
+        charity = get_object(Charity, id=int(request.POST.get('charity'))).charity
+        ability_type = get_object(Ability, id=int(request.POST.get('ability_type')))
         ability = benefactor.ability_set.filter(ability_type=ability_type).all()[0]
         if ability is None:
             context = error_context_generate('Not Found', 'Requested Benefactor Does Not Have such Ability',
@@ -1002,6 +1067,7 @@ def admin_add_benefactor_comment(request):
             comment = BenefactorComment.objects.create(commenter=charity, commented=benefactor, ability=ability)
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        Logger.submit_comment(charity.user, benefactor.user, None)
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin_comment')
@@ -1056,13 +1122,14 @@ def admin_add_charity_comment(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        charity = get_object(User, id=request.POST.get('charity')).charity
-        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
+        charity = get_object(User, id=int(request.POST.get('charity'))).charity
+        benefactor = get_object(User, id=int(request.POST.get('benefactor'))).benefactor
         comment = get_object(CharityComment, commenter=benefactor, commented=charity)
         if comment is None:
             comment = CharityComment.objects.create(commenter=benefactor, commented=charity)
         comment.comment_string = request.POST.get('comment_string')
         comment.save()
+        Logger.submit_comment(benefactor.user, charity.user, None)
         return HttpResponseRedirect(reverse('admin_comment'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Comment!', 'admin_comment')
@@ -1117,9 +1184,9 @@ def admin_add_benefactor_score(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
-        ability_type = get_object(AbilityType, id=request.POST.get('ability_type'))
-        charity = get_object(User, id=request.POST.get('charity')).charity
+        benefactor = get_object(User, id=int(request.POST.get('benefactor'))).benefactor
+        ability_type = get_object(AbilityType, id=int(request.POST.get('ability_type')))
+        charity = get_object(User, id=int(request.POST.get('charity'))).charity
         ability = benefactor.ability_set.filter(ability_type=ability_type).all()[0]
         score = get_object(BenefactorScore, charity=charity, benefactor=benefactor, ability=ability)
         if score is None:
@@ -1129,6 +1196,7 @@ def admin_add_benefactor_score(request):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        Logger.submit_score(charity.user, benefactor.user, None)
         return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin_score')
@@ -1186,8 +1254,8 @@ def admin_add_charity_score(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        charity = get_object(User, id=request.POST.get('charity')).charity
-        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
+        charity = get_object(User, id=int(request.POST.get('charity'))).charity
+        benefactor = get_object(User, id=int(request.POST.get('benefactor'))).benefactor
         score = get_object(CharityScore, benefactor=benefactor, charity=charity)
         if score is None:
             score = CharityScore.objects.create(benefactor=benefactor, charity=charity)
@@ -1196,6 +1264,7 @@ def admin_add_charity_score(request):
         else:
             score.score = float(request.POST.get('score'))
         score.save()
+        Logger.submit_score(benefactor.user, charity.user, None)
         return HttpResponseRedirect(reverse('admin_score'))
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin_score')
@@ -1413,3 +1482,13 @@ def delete_ability_type(request, type_id):
         return HttpResponse(template.render(context, request))
 
 
+def admin_get_ability_type(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    ability_types = list(AbilityType.objects.all())
+    context = {
+        'ability_types': ability_types
+    }
+    template = loader.get_template('accounts/admin-ability.html')
+    return HttpResponse(template.render(context, request))
