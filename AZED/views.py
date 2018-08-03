@@ -12,7 +12,7 @@ from accounts.models import *
 
 ###Home
 from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, \
-    NonFinancialProject, DateInterval
+    NonFinancialProject, DateInterval, convert_str_to_date
 from projects.views import error_context_generate, get_object
 
 
@@ -181,7 +181,11 @@ def add_non_financial_project(request):
         province = data.get('province')
         city = data.get('city')
         start_date = data.get('start_date')
+        if start_date is not None:
+            start_date = convert_str_to_date(start_date)
         end_date = data.get('end_date')
+        if end_date is not None:
+            end_date = convert_str_to_date(end_date)
         schedule = data.get('schedule')
         non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
                                                     max_age=max_age, required_gender=required_gender, country=country,
@@ -216,7 +220,11 @@ def add_financial_project(request):
         target_money = data.get('target_money')
         current_money = data.get('current_money')
         start_date = data.get('start_date')
+        if start_date is not None:
+            start_date = convert_str_to_date(start_date)
         end_date = data.get('end_date')
+        if end_date is not None:
+            end_date = convert_str_to_date(end_date)
         financial_project = FinancialProject(project=project, target_money=target_money, current_money=current_money,
                                              start_date=start_date, end_date=end_date)
         financial_project.save()
@@ -297,10 +305,10 @@ def edit_non_financial_project(request, pid):
             non_financial_project.city = city
         start_date = data.get('start_date')
         if not (start_date is None):
-            non_financial_project.dateinterval.begin_date = start_date
+            non_financial_project.dateinterval.begin_date = convert_str_to_date(start_date)
         end_date = data.get('end_date')
         if not (end_date is None):
-            non_financial_project.dateinterval.end_date = end_date
+            non_financial_project.dateinterval.end_date = convert_str_to_date(end_date)
         schedule = data.get('schedule')
         if not (schedule is None or len(schedule) == 0):
             non_financial_project.dateinterval.to_json(schedule)
@@ -360,10 +368,10 @@ def edit_financial_project(request, pid):
             financial_project.current_money = current_money
         start_date = data.get('start_date')
         if not (start_date is None or len(start_date) == 0):
-            financial_project.start_date = start_date
+            financial_project.start_date = convert_str_to_date(start_date)
         end_date = data.get('end_date')
         if not (end_date is None or len(end_date) == 0):
-            financial_project.end_date = end_date
+            financial_project.end_date = convert_str_to_date(end_date)
         project.save()
         financial_project.save()
         # TODO url?

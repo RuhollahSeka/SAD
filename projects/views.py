@@ -62,8 +62,8 @@ def find_non_financial_projects_advanced_search_results(request):
     project_state = request.POST.get('search_non_financial_project_state')
     ability_name = request.POST.get('search_non_financial_ability_name')
     tags = request.POST.get('search_non_financial_tags')
-    start_date = request.POST.get('search_non_financial_start_date')
-    end_date = request.POST.get('search_non_financial_end_date')
+    start_date = convert_str_to_date(request.POST.get('search_non_financial_start_date'))
+    end_date = convert_str_to_date(request.POST.get('search_non_financial_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
     min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
@@ -112,8 +112,8 @@ def find_non_financial_projects_search_results(request):
     project_state = request.POST.get('search_non_financial_project_state')
     ability_name = request.POST.get('search_non_financial_ability_name')
     tags = request.POST.get('search_non_financial_tags')
-    start_date = request.POST.get('search_non_financial_start_date')
-    end_date = request.POST.get('search_non_financial_end_date')
+    start_date = convert_str_to_date(request.POST.get('search_non_financial_start_date'))
+    end_date = convert_str_to_date(request.POST.get('search_non_financial_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
     min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
@@ -151,8 +151,8 @@ def find_financial_project_search_results(request):
     project_state = request.POST.get('search_financial_project_state')
     min_progress = request.POST.get('search_financial_min_progress')
     max_progress = request.POST.get('search_financial_max_progress')
-    min_deadline_date = request.POST.get('search_financial_min_deadline_date')
-    max_deadline_date = request.POST.get('search_financial_max_deadline_date')
+    min_deadline_date = convert_str_to_date(request.POST.get('search_financial_min_deadline_date'))
+    max_deadline_date = convert_str_to_date(request.POST.get('search_financial_max_deadline_date'))
     project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
                                                 min_progress, max_progress, min_deadline_date, max_deadline_date)
     return render(request, 'url', {'result_financial_projects': list(project_queryset)})
@@ -197,8 +197,8 @@ def find_benefactor_search_results(request):
         context = error_context_generate('Account Type Error', 'Benefactors Cannot Search for Other Benefactors', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    start_date = request.POST.get('search_benefactor_start_date')
-    end_date = request.POST.get('search_benefactor_end_date')
+    start_date = convert_str_to_date(request.POST.get('search_benefactor_start_date'))
+    end_date = convert_str_to_date(request.POST.get('search_benefactor_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_benefactor_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
     min_required_hours = request.POST.get('search_benefactor_min_required_hours')
@@ -277,8 +277,8 @@ def create_new_project(request):
             non_financial_project.province = request.POST.get("province")
             non_financial_project.city = request.POST.get("city")
             date_interval = DateInterval.objects.create()
-            date_interval.begin_date = request.POST.get('start_date')
-            date_interval.end_date = request.POST.get('end_date')
+            date_interval.begin_date = convert_str_to_date(request.POST.get('start_date'))
+            date_interval.end_date = convert_str_to_date(request.POST.get('end_date'))
             date_interval.non_financial_project = non_financial_project
             # FIXME check if the input is JSON or not
             date_interval.week_schedule = request.POST.get('week_schedule')
@@ -319,8 +319,8 @@ def edit_project(request, pk):
         if project.type is 'financial':
             fin_project = get_object(FinancialProject, project=project)
             fin_project.target_money = dic['target_money']
-            fin_project.start_date = dic['start_date']
-            fin_project.end_date = dic['end_date']
+            fin_project.start_date = convert_str_to_date(dic['start_date'])
+            fin_project.end_date = convert_str_to_date(dic['end_date'])
             # FIXME should the current_money be editable or not?
             fin_project.current_money = dic['current_money']
             fin_project.save()
@@ -335,8 +335,8 @@ def edit_project(request, pk):
             nf_project.required_gender = dic['required_gender']
             date_interval = nf_project.dateinterval
             if dic.get('start_date') is not None:
-                date_interval.begin_date = dic['start_date']
-            date_interval.end_date = dic['end_date']
+                date_interval.begin_date = convert_str_to_date(dic['start_date'])
+            date_interval.end_date = convert_str_to_date(dic['end_date'])
             if dic.get('week_schedule') is not None:
                 date_interval.week_schedule = dic['week_schedule']
             nf_project.save()
