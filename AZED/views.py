@@ -218,13 +218,16 @@ def activate_user(request, uid):
     secure = handle_admin_security(request)
     if type(secure) is HttpResponse:
         return secure
+    user = get_object(User, id=uid)
     try:
-        user = get_object(User, id=uid)
         user.is_active = True
         user.save()
         return HttpResponseRedirect(reverse(''))
     except:
-        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', '')
+        if user.is_benefactor:
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin_benefactor')
+        else:
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin_charity')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))

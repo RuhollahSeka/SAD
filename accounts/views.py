@@ -460,11 +460,11 @@ def dashboard(request):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     if user.is_benefactor:
-        HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
+        return HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
     elif user.is_charity:
-        HttpResponseRedirect(reverse('accounts:charity_dashboard'))
+        return HttpResponseRedirect(reverse('accounts:charity_dashboard'))
     else:
-        HttpResponseRedirect(reverse('admin_dashboard'))
+        return HttpResponseRedirect(reverse('admin_dashboard'))
 
 
 @csrf_exempt

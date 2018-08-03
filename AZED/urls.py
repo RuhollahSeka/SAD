@@ -25,8 +25,9 @@ urlpatterns = [
     path('projects/', include('projects.urls')),
 
     path('admin/', views.admin_dashboard, name='admin'),
-    path('admin_charity/', views.admin_get_charities, name='admin_charity'),
-    path('admin_benefactor/', views.admin_get_benefactors, name='admin_benefactor'),
+    path('admin/charity/', views.admin_get_charities, name='admin_charity'),
+    path('admin/benefactor/', views.admin_get_benefactors, name='admin_benefactor'),
+    # path('admin/'),
 
     path('', views.index, name='Home'),
     path('error/',views.ErrorView.as_view(),name='error_page'),
