@@ -278,7 +278,7 @@ def signup(request):
     tmp_user.save()
     code = generate_recover_string()
     message = 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n'
-    message += 'url/' + str(tmp_user.id) + '/' + code
+    message += 'http://' + ip + '/' + str(tmp_user.id) + '/' + code
     tmp_user.activation_string = code
     email_message = EmailMessage('Activation Email', message, to=[tmp_user.email])
     email_message.send()
