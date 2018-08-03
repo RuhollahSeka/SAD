@@ -484,14 +484,18 @@ def login_user(request):
     if tmp_user.is_charity:
         login(request, user=tmp_user)
         Logger.login(request.user, None, None)
-        return render(request, 'accounts/charity.html')
+        return HttpResponseRedirect(reverse('accounts:charity_dashboard'))
 
-    else:
+    elif tmp_user.is_benefactor:
 
         login(request, tmp_user)
         Logger.login(request.user, None, None)
         return HttpResponseRedirect(reverse('accounts:benefactor_dashboard'))
 
+    else:
+        login(request, tmp_user)
+        Logger.login(request.user, None, None)
+        return HttpResponseRedirect(reverse('admin'))
 
 # except:
 #     # TODO Redirect to Login
@@ -829,5 +833,5 @@ def logout_user(request):
     Logger.logout(request.user, None, None)
     logout(request)
     template = loader.get_template('accounts/login.html')
-    return HttpResponse(template.render(request, {}))
+    return HttpResponse(template.render({}, request))
 

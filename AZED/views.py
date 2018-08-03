@@ -96,7 +96,7 @@ def admin_get_charities(request):
             'all_charities': list(charities),
             'update_logs': list(charity_update_logs),
         }
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-charity.html')
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
@@ -118,7 +118,7 @@ def admin_get_benefactors(request):
             'all_benefactors': list(benefactors),
             'update_logs': list(benefactor_update_logs),
         }
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin-user.html')
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
@@ -189,7 +189,7 @@ def admin_dashboard(request):
             'inactive_users': inactive_users
         }
         # TODO Fix template path and Redirect
-        template = loader.get_template('path-to-template')
+        template = loader.get_template('accounts/admin.html')
         return HttpResponse(template.render(context, request))
     except:
         context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'Home')
