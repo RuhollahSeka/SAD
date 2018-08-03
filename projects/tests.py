@@ -1,26 +1,29 @@
 from django.test import TestCase
 from projects.models import *
+from accounts.models import *
 import json, datetime
 
 
 # Create your tests here.
 
-def create_user(username='pkms', password='password', is_benefactor=False, is_charity=False, description=None,
+def create_user(username='pkms', password='password', email='r.sekaleshfar@gmail.com', is_benefactor=False,
+                is_charity=False, description=None,
                 country='iran', province='tehran', city='tehran', postal_code='1234567810', address='nowhere',
                 phone_number='09123456789'):
     contact_info = ContactInfo(country=country, province=province, city=city, postal_code=postal_code, address=address,
                                phone_number=phone_number)
     contact_info.save()
-    user = User(username=username, password=password, is_benefactor=is_benefactor, is_charity=is_charity,
+    user = User(username=username, password=password, is_benefactor=is_benefactor, is_charity=is_charity, email=email,
                 contact_info=contact_info, description=description)
     user.save()
     return user, contact_info
 
 
-def create_benefactor(username='pkms', password='password', description=None, country='iran', province='tehran',
+def create_benefactor(username='pkms', password='password', description=None, email='r.sekaleshfar@gmail.com',
+                      country='iran', province='tehran',
                       city='tehran', postal_code='1234567810', address='nowhere', phone_number='09123456789',
                       first_name='ruhollah', last_name='sekaleshfar', gender='male', age=20, credit=0):
-    (user, contact_info) = create_user(username=username, password=password, is_benefactor=True,
+    (user, contact_info) = create_user(username=username, password=password, is_benefactor=True, email=email,
                                        description=description, country=country, province=province, city=city,
                                        postal_code=postal_code, address=address, phone_number=phone_number)
     benefactor = Benefactor(user=user, first_name=first_name, last_name=last_name, gender=gender, age=age,
@@ -42,10 +45,11 @@ def create_dateinterval(start_date=datetime.date(2018, 1, 1), end_date=datetime.
     return dateinterval
 
 
-def create_charity(username='pk-charity', password='password', description=None, country='iran', province='tehran',
+def create_charity(username='pk-charity', password='password', email='azed.lol@gmail.com', description=None,
+                   country='iran', province='tehran',
                    city='tehran', postal_code='1234567810', address='nowhere', phone_number='09123456789',
                    charity_name='my charity'):
-    (user, contact_info) = create_user(username=username, password=password, is_charity=True,
+    (user, contact_info) = create_user(username=username, password=password, is_charity=True, email=email,
                                        description=description, country=country, province=province, city=city,
                                        postal_code=postal_code, address=address, phone_number=phone_number)
     charity = Charity(user=user, name=charity_name)
@@ -61,7 +65,7 @@ def create_project(charity, type, project_name='my project', description='this i
 
 
 def create_non_financial_project(ability_type, charity, project_name='my project', description='this is my project',
-                                 project_state='open', min_age = 0, max_age=200, required_gender=None, country=None,
+                                 project_state='open', min_age=0, max_age=200, required_gender=None, country=None,
                                  province=None, city=None):
     project = create_project(charity, 'non-financial', project_name, description, project_state)
     non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
@@ -180,6 +184,8 @@ class SearchTestCase(TestCase):
 
         self.assertEqual(AbilityTag.objects.count(), 1)
         self.assertEqual(AbilityType.objects.count(), 1)
+
+        self.assertEqual(ContactInfo.objects.count(), 0)
 
     def test_non_financial_project_search_schedule(self):
         user = User.objects.filter(username__iexact='pkms')[0]
