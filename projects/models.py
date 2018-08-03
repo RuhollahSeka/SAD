@@ -11,13 +11,17 @@ import datetime, math, json
 # Create your models here.
 
 
+def convert_str_to_date(date_str):
+    date_list = date_str.split('/')
+    return datetime.date(date_list[2], date_list[0], date_list[1])
+
+
 class ProjectManager(models.Manager):
     def finished_charity_filter_count(self, charity):
         return super().all().filter(project_state__iexact='finished').filter(charity=charity).count()
 
     def related_charity_filter_count(self, charity):
         return super().all().filter(charity=charity).count()
-
 
 
 class Project(models.Model):
@@ -186,13 +190,15 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
 def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0, max_related_projects=math.inf,
                    min_finished_projects=0, max_finished_projects=math.inf, benefactor_name=None, country=None
                    , province=None, city=None):
-    result_charities = Charity.objects.all().filter(score__lte=min_score).filter(score__gte=max_score)
+    filtered_ids = [charity.id for charity in Charity.objects.all() if
+                    min_score <= charity.calculate_score() <= max_score]
+    result_charities = Charity.objects.filter(user_id__in=filtered_ids)
     filtered_ids = [charity.id for charity in result_charities if
                     max_related_projects >
                     Project.objects.related_charity_filter_count(charity) > min_related_projects and
                     max_finished_projects >
                     Project.objects.finished_charity_filter_count(charity) > min_finished_projects]
-    result_charities = result_charities.filter(id__in=filtered_ids)
+    result_charities = result_charities.filter(user_id__in=filtered_ids)
     if name is not None:
         result_charities = result_charities.filter(name__icontains=name)
     if country is not None:
@@ -208,7 +214,7 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
         for benefactor in benefactors:
             filtered_ids.extend([charity.id for charity in result_charities if
                                  benefactor.charity_set.filter(pk=charity.pk).exists()])
-        result_charities = result_charities.filter(id__in=filtered_ids)
+        result_charities = result_charities.filter(user_id__in=filtered_ids)
     return result_charities
 
 
@@ -226,7 +232,7 @@ def filter_projects(current_projects, project_name, charity_name, benefactor_nam
         for benefactor in benefactors:
             filtered_ids.extend([project.id for project in current_projects if
                                  benefactor.project_set.filter(pk=project.project.pk).exists()])
-        current_projects = current_projects.filter(id__in=filtered_ids)
+        current_projects = current_projects.filter(project_id__in=filtered_ids)
     return current_projects
 
 
@@ -234,7 +240,7 @@ def search_financial_project(project_name=None, charity_name=None, benefactor_na
                              min_progress=0, max_progress=100, min_deadline_date=None, max_deadline_date=None):
     filtered_ids = [financial_project.id for financial_project in FinancialProject.objects.all() if
                     financial_project.progress_in_range(min_progress, max_progress)]
-    result_financial_projects = FinancialProject.objects.all().filter(id__in=filtered_ids)
+    result_financial_projects = FinancialProject.objects.all().filter(project_id__in=filtered_ids)
     result_financial_projects = result_financial_projects.filter(end_date__gte=min_deadline_date) \
         .filter(end_date__lte=max_deadline_date)
     return filter_projects(result_financial_projects, project_name, charity_name, benefactor_name, project_state)
@@ -306,5 +312,3 @@ class CooperationRequest(models.Model):
             return ans
         except:
             return None
-
-

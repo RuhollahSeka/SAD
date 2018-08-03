@@ -14,7 +14,7 @@ from django.template import loader
 
 from accounts.forms import CharitySignUpForm
 from accounts.models import *
-from projects.models import CooperationRequest, search_charity, search_benefactor
+from projects.models import CooperationRequest, search_charity, search_benefactor, convert_str_to_date
 from accounts.log_util import Logger
 import random, string
 
@@ -456,8 +456,8 @@ def charity_dashboard(request):
         })
     elif request.method == 'POST':
         post = request.POST
-        start_date = post.get('start_date')
-        end_date = post.get('end_date')
+        start_date = convert_str_to_date(post.get('start_date'))
+        end_date = convert_str_to_date(post.get('end_date'))
         weekly_schedule = json.loads(post.get('schedule'))
         schedule = [start_date, end_date, weekly_schedule]
         min_required_hours = post.get('min_required_hours')
