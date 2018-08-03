@@ -182,6 +182,13 @@ class Charity(models.Model):
             return False
         return float(min_score) <= score <= float(max_score)
 
+    def number_of_finished_projects(self):
+        projects = [project for project in self.project_set.all() if project.project_state == 'finished']
+        return len(projects)
+
+    def number_of_all_projects(self):
+        return self.project_set.count()
+
 
 class Notification(models.Model):
     type = models.CharField(max_length=128, default='')

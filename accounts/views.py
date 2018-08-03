@@ -415,7 +415,7 @@ def benefactor_dashboard(request):
             'a_notification': notifications[0] if notifications.count() != 0 else None,
             'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
-            'charity_results': list(charity_result),
+            'charity_results': charity_result,
             'complete_project_count': complete_project_count,
             'non_complete_project_count': non_complete_project_count
         })

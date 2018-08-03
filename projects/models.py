@@ -192,7 +192,6 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
                    , province=None, city=None):
     filtered_ids = [charity.user.id for charity in Charity.objects.all() if charity.has_score(min_score, max_score)]
     result_charities = Charity.objects.filter(user_id__in=filtered_ids)
-    print(list(result_charities))
     filtered_ids = [charity.user.id for charity in result_charities if
                     int(max_related_projects) >=
                     Project.objects.related_charity_filter_count(charity) >= int(min_related_projects) and
@@ -201,7 +200,6 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
     result_charities = result_charities.filter(user_id__in=filtered_ids)
     if name is not None:
         result_charities = result_charities.filter(name__icontains=name)
-        print(list(result_charities))
     if country is not None:
         result_charities = result_charities.filter(user__contactinfo__country__iexact=country)
     if province is not None:
@@ -216,8 +214,8 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
             filtered_ids.extend([charity.user.id for charity in result_charities if
                                  benefactor.charity_set.filter(pk=charity.pk).exists()])
         result_charities = result_charities.filter(user_id__in=filtered_ids)
-    print(name)
-    print(list(result_charities))
+    result_charities = [[charity.name, charity.calculate_score(), charity.number_of_finished_projects(),
+                         charity.number_of_all_projects()] for charity in result_charities]
     return result_charities
 
 
