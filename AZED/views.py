@@ -11,7 +11,7 @@ from accounts.log_util import Logger
 from accounts.models import *
 
 ###Home
-from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, GeneralRequest, \
+from projects.models import Project, FinancialProject, CooperationRequest, FinancialContribution, Log, \
     NonFinancialProject, DateInterval
 from projects.views import error_context_generate, get_object
 
