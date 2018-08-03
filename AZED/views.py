@@ -517,9 +517,9 @@ def activate_user(request, uid):
     try:
         user.admin_approved = True
         user.save()
-        mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=user.email)
+        mail = EmailMessage('Account Approved', 'حساب کاربری شما تایید شد.', to=[user.email])
         mail.send()
-        return HttpResponseRedirect(reverse(''))
+        return HttpResponseRedirect(reverse('admin'))
     except:
         if user.is_benefactor:
             context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
@@ -857,9 +857,11 @@ def admin_get_scores(request):
         return secure
     try:
         score_list = list(BenefactorScore.objects.all())
-        score_list.append(list(CharityScore.objects.all()))
+        score_list.extend(list(CharityScore.objects.all()))
+        score_logs = list(Log.objects.filter(log_type='submit_score').all())
         context = {
-            'scores': score_list
+            'scores': score_list,
+            'score_logs':score_logs
         }
         # TODO Fix Path
         template = loader.get_template('path-to-template')
@@ -877,9 +879,11 @@ def admin_get_comments(request):
         return secure
     try:
         comment_list = list(BenefactorComment.objects.all())
-        comment_list.append(list(CharityComment.objects.all()))
+        comment_list.extend(list(CharityComment.objects.all()))
+        comment_logs = list(Log.objects.filter(log_type='submit_comment').all())
         context = {
-            'comments': comment_list
+            'comments': comment_list,
+            'comment_logs': comment_logs,
         }
         # TODO Fix Path
         template = loader.get_template('path-to-template')
@@ -896,9 +900,14 @@ def admin_add_benefactor_comment(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        ability = get_object(Ability, id=request.POST.get('ability_id'))
-        charity = get_object(Charity, id=request.POST.get('charity'))
-        benefactor = ability.benefactor
+        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
+        charity = get_object(Charity, id=request.POST.get('charity')).charity
+        ability_type = get_object(Ability, id=request.POST.get('ability_type'))
+        ability = benefactor.ability_set.filter(ability_type=ability_type).all()[0]
+        if ability is None:
+            context = error_context_generate('Not Found', 'Requested Benefactor Does Not Have such Ability', 'admin')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
         comment = get_object(BenefactorComment, commenter=charity, commented=benefactor, ability=ability)
         if comment is None:
             comment = BenefactorComment.objects.create(commenter=charity, commented=benefactor, ability=ability)
@@ -955,8 +964,8 @@ def admin_add_charity_comment(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        charity = get_object(Charity, id=request.POST.get('charity'))
-        benefactor = get_object(Benefactor, id=request.POST.get('benefactor'))
+        charity = get_object(User, id=request.POST.get('charity')).charity
+        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
         comment = get_object(CharityComment, commenter=benefactor, commented=charity)
         if comment is None:
             comment = CharityComment.objects.create(commenter=benefactor, commented=charity)
@@ -1013,10 +1022,10 @@ def admin_add_benefactor_score(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        benefactor = get_object(Benefactor, id=request.POST.get('benefactor'))
+        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
         ability_type = get_object(AbilityType, id=request.POST.get('ability_type'))
-        charity = get_object(Charity, id=request.POST.get('charity'))
-        ability = benefactor.ability_set.filter(ability_type=ability_type)
+        charity = get_object(User, id=request.POST.get('charity')).charity
+        ability = benefactor.ability_set.filter(ability_type=ability_type).all()[0]
         score = get_object(BenefactorScore, charity=charity, benefactor=benefactor, ability=ability)
         if score is None:
             score = BenefactorScore.objects.create(charity=charity, benefactor=benefactor, ability=ability)
@@ -1079,8 +1088,8 @@ def admin_add_charity_score(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        charity = get_object(Charity, id=request.POST.get('charity'))
-        benefactor = get_object(Benefactor, id=request.POST.get('benefactor'))
+        charity = get_object(User, id=request.POST.get('charity')).charity
+        benefactor = get_object(User, id=request.POST.get('benefactor')).benefactor
         score = get_object(CharityScore, benefactor=benefactor, charity=charity)
         if score is None:
             score = CharityScore.objects.create(benefactor=benefactor, charity=charity)
