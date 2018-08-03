@@ -393,12 +393,12 @@ def benefactor_dashboard(request):
         post = request.POST
 
         name = post.get('name')
-        min_score = post.get('min_score')
-        max_score = post.get('max_score')
-        min_related_projects = post.get('min_related_projects')
-        max_related_projects = post.get('max_related_projects')
-        min_finished_projects = post.get('min_finished_projects')
-        max_finished_projects = post.get('max_finished_projects')
+        min_score = float(post.get('min_score'))
+        max_score = float(post.get('max_score'))
+        min_related_projects = int(post.get('min_related_projects'))
+        max_related_projects = int(post.get('max_related_projects'))
+        min_finished_projects = int(post.get('min_finished_projects'))
+        max_finished_projects = int(post.get('max_finished_projects'))
         benefactor_name = post.get('benefactor_name')
         country = post.get('country')
         province = post.get('province')
@@ -460,18 +460,18 @@ def charity_dashboard(request):
         end_date = convert_str_to_date(post.get('end_date'))
         weekly_schedule = json.loads(post.get('schedule'))
         schedule = [start_date, end_date, weekly_schedule]
-        min_required_hours = post.get('min_required_hours')
-        min_date_overlap = post.get('min_date_overlap')
-        min_time_overlap = post.get('min_time_overlap')
+        min_required_hours = float(post.get('min_required_hours'))
+        min_date_overlap = float(post.get('min_date_overlap'))
+        min_time_overlap = float(post.get('min_time_overlap'))
         tags = post.get('tags')
         ability_name = post.get('ability_name')
-        ability_min_score = post.get('ability_min_score')
-        ability_max_score = post.get('ability_max_score')
+        ability_min_score = float(post.get('ability_min_score'))
+        ability_max_score = float(post.get('ability_max_score'))
         country = post.get('country')
         province = post.get('province')
         city = post.get('city')
-        user_min_score = post.get('user_min_score')
-        user_max_score = post.get('user_max_score')
+        user_min_score = float(post.get('user_min_score'))
+        user_max_score = float(post.get('user_max_score'))
         gender = post.get('gender')
         first_name = post.get('first_name')
         last_name = post.get('last_name')
@@ -484,7 +484,7 @@ def charity_dashboard(request):
             'a_notification': notifications[0] if notifications.count() != 0 else None,
             'have_notification': True if notifications.count() > 0 else False,
             'notifications': list(notifications),
-            'benefactor_results': list(result_benefactor),
+            'benefactor_results': result_benefactor,
             'complete_project_count': complete_project_count,
             'non_complete_project_count': non_complete_project_count
         })

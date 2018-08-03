@@ -143,6 +143,13 @@ class Benefactor(models.Model):
             return '-'
         return score / count
 
+    def number_of_finished_projects(self):
+        projects = [project for project in self.project_set.all() if project.project_state == 'finished']
+        return len(projects)
+
+    def number_of_all_projects(self):
+        return self.project_set.count()
+
 
 class Ability(models.Model):
     benefactor = models.ForeignKey(Benefactor, on_delete=models.CASCADE, default='')
