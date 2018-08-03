@@ -35,7 +35,7 @@ def handle_admin_security(request):
 
 def add_request(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
 
 
@@ -94,12 +94,12 @@ def admin_get_request_related_stuff(request):
 
 def admin_get_charities(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         charities = Charity.objects.all()
         charity_update_logs = {log for log in Log.objects.all() if
-                               log.first_actor.is_charity and log.log_type is 'account_update'}
+                               log.first_actor.is_charity and log.log_type == 'account_update'}
         # FIXME fix url
         context = {
             'all_charities': list(charities),
@@ -116,12 +116,12 @@ def admin_get_charities(request):
 
 def admin_get_benefactors(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         benefactors = Benefactor.objects.all()
         benefactor_update_logs = {log for log in Log.objects.all() if
-                                  log.first_actor.is_benefactor and log.log_type is 'account_update'}
+                                  log.first_actor.is_benefactor and log.log_type == 'account_update'}
         # FIXME fix url
         context = {
             'all_benefactors': list(benefactors),
@@ -138,7 +138,7 @@ def admin_get_benefactors(request):
 
 def admin_get_tags(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         tags = AbilityTag.objects.all()
@@ -170,7 +170,7 @@ def admin_first_page_data(request):
 
 def admin_dashboard(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         charity_count = Charity.objects.all().count()
@@ -211,7 +211,7 @@ def admin_dashboard(request):
 
 def deactivate_user(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -234,7 +234,7 @@ def deactivate_user(request, uid):
 
 def activate_user(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -257,7 +257,7 @@ def activate_user(request, uid):
 
 def admin_add_benefactor(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
 
     test1_user = User.objects.filter(username=request.POST.get("username"))
@@ -311,7 +311,7 @@ def admin_add_benefactor(request):
 
 def admin_edit_benefactor_data(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -356,7 +356,7 @@ def admin_edit_benefactor_data(request, uid):
 
 def admin_edit_benefactor(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -399,7 +399,7 @@ def admin_edit_benefactor(request, uid):
 
 def admin_add_charity(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
 
     test1_user = User.objects.filter(username=request.POST.get("username"))
@@ -453,7 +453,7 @@ def admin_add_charity(request):
 
 def admin_edit_charity_data(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -490,7 +490,7 @@ def admin_edit_charity_data(request, uid):
 
 def admin_edit_charity(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     try:
@@ -527,12 +527,12 @@ def admin_edit_charity(request, uid):
 
 def admin_delete_user(request, uid):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
     # TODO Email To User
     try:
-        if user is not request.user:
+        if user != request.user:
             user.delete()
         # TODO Fix Redirect Path
         return HttpResponseRedirect(reverse('admin_dashboard'))
@@ -546,7 +546,7 @@ def admin_delete_user(request, uid):
 
 def admin_get_contributions(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         context = {
@@ -564,7 +564,7 @@ def admin_get_contributions(request):
 
 def admin_get_scores(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         score_list = list(BenefactorScore.objects.all())
@@ -584,7 +584,7 @@ def admin_get_scores(request):
 
 def admin_get_comments(request):
     secure = handle_admin_security(request)
-    if type(secure) is HttpResponse:
+    if type(secure) == HttpResponse:
         return secure
     try:
         comment_list = list(BenefactorComment.objects.all())
