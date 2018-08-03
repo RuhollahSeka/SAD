@@ -112,7 +112,10 @@ def submit_benefactor_score(request, ability_id):
         if score is None:
             score = BenefactorScore.objects.create(ability_type=ability, benefactor=benefactor,
                                                    charity=get_object(Charity, user=request.user))
-        score.score = int(request.POST.get('score'))
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
         Logger.submit_score(request.user, benefactor.user, None)
         return HttpResponseRedirect([])
@@ -147,7 +150,10 @@ def submit_charity_score(request, charity_username):
         score = benefactor.charityscore_set.filter(benefactor=benefactor, charity=charity).all()[0]
         if score is None:
             score = get_object(CharityScore, charity=charity, benefactor=get_object(Benefactor, user=request.user))
-        score.score = int(request.POST.get('score'))
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
         Logger.submit_score(request.user, charity.user, None)
         return HttpResponseRedirect([])

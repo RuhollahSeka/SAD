@@ -718,7 +718,7 @@ def admin_edit_benefactor_data(request, uid):
 
         return HttpResponseRedirect('admin_benefactor')
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -762,7 +762,7 @@ def admin_edit_benefactor(request, uid):
         # TODO Fix Redirect
         return HttpResponseRedirect(reverse('accounts:user_profile'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -858,7 +858,7 @@ def admin_edit_charity_data(request, uid):
 
         return HttpResponseRedirect('admin_benefactor')
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -894,9 +894,9 @@ def admin_edit_charity(request, uid):
         user.charity.save()
         Logger.account_update(user, None, None)
         # TODO Fix Redirect
-        return HttpResponseRedirect(reverse('admin_dashboard'))
+        return HttpResponseRedirect(reverse('admin'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin_dashboard')
+        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', 'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -912,10 +912,10 @@ def admin_delete_user(request, uid):
         if user != request.user:
             user.delete()
         # TODO Fix Redirect Path
-        return HttpResponseRedirect(reverse('admin_dashboard'))
+        return HttpResponseRedirect(reverse('admin'))
     except:
         context = error_context_generate('Unexpected Error', 'Apparently This Little Dude is Invulnerable!',
-                                         'admin_dashboard')
+                                         'admin')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1101,13 +1101,17 @@ def admin_add_benefactor_score(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        ability = get_object(Ability, id=request.POST.get('ability_id'))
+        benefactor = get_object(Benefactor, id=request.POST.get('benefactor'))
+        ability_type = get_object(AbilityType, id=request.POST.get('ability_type'))
         charity = get_object(Charity, id=request.POST.get('charity'))
-        benefactor = ability.benefactor
+        ability = benefactor.ability_set.filter(ability_type=ability_type)
         score = get_object(BenefactorScore, charity=charity, benefactor=benefactor, ability=ability)
         if score is None:
             score = BenefactorScore.objects.create(charity=charity, benefactor=benefactor, ability=ability)
-        score.score = request.POST.get('score')
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
@@ -1127,7 +1131,10 @@ def admin_edit_benefactor_score(request, score_id):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
-        score.score = request.POST.get('score')
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing score!', 'admin')
@@ -1165,7 +1172,10 @@ def admin_add_charity_score(request):
         score = get_object(CharityScore, benefactor=benefactor, charity=charity)
         if score is None:
             score = CharityScore.objects.create(benefactor=benefactor, charity=charity)
-        score.score = request.POST.get('score')
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
     except:
         context = error_context_generate('Unexpected Error', 'Error in Submitting Score!', 'admin')
@@ -1185,7 +1195,10 @@ def admin_edit_charity_score(request, score_id):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
-        score.score = request.POST.get('score')
+        if float(request.POST.get('score')) > 10.0:
+            score.score = 10.0
+        else:
+            score.score = float(request.POST.get('score'))
         score.save()
     except:
         context = error_context_generate('Unexpected Error', 'Error in Editing Comment!', 'admin')
