@@ -30,7 +30,12 @@ urlpatterns = [
     path('admin/activate_user/uid=<int:uid>/', views.activate_user, name='admin_activate'),
     path('admin/deactivate_user/uid=<int:uid>/', views.deactivate_user, name='admin_deactivate'),
     path('admin/ability_tags/', views.admin_get_tags, name='admin_tags'),
-
+    path('admin/tx/', views.admin_get_contributions, name='admin_tx'),
+    path('admin/add_admin/', views.add_new_admin, name='add_admin'),
+    path('admin/add_tag/', views.add_new_admin, name='add_admin'),
+    path('admin/add_benefactor/', views.admin_add_benefactor, name='add_benefactor'),
+    path('admin/edit_benefactor/uid=<int:uid>/', views.admin_edit_benefactor, name='edit_benefactor'),
+    path('admin/add_charity/', views.admin_add_charity, name='add_charity'),
 
     path('', views.index, name='Home'),
     path('error/',views.ErrorView.as_view(),name='error_page'),
