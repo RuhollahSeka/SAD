@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.template import loader
 
 from accounts.forms import CharitySignUpForm
+from accounts.log_util import Logger
 from accounts.models import *
 
 ###Home
@@ -177,6 +178,7 @@ def admin_dashboard(request):
         comment_count = BenefactorComment.objects.count()
         comment_count += CharityComment.objects.count()
         inactive_users = User.objects.filter(is_active=False).all()
+        request_list = list(AbilityRequest.objects.all())
         context = {
             'charity_count': charity_count,
             'benefactor_count': benefactor_count,
@@ -186,7 +188,8 @@ def admin_dashboard(request):
             'ability_type_count': ability_type_count,
             'score_count': score_count,
             'comment_count': comment_count,
-            'inactive_users': inactive_users
+            'inactive_users': inactive_users,
+            'request_list': request_list,
         }
         # TODO Fix template path and Redirect
         template = loader.get_template('accounts/admin.html')
@@ -202,13 +205,18 @@ def deactivate_user(request, uid):
     secure = handle_admin_security(request)
     if type(secure) is HttpResponse:
         return secure
+    user = get_object(User, id=uid)
     try:
-        user = get_object(User, id=uid)
         user.is_active = False
         user.save()
         return HttpResponseRedirect(reverse(''))
     except:
-        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', '')
+        if user.is_benefactor:
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
+                                             'admin_benefactor')
+        else:
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
+                                             'admin_charity')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -225,9 +233,168 @@ def activate_user(request, uid):
         return HttpResponseRedirect(reverse(''))
     except:
         if user.is_benefactor:
-            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin_benefactor')
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
+                                             'admin_benefactor')
         else:
-            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin_charity')
+            context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
+                                             'admin_charity')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_add_benefactor(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+
+    test1_user = User.objects.filter(username=request.POST.get("username"))
+    test2_user = User.objects.filter(username=request.POST.get("email"))
+    if test1_user.__len__() != 0 and test2_user.__len__() != 0:
+        return render(request, 'accounts/register.html',
+                      {'error_message': 'Account already exists!'})
+
+    if test1_user.__len__() == 0 and len(test2_user) != 0:
+        return render(request, 'accounts/register.html', {'error_message': 'Email is already taken!  '})
+
+    if len(test1_user) != 0 and len(test2_user) == 0:
+        return render(request, 'accounts/register.html',
+                      {'error_message': 'Username is already taken! try another username.'})
+
+    tmp_contact_info = ContactInfo.objects.create(country="ایران",
+                                                  province=request.POST.get("province"),
+                                                  city=request.POST.get("city"),
+                                                  address=request.POST.get("address"),
+                                                  postal_code=request.POST.get("postal_code"),
+                                                  phone_number=request.POST.get("phone_number")
+                                                  )
+    tmp_user = User.objects.create(username=request.POST.get("username"), password=request.POST.get("password"),
+                                   email=request.POST.get("email"), contact_info=tmp_contact_info,
+                                   description=request.POST.get("description"))
+    tmp_user.is_active = True
+    tmp_user.save()
+    Logger.create_account(tmp_user, None, None)
+    # if request.POST.get("account_type") == "Charity":
+    #     tmp_user.is_charity = True
+    #     tmp_charity = Charity.objects.create(user=tmp_user, name=request.POST.get("charity_name"))
+    #     tmp_charity.save()
+    #     tmp_user.save()
+    #
+    #     login(request, tmp_user)
+    #     Logger.login(request.user, None, None)
+    #     return HttpResponseRedirect(reverse('accounts:user_profile'))
+    #
+    #
+    # else:
+    tmp_user.is_benefactor = True
+    tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
+                                               last_name=request.POST.get("last_name"),
+                                               age=request.POST.get("age"), gender=request.POST.get('gender'))
+    tmp_benefactor.save()
+    tmp_user.save()
+    # login(request, tmp_user)
+    # Logger.login(request.user, None, None)
+    return HttpResponseRedirect(reverse('admin_benefactor'))
+
+
+def admin_edit_benefactor_data(request, uid):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    user = get_object(User, id=uid)
+    try:
+        notifications = Notification.objects.filter(user=user).all()
+        context = {"type": user.is_charity, "username": user.username, "email": user.email,
+                   "country": user.contact_info.country, "province": user.contact_info.province,
+                   "city": user.contact_info.city, "address": user.contact_info.address,
+                   "phone_number": user.contact_info.phone_number, "description": user.description,
+                   "notifications": notifications}
+        if user.is_benefactor:
+            try:
+                benefactor = get_object(Benefactor, user=user)
+                projects = {project for project in Project.objects.all() if benefactor in project.benefactors}
+                context['project_count'] = len(projects)
+                # abilities = benefactor.ability_set.all()
+                score = benefactor.calculate_score()
+                context['score'] = score
+                context["first_name"] = benefactor.first_name
+                context["last_name"] = benefactor.last_name
+                context["gender"] = benefactor.gender
+                context["age"] = benefactor.age
+                context["credit"] = benefactor.credit
+            except:
+                context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page',
+                                                 'admin_benefactor')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+
+        else:
+            context = error_context_generate('Account Type Error', 'Selected Account is not a Benefactor',
+                                             'admin_benefactor')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+
+        return HttpResponseRedirect('admin_benefactor')
+    except:
+        context = error_context_generate('Unexpected Error', 'Error Getting Account Data!', '')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_get_contributions(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        context = {
+            'contributions': FinancialContribution.objects.all()
+        }
+        # TODO Fix Template Path
+        template = loader.get_template('path-to-template')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_get_scores(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        score_list = list(BenefactorScore.objects.all())
+        score_list.append(list(CharityScore.objects.all()))
+        context = {
+            'scores': score_list
+        }
+        # TODO Fix Path
+        template = loader.get_template('path-to-template')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
+
+
+def admin_get_comments(request):
+    secure = handle_admin_security(request)
+    if type(secure) is HttpResponse:
+        return secure
+    try:
+        comment_list = list(BenefactorComment.objects.all())
+        comment_list.append(list(CharityComment.objects.all()))
+        context = {
+            'comments': comment_list
+        }
+        # TODO Fix Path
+        template = loader.get_template('path-to-template')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'Error Getting Page Data!', 'admin_dashboard')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
