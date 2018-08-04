@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
+from AZED.views import check_valid
 from accounts.log_util import create_financial_project_report, create_non_financial_project_report, Logger
 from accounts.models import AbilityTag, Notification
 from accounts.search_util import create_query_schedule
@@ -288,11 +289,11 @@ def create_new_project(request):
             project.type = 'non-financial'
             non_financial_project = NonFinancialProject.objects.create()
             non_financial_project.project = project
-            if request.POST.get("ability_type") is not None:
+            if check_valid(request.POST.get("ability_type")):
                 non_financial_project.ability_type = request.POST.get("ability_type")
-            if request.POST.get("min_age") is not None:
+            if check_valid(request.POST.get("min_age")):
                 non_financial_project.min_age = int(request.POST.get("min_age"))
-            if request.POST.get("max_age") is not None:
+            if check_valid(request.POST.get("max_age")):
                 non_financial_project.max_age = int(request.POST.get("max_age"))
             non_financial_project.required_gender = request.POST.get("required_gender")
 
@@ -357,10 +358,10 @@ def edit_project(request, pk):
             nf_project.project = dic['province']
             nf_project.required_gender = dic['required_gender']
             date_interval = nf_project.dateinterval
-            if dic.get('start_date') is not None:
+            if check_valid(dic.get('start_date')):
                 date_interval.begin_date = convert_str_to_date(dic['start_date'])
             date_interval.end_date = convert_str_to_date(dic['end_date'])
-            if dic.get('week_schedule') is not None:
+            if check_valid(dic.get('week_schedule')):
                 date_interval.to_json(create_query_schedule(dic['week_schedule']))
             nf_project.save()
             date_interval.save()
