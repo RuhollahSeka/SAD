@@ -430,6 +430,7 @@ def benefactor_dashboard(request):
         })
 
 
+@csrf_exempt
 def charity_dashboard(request):
     user = request.user
     if not user.is_authenticated:
