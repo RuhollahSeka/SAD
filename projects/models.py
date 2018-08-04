@@ -154,27 +154,34 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
 
     schedule_filtered = []
     result_benefactors = Benefactor.objects.all()
+    print(len(result_benefactors))
 
     result_ids = [benefactor.user.id for benefactor in result_benefactors if
                   benefactor.has_score(user_min_score, user_max_score)]
     result_benefactors = Benefactor.objects.filter(user_id__in=result_ids)
-    if first_name is not None:
+    print(len(result_benefactors))
+    if first_name is not None and len(first_name) > 0:
         result_benefactors = result_benefactors.filter(first_name__icontains=first_name)
-    if last_name is not None:
+    if last_name is not None and len(last_name) > 0:
         result_benefactors = result_benefactors.filter(last_name__icontains=last_name)
-    if gender is not None:
+    if gender is not None and len(gender) > 0:
+        print([benefactor.gender for benefactor in result_benefactors])
         result_benefactors = result_benefactors.filter(gender__iexact=gender)
-    if country is not None:
-        result_benefactors = result_benefactors.filter(user__contactinfo__country__iexact=country)
-    if province is not None:
-        result_benefactors = result_benefactors.filter(user__contactinfo__province__iexact=province)
-    if city is not None:
-        result_benefactors = result_benefactors.filter(user__contactinfo__city__iexact=city)
+        print(len(result_benefactors))
+    if country is not None and len(country) > 0:
+        result_benefactors = result_benefactors.filter(user__contact_info__country__iexact=country)
+    if province is not None and len(province) > 0:
+        print([benefactor.user.contact_info.province for benefactor in result_benefactors])
+        result_benefactors = result_benefactors.filter(user__contact_info__province__iexact=province)
+        print(len(result_benefactors))
+    if city is not None and len(city) > 0:
+        result_benefactors = result_benefactors.filter(user__contact_info__city__iexact=city)
 
     ability_type_ids = AbilityType.objects.find_ability_ids(ability_name, tags)
     result_ids = [benefactor.user.id for benefactor in result_benefactors if
                   benefactor.has_ability(ability_type_ids, ability_min_score, ability_max_score)]
     result_benefactors = result_benefactors.filter(user_id__in=result_ids)
+    print(len(result_benefactors))
 
     if wanted_schedule is not None:
         schedule_data = [benefactor.search_filter(min_date_overlap, min_required_hours, min_time_overlap,
@@ -182,6 +189,7 @@ def search_benefactor(wanted_schedule=None, min_required_hours=0, min_date_overl
         schedule_filtered = [(benefactor.user.id, data[1], data[2]) for
                              benefactor, data in zip(result_benefactors, schedule_data) if data[0]]
         result_benefactors = result_benefactors.filter(user_id__in=[data[0] for data in schedule_filtered])
+        print(len(result_benefactors))
 
     benefactor_list = list(result_benefactors)
     final_results = [[benefactor.first_name, benefactor.last_name, benefactor.calculate_score(),
@@ -205,11 +213,11 @@ def search_charity(name=None, min_score=0, max_score=10, min_related_projects=0,
     if name is not None:
         result_charities = result_charities.filter(name__icontains=name)
     if country is not None:
-        result_charities = result_charities.filter(user__contactinfo__country__iexact=country)
+        result_charities = result_charities.filter(user__contact_info__country__iexact=country)
     if province is not None:
-        result_charities = result_charities.filter(user__contactinfo__province__iexact=province)
+        result_charities = result_charities.filter(user__contact_info__province__iexact=province)
     if city is not None:
-        result_charities = result_charities.filter(user__contactinfo__city__iexact=city)
+        result_charities = result_charities.filter(user__contact_info__city__iexact=city)
     if benefactor_name is not None:
         benefactors = Benefactor.objects.all().filter(first_name__icontains=benefactor_name) \
                       | Benefactor.objects.all().filter(last_name__icontains=benefactor_name)

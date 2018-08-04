@@ -478,6 +478,7 @@ def charity_dashboard(request):
         min_time_overlap = post.get('min_time_overlap')
         min_time_overlap = None if min_time_overlap is None else float(min_time_overlap)
         tags = post.get('tags')
+        tags = None if tags is None else tags.split(',')
         ability_name = post.get('ability_name')
         ability_min_score = post.get('ability_min_score')
         ability_min_score = None if ability_min_score is None else float(ability_min_score)

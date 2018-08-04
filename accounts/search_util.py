@@ -1,5 +1,7 @@
 import datetime, json, re
 
+from rest_framework.parsers import JSONParser
+
 
 def sub_time(time_1, time_2):
     more_hour_sub = 1 if time_1[1] < time_2[1] else 0
@@ -134,6 +136,7 @@ def create_query_schedule(ui_schedule):
     if ui_schedule is None:
         return None
     schedule = json.loads(ui_schedule)
+    # schedule = JSONParser().parse(ui_schedule)
     result = {}
     for key, value in schedule.items():
         result[key] = []
