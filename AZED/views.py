@@ -197,10 +197,15 @@ def add_non_financial_project(request):
     if type(secure) is HttpResponse:
         return secure
     data = request.POST
-    project_name = data.get('project_name')
-    description = data.get('description')
-    project_state = data.get('project_state')
-    charity_id = int(data.get('charity_id'))
+    if check_valid(data.get('project_name')):
+        project_name = data.get('project_name')
+    if check_valid(data.get('description')):
+        description = data.get('description')
+    if check_valid(data.get('project_state')):
+        project_state = data.get('project_state')
+    charity_id = -1
+    if check_valid(data.get('charity_id')):
+        charity_id = int(data.get('charity_id'))
     charity_user = get_object(User, id=charity_id)
     if charity_user is None:
         context = error_context_generate('Not Found', 'Requested Charity Cannot Be Found',
@@ -208,8 +213,11 @@ def add_non_financial_project(request):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
-        ability_type_id = int(data.get('ability_type_id'))
-        ability_type = get_object(AbilityType, id=ability_type_id)
+
+        ability_type_name = data.get('ability_type_id')
+        ability_type = None
+        if check_valid(ability_type_name):
+            ability_type = get_object(AbilityType, name=ability_type_name)
         if ability_type is None:
             context = error_context_generate('Not Found', 'Requested Ability Type Cannot Be Found',
                                              'admin_project')
@@ -220,10 +228,16 @@ def add_non_financial_project(request):
         min_age = None if min_age is None else int(min_age)
         max_age = data.get('max_age')
         max_age = None if max_age is None else int(max_age)
-        required_gender = data.get('required_gender')
-        country = data.get('country')
-        province = data.get('province')
-        city = data.get('city')
+        non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
+                                                    max_age=max_age)
+        if check_valid(data.get('required_gender')):
+            non_financial_project.required_gender = data.get('required_gender')
+        if check_valid(data.get('country')):
+            non_financial_project.country = data.get('country')
+        if check_valid(data.get('province')):
+            non_financial_project.province = data.get('province')
+        if check_valid(data.get('city')):
+            non_financial_project.city = data.get('city')
         start_date = data.get('start_date')
         if start_date is not None:
             start_date = convert_str_to_date(start_date)
@@ -231,9 +245,6 @@ def add_non_financial_project(request):
         if end_date is not None:
             end_date = convert_str_to_date(end_date)
         schedule = create_query_schedule(data.get('schedule'))
-        non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
-                                                    max_age=max_age, required_gender=required_gender, country=country,
-                                                    province=province, city=city)
         non_financial_project.save()
         dateinterval = DateInterval(begin_date=start_date, end_date=end_date,
                                     non_financial_project=non_financial_project)
