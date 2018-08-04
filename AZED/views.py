@@ -1400,10 +1400,17 @@ def admin_add_ability_type(request):
     if type(secure) == HttpResponse:
         return secure
     try:
-        tags = json.loads(request.POST.get('tags'))
-        if tags is None:
+        tags_str = request.POST.get('tags')
+        if tags_str is None:
             # TODO Error Ability Tag
-            context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                template = loader.get_template('accounts/error_page.html')
+                return HttpResponse(template.render(context, request))
+        try:
+            tags = str(tags_str).split(',')
+        except:
+            # TODO Error Ability Tag
+            context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid List',
                                              'admin_type')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
@@ -1433,19 +1440,22 @@ def admin_edit_ability_type(request, type_id):
     if type(secure) == HttpResponse:
         return secure
     try:
-        tags = []
-        tags_json = request.POST.get('tags')
-        if tags_json is not None and len(tags_json) > 0:
-            tags = json.loads(request.POST.get('tags'))
-            if tags is None:
-                # TODO Error Ability Tag
-                context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
-                                                 'admin_type')
+        tags_str = request.POST.get('tags')
+        if tags_str is None:
+            # TODO Error Ability Tag
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
                 template = loader.get_template('accounts/error_page.html')
                 return HttpResponse(template.render(context, request))
+        try:
+            tags = str(tags_str).split(',')
+        except:
+            # TODO Error Ability Tag
+            context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid List',
+                                             'admin_type')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
         ability_type = get_object(AbilityType, id=type_id)
         if ability_type is None:
-            # TODO Error Ability Tag
             context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
@@ -1455,7 +1465,7 @@ def admin_edit_ability_type(request, type_id):
         description = request.POST.get('description')
         if description is not None and len(description) > 0:
             ability_type.description = description
-        if type(tags) is dict: # FIXME Wanna check if tags is a json object
+        if len(tags) > 0: # If There Was Input On Tags
             ability_type.tags.clear()
             for tag_name in tags:
                 tag = get_object(AbilityTag, name=tag_name)
