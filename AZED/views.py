@@ -1524,3 +1524,27 @@ def admin_get_ability_type(request):
     }
     template = loader.get_template('accounts/admin-ability.html')
     return HttpResponse(template.render(context, request))
+
+
+def admin_get_fin_projects(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    fin_projects = list(FinancialProject.objects.all())
+    context = {
+        'fin_projects': fin_projects
+    }
+    template = loader.get_template('accounts/admin-fin-project.html')
+    return HttpResponse(template.render(context, request))
+
+
+def admin_get_nf_projects(request):
+    secure = handle_admin_security(request)
+    if type(secure) == HttpResponse:
+        return secure
+    nf_projects = list(NonFinancialProject.objects.all())
+    context = {
+        'nf_projects': nf_projects
+    }
+    template = loader.get_template('accounts/admin-nf-project.html')
+    return HttpResponse(template.render(context, request))
