@@ -213,7 +213,9 @@ def add_non_financial_project(request):
             return HttpResponse(template.render(context, request))
         project = create_project(charity_user.charity, 'non-financial', project_name, description, project_state)
         min_age = data.get('min_age')
+        min_age = None if min_age is None else int(min_age)
         max_age = data.get('max_age')
+        max_age = None if max_age is None else int(max_age)
         required_gender = data.get('required_gender')
         country = data.get('country')
         province = data.get('province')
@@ -224,7 +226,7 @@ def add_non_financial_project(request):
         end_date = data.get('end_date')
         if end_date is not None:
             end_date = convert_str_to_date(end_date)
-        schedule = data.get('schedule')
+        schedule = create_query_schedule(data.get('schedule'))
         non_financial_project = NonFinancialProject(project=project, ability_type=ability_type, min_age=min_age,
                                                     max_age=max_age, required_gender=required_gender, country=country,
                                                     province=province, city=city)
@@ -258,8 +260,9 @@ def add_financial_project(request):
         return HttpResponse(template.render(context, request))
     try:
         project = create_project(charity_user.charity, 'financial', project_name, description, project_state)
-        target_money = data.get('target_money')
+        target_money = float(data.get('target_money'))
         current_money = data.get('current_money')
+        current_money = 0 if current_money is None else int(current_money)
         start_date = data.get('start_date')
         if start_date is not None:
             start_date = convert_str_to_date(start_date)
@@ -311,14 +314,14 @@ def edit_non_financial_project(request, pid):
     elif request.method == 'POST':
         data = request.POST
         try:
-            charity_id = int(data.get('charity_id'))
+            charity_id = data.get('charity_id')
             if charity_id is None:
                 charity_id = project.charity.id
-            ability_type_id = int(data.get('ability_type_id'))
+            ability_type_id = data.get('ability_type_id')
             if ability_type_id is None:
                 ability_type_id = non_financial_project.ability_type.id
-            charity_user = get_object(User, id=charity_id)
-            ability_type = get_object(AbilityType, id=ability_type_id)
+            charity_user = get_object(User, id=int(charity_id))
+            ability_type = get_object(AbilityType, id=int(ability_type_id))
             if charity_user is None or ability_type is None:
                 context = error_context_generate('Not Found', 'Requested Charity or Ability Type Cannot Be Found',
                                                  'admin_project')
@@ -335,10 +338,10 @@ def edit_non_financial_project(request, pid):
                 project.project_state = project_state
             min_age = data.get('min_age')
             if not (min_age is None):
-                non_financial_project.min_age = min_age
+                non_financial_project.min_age = int(min_age)
             max_age = data.get('max_age')
             if not (max_age is None):
-                non_financial_project.max_age = max_age
+                non_financial_project.max_age = int(max_age)
             required_gender = data.get('required_gender')
             if not (required_gender is None or len(required_gender) == 0):
                 non_financial_project.required_gender = required_gender
@@ -359,7 +362,7 @@ def edit_non_financial_project(request, pid):
                 non_financial_project.dateinterval.end_date = convert_str_to_date(end_date)
             schedule = data.get('schedule')
             if not (schedule is None or len(schedule) == 0):
-                non_financial_project.dateinterval.to_json(schedule)
+                non_financial_project.dateinterval.to_json(create_query_schedule(schedule))
             non_financial_project.dateinterval.save()
             project.save()
             non_financial_project.save()
@@ -398,10 +401,10 @@ def edit_financial_project(request, pid):
     elif request.method == 'POST':
         data = request.POST
         try:
-            charity_id = int(data.get('charity_id'))
+            charity_id = data.get('charity_id')
             if charity_id is None:
                 charity_id = project.charity.id
-            charity_user = get_object(User, id=charity_id)
+            charity_user = get_object(User, id=int(charity_id))
             if charity_user is None:
                 # TODO some error
                 pass
@@ -416,10 +419,10 @@ def edit_financial_project(request, pid):
                 project.project_state = project_state
             target_money = data.get('target_money')
             if not (target_money is None or len(target_money) == 0):
-                financial_project.target = target_money
+                financial_project.target = float(target_money)
             current_money = data.get('current_money')
             if not (current_money is None or len(current_money) == 0):
-                financial_project.current_money = current_money
+                financial_project.current_money = float(current_money)
             start_date = data.get('start_date')
             if not (start_date is None or len(start_date) == 0):
                 financial_project.start_date = convert_str_to_date(start_date)
@@ -742,9 +745,11 @@ def admin_add_benefactor(request):
     #
     # else:
     tmp_user.is_benefactor = True
+    age = request.POST.get('age')
+    age = None if age is None else int(age)
     tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
                                                last_name=request.POST.get("last_name"),
-                                               age=request.POST.get("age"), gender=request.POST.get('gender'))
+                                               age=age, gender=request.POST.get('gender'))
     tmp_benefactor.save()
     tmp_user.save()
     # login(request, tmp_user)
@@ -829,7 +834,7 @@ def admin_edit_benefactor(request, uid):
         if request.POST.get("gender") is not None:
             user.benefactor.gender = request.POST.get("gender")
         if request.POST.get("age") is not None:
-            user.benefactor.age = request.POST.get("age")
+            user.benefactor.age = int(request.POST.get("age"))
         user.benefactor.save()
         Logger.account_update(user, None, None)
         # TODO Fix Redirect
@@ -980,8 +985,8 @@ def admin_delete_user(request, uid):
     if type(secure) == HttpResponse:
         return secure
     user = get_object(User, id=uid)
-    # TODO Email To User
     try:
+        EmailMessage('Account Deleted', 'حساب کاربری شما از سایت مرساد پاک شد.', to=[user.email]).send()
         if user != request.user:
             user.delete()
         # TODO Fix Redirect Path

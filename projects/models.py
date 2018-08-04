@@ -12,6 +12,8 @@ import datetime, math, json
 
 
 def convert_str_to_date(date_str):
+    if date_str is None:
+        return None
     date_list = date_str.split('/')
     return datetime.date(date_list[2], date_list[0], date_list[1])
 
