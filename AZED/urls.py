@@ -38,6 +38,7 @@ urlpatterns = [
     path('admin/tx/', views.admin_get_contributions, name='admin_tx'),
     path('admin/score/', views.admin_get_scores, name='admin_score'),
     path('admin/comment/', views.admin_get_comments, name='admin_comment'),
+    path('admin/ability/', views.admin_get_ability_type, name='admin_ability'),
 
     path('admin/delete_benefactor_score/score_id=<int:score_id>/', views.admin_delete_benefactor_score, name='delete_benefactor_score'),
     path('admin/delete_charity_score/score_id=<int:score_id>/', views.admin_delete_charity_score, name='delete_charity_score'),
@@ -58,6 +59,10 @@ urlpatterns = [
     path('admin/add_tag/', views.admin_add_ability_tag, name='add_tag'),
     path('admin/edit_tag/tag_id=<int:tag_id>/', views.admin_edit_ability_tag, name='edit_tag'),
     path('admin/delete_tag/tag_id=<int:tag_id>/', views.admin_delete_ability_tag, name='delete_tag'),
+
+    path('admin/add_ability/', views.admin_add_ability_type, name='add_ability'),
+    path('admin/edit_ability/type_id=<int:type_id>/', views.admin_edit_ability_type, name='edit_ability'),
+    path('admin/delete_ability/type_id=<int:type_id>/', views.admin_delete_ability_type, name='delete_ability'),
 
     path('admin/add_benefactor/', views.admin_add_benefactor, name='add_benefactor'),
     path('admin/edit_benefactor/uid=<int:uid>/', views.admin_edit_benefactor, name='edit_benefactor'),

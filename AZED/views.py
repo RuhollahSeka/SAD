@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.core.mail import EmailMessage
 from django.shortcuts import redirect, get_object_or_404, render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import CreateView, TemplateView
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -575,16 +576,16 @@ def admin_get_tags(request):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
         return secure
-    # try:
-    tags = AbilityTag.objects.all()
-    context = {'tags': tags}
-    template = loader.get_template('accounts/admin-tag.html')
-    return HttpResponse(template.render(context, request))
-    # except:
-    #     context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin')
-    #     # TODO Raise Error
-    #     template = loader.get_template('accounts/error_page.html')
-    #     return HttpResponse(template.render(context, request))
+    try:
+        tags = AbilityTag.objects.all()
+        context = {'tags': tags}
+        template = loader.get_template('accounts/admin-tag.html')
+        return HttpResponse(template.render(context, request))
+    except:
+        context = error_context_generate('Unexpected Error', 'There Was a Problem in Loading the Page', 'admin')
+        # TODO Raise Error
+        template = loader.get_template('accounts/error_page.html')
+        return HttpResponse(template.render(context, request))
 
 
 def admin_first_page_data(request):
@@ -1390,39 +1391,42 @@ def admin_delete_ability_tag(request, tag_id):
         return HttpResponse(template.render(context, request))
 
 
+@csrf_exempt
 def admin_add_ability_type(request):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
         return secure
-    try:
-        tags = json.loads(request.POST.get('tags'))
-        if tags is None:
-            # TODO Error Ability Tag
-            context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
-                                             'admin_type')
-            template = loader.get_template('accounts/error_page.html')
-            return HttpResponse(template.render(context, request))
-        ability_type = get_object(AbilityType, name=request.POST.get('name'))
-        if ability_type is None:
-            ability_type = AbilityType.objects.create(name=request.POST.get('name'))
-        ability_type.description = request.POST.get('description')
-        for tag_name in tags:
-            tag = get_object(AbilityTag, name=tag_name)
-            if tag is None:
-                # TODO Error Ability Tag
-                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
-                template = loader.get_template('accounts/error_page.html')
-                return HttpResponse(template.render(context, request))
-            ability_type.tags.add(tag)
-        ability_type.save()
-        return HttpResponseRedirect('admin_type')
-    except:
-        context = error_context_generate('Unexpected Error', 'Error in Creating Ability Type!', 'admin_type')
-        # TODO Raise Error
+    # try:
+    print(request.POST.get('tags'))
+    tags = json.loads(request.POST.get('tags'))
+    if tags is None:
+        # TODO Error Ability Tag
+        context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
+                                         'admin_ability')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
+    ability_type = get_object(AbilityType, name=request.POST.get('name'))
+    if ability_type is None:
+        ability_type = AbilityType.objects.create(name=request.POST.get('name'))
+    ability_type.description = request.POST.get('description')
+    for tag_name in tags:
+        tag = get_object(AbilityTag, name=tag_name)
+        if tag is None:
+            # TODO Error Ability Tag
+            context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_ability')
+            template = loader.get_template('accounts/error_page.html')
+            return HttpResponse(template.render(context, request))
+        ability_type.tags.add(tag)
+    ability_type.save()
+    return HttpResponseRedirect('admin_ability')
+    # except:
+    #     context = error_context_generate('Unexpected Error', 'Error in Creating Ability Type!', 'admin_ability')
+    #     # TODO Raise Error
+    #     template = loader.get_template('accounts/error_page.html')
+    #     return HttpResponse(template.render(context, request))
 
 
+@csrf_exempt
 def admin_edit_ability_type(request, type_id):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
@@ -1430,18 +1434,19 @@ def admin_edit_ability_type(request, type_id):
     try:
         tags = []
         tags_json = request.POST.get('tags')
+        print(tags_json)
         if tags_json is not None and len(tags_json) > 0:
             tags = json.loads(request.POST.get('tags'))
             if tags is None:
                 # TODO Error Ability Tag
                 context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid JSON Object',
-                                                 'admin_type')
+                                                 'admin_ability')
                 template = loader.get_template('accounts/error_page.html')
                 return HttpResponse(template.render(context, request))
         ability_type = get_object(AbilityType, id=type_id)
         if ability_type is None:
             # TODO Error Ability Tag
-            context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
+            context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_ability')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         name = request.POST.get('name')
@@ -1456,7 +1461,7 @@ def admin_edit_ability_type(request, type_id):
                 tag = get_object(AbilityTag, name=tag_name)
                 if tag is None:
                     # TODO Error Ability Tag
-                    context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                    context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_ability')
                     template = loader.get_template('accounts/error_page.html')
                     return HttpResponse(template.render(context, request))
                 ability_type.tags.add(tag)
@@ -1469,7 +1474,7 @@ def admin_edit_ability_type(request, type_id):
         return HttpResponse(template.render(context, request))
 
 
-def delete_ability_type(request, type_id):
+def admin_delete_ability_type(request, type_id):
     secure = handle_admin_security(request)
     if type(secure) == HttpResponse:
         return secure
@@ -1494,8 +1499,11 @@ def admin_get_ability_type(request):
     if type(secure) == HttpResponse:
         return secure
     ability_types = list(AbilityType.objects.all())
+    tags = AbilityTag.objects.all()
+
     context = {
-        'ability_types': ability_types
+        'ability_types': ability_types,
+        'tags': tags
     }
     template = loader.get_template('accounts/admin-ability.html')
     return HttpResponse(template.render(context, request))
