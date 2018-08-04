@@ -211,8 +211,10 @@ def add_non_financial_project(request):
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         project = create_project(charity_user.charity, 'non-financial', project_name, description, project_state)
-        min_age = int(data.get('min_age'))
-        max_age = int(data.get('max_age'))
+        min_age = data.get('min_age')
+        min_age = None if min_age is None else int(min_age)
+        max_age = data.get('max_age')
+        max_age = None if max_age is None else int(max_age)
         required_gender = data.get('required_gender')
         country = data.get('country')
         province = data.get('province')
@@ -258,7 +260,8 @@ def add_financial_project(request):
     try:
         project = create_project(charity_user.charity, 'financial', project_name, description, project_state)
         target_money = float(data.get('target_money'))
-        current_money = float(data.get('current_money'))
+        current_money = data.get('current_money')
+        current_money = 0 if current_money is None else int(current_money)
         start_date = data.get('start_date')
         if start_date is not None:
             start_date = convert_str_to_date(start_date)
@@ -310,14 +313,14 @@ def edit_non_financial_project(request, pid):
     elif request.method == 'POST':
         data = request.POST
         try:
-            charity_id = int(data.get('charity_id'))
+            charity_id = data.get('charity_id')
             if charity_id is None:
                 charity_id = project.charity.id
-            ability_type_id = int(data.get('ability_type_id'))
+            ability_type_id = data.get('ability_type_id')
             if ability_type_id is None:
                 ability_type_id = non_financial_project.ability_type.id
-            charity_user = get_object(User, id=charity_id)
-            ability_type = get_object(AbilityType, id=ability_type_id)
+            charity_user = get_object(User, id=int(charity_id))
+            ability_type = get_object(AbilityType, id=int(ability_type_id))
             if charity_user is None or ability_type is None:
                 context = error_context_generate('Not Found', 'Requested Charity or Ability Type Cannot Be Found',
                                                  'admin_project')
@@ -397,10 +400,10 @@ def edit_financial_project(request, pid):
     elif request.method == 'POST':
         data = request.POST
         try:
-            charity_id = int(data.get('charity_id'))
+            charity_id = data.get('charity_id')
             if charity_id is None:
                 charity_id = project.charity.id
-            charity_user = get_object(User, id=charity_id)
+            charity_user = get_object(User, id=int(charity_id))
             if charity_user is None:
                 # TODO some error
                 pass
@@ -741,9 +744,11 @@ def admin_add_benefactor(request):
     #
     # else:
     tmp_user.is_benefactor = True
+    age = request.POST.get('age')
+    age = None if age is None else int(age)
     tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
                                                last_name=request.POST.get("last_name"),
-                                               age=int(request.POST.get("age")), gender=request.POST.get('gender'))
+                                               age=age, gender=request.POST.get('gender'))
     tmp_benefactor.save()
     tmp_user.save()
     # login(request, tmp_user)
