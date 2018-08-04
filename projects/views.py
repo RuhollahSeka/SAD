@@ -66,10 +66,10 @@ def find_non_financial_projects_advanced_search_results(request):
     end_date = convert_str_to_date(request.POST.get('search_non_financial_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
-    min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
-    min_date_overlap = request.POST.get('search_non_financial_min_date_overlap')
-    min_time_overlap = request.POST.get('search_non_financial_min_time_overlap')
-    age = request.POST.get('search_non_financial_age')
+    min_required_hours = float(request.POST.get('searchnon_financial_min_required_hours'))
+    min_date_overlap = float(request.POST.get('search_non_financial_min_date_overlap'))
+    min_time_overlap = float(request.POST.get('search_non_financial_min_time_overlap'))
+    age = int(request.POST.get('search_non_financial_age'))
     gender = request.POST.get('search_non_financial_gender')
     country = request.POST.get('search_non_financial_country')
     province = request.POST.get('search_non_financial_province')
@@ -116,10 +116,10 @@ def find_non_financial_projects_search_results(request):
     end_date = convert_str_to_date(request.POST.get('search_non_financial_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_non_financial_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
-    min_required_hours = request.POST.get('searchnon_financial_min_required_hours')
-    min_date_overlap = request.POST.get('search_non_financial_min_date_overlap')
-    min_time_overlap = request.POST.get('search_non_financial_min_time_overlap')
-    age = request.POST.get('search_non_financial_age')
+    min_required_hours = float(request.POST.get('searchnon_financial_min_required_hours'))
+    min_date_overlap = float(request.POST.get('search_non_financial_min_date_overlap'))
+    min_time_overlap = float(request.POST.get('search_non_financial_min_time_overlap'))
+    age = int(request.POST.get('search_non_financial_age'))
     gender = request.POST.get('search_non_financial_gender')
     country = request.POST.get('search_non_financial_country')
     province = request.POST.get('search_non_financial_province')
@@ -149,8 +149,8 @@ def find_financial_project_search_results(request):
     charity_name = request.POST.get('search_financial_charity_name')
     benefactor_name = request.POST.get('search_financial_benefactor_name')
     project_state = request.POST.get('search_financial_project_state')
-    min_progress = request.POST.get('search_financial_min_progress')
-    max_progress = request.POST.get('search_financial_max_progress')
+    min_progress = float(request.POST.get('search_financial_min_progress'))
+    max_progress = float(request.POST.get('search_financial_max_progress'))
     min_deadline_date = convert_str_to_date(request.POST.get('search_financial_min_deadline_date'))
     max_deadline_date = convert_str_to_date(request.POST.get('search_financial_max_deadline_date'))
     project_queryset = search_financial_project(project_name, charity_name, benefactor_name, project_state,
@@ -170,12 +170,12 @@ def find_charity_search_results(request):
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     charity_name = request.POST.get('search_charity_name')
-    min_score = request.POST.get('search_charity_min_score')
-    max_score = request.POST.get('search_charity_max_score')
-    min_related_projects = request.POST.get('search_charity_min_related_projects')
-    max_related_projects = request.POST.get('search_charity_max_related_projects')
-    min_finished_projects = request.POST.get('search_charity_min_finished_projects')
-    max_finished_projects = request.POST.get('search_charity_max_finished_projects')
+    min_score = float(request.POST.get('search_charity_min_score'))
+    max_score = float(request.POST.get('search_charity_max_score'))
+    min_related_projects = int(request.POST.get('search_charity_min_related_projects'))
+    max_related_projects = int(request.POST.get('search_charity_max_related_projects'))
+    min_finished_projects = int(request.POST.get('search_charity_min_finished_projects'))
+    max_finished_projects = int(request.POST.get('search_charity_max_finished_projects'))
     benefactor_name = request.POST.get('search_charity_benefactor_name')
     country = request.POST.get('search_charity_country')
     province = request.POST.get('search_charity_province')
@@ -201,18 +201,18 @@ def find_benefactor_search_results(request):
     end_date = convert_str_to_date(request.POST.get('search_benefactor_end_date'))
     weekly_schedule = create_query_schedule(request.POST.get('search_benefactor_schedule'))
     schedule = [start_date, end_date, weekly_schedule]
-    min_required_hours = request.POST.get('search_benefactor_min_required_hours')
-    min_date_overlap = request.POST.get('search_benefactors_min_date_overlap')
-    min_time_overlap = request.POST.get('search_benefactors_min_time_overlap')
+    min_required_hours = float(request.POST.get('search_benefactor_min_required_hours'))
+    min_date_overlap = float(request.POST.get('search_benefactors_min_date_overlap'))
+    min_time_overlap = float(request.POST.get('search_benefactors_min_time_overlap'))
     tags = request.POST.get('search_benefactor_tags')
     ability_name = request.POST.get('search_benefactor_ability_name')
-    ability_min_score = request.POST.get('search_benefactor_ability_min_score')
-    ability_max_score = request.POST.get('search_benefactor_ability_max_score')
+    ability_min_score = float(request.POST.get('search_benefactor_ability_min_score'))
+    ability_max_score = float(request.POST.get('search_benefactor_ability_max_score'))
     country = request.POST.get('search_benefactor_country')
     province = request.POST.get('search_benefactor_province')
     city = request.POST.get('search_benefactor_city')
-    user_min_score = request.POST.get('search_benefactor_user_min_score')
-    user_max_score = request.POST.get('search_benefactor_user_max_score')
+    user_min_score = float(request.POST.get('search_benefactor_user_min_score'))
+    user_max_score = float(request.POST.get('search_benefactor_user_max_score'))
     gender = request.POST.get('search_benefactor_gender')
     first_name = request.POST.get('search_benefactor_first_name')
     last_name = request.POST.get('search_benefactor_last_name')
@@ -254,9 +254,9 @@ def create_new_project(request):
             # FIXME only date not datetime?
             financial_project.end_date = datetime.datetime.strptime(request.POST.get('end_date'), '%y-%m-%d')
             financial_project.project = project
-            financial_project.target_money = int(request.POST.get('target_money'))
+            financial_project.target_money = float(request.POST.get('target_money'))
             if request.POST.get('current_money') is not None:
-                financial_project.current_money = request.POST.get('current_money')
+                financial_project.current_money = float(request.POST.get('current_money'))
             else:
                 financial_project.current_money = 0
             financial_project.save()
@@ -268,9 +268,9 @@ def create_new_project(request):
             if request.POST.get("ability_type") is not None:
                 non_financial_project.ability_type = request.POST.get("ability_type")
             if request.POST.get("min_age") is not None:
-                non_financial_project.min_age = request.POST.get("min_age")
+                non_financial_project.min_age = int(request.POST.get("min_age"))
             if request.POST.get("max_age") is not None:
-                non_financial_project.max_age = request.POST.get("max_age")
+                non_financial_project.max_age = int(request.POST.get("max_age"))
             non_financial_project.required_gender = request.POST.get("required_gender")
 
             non_financial_project.country = request.POST.get("country")
@@ -281,7 +281,7 @@ def create_new_project(request):
             date_interval.end_date = convert_str_to_date(request.POST.get('end_date'))
             date_interval.non_financial_project = non_financial_project
             # FIXME check if the input is JSON or not
-            date_interval.week_schedule = request.POST.get('week_schedule')
+            date_interval.to_json(create_query_schedule(request.POST.get('week_schedule')))
             non_financial_project.save()
         projects = request.user.charity.project_set
         Logger.create_new_project(request.user, None, project)
@@ -338,7 +338,7 @@ def edit_project(request, pk):
                 date_interval.begin_date = convert_str_to_date(dic['start_date'])
             date_interval.end_date = convert_str_to_date(dic['end_date'])
             if dic.get('week_schedule') is not None:
-                date_interval.week_schedule = dic['week_schedule']
+                date_interval.to_json(create_query_schedule(dic['week_schedule']))
             nf_project.save()
             date_interval.save()
         project.save()

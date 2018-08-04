@@ -131,6 +131,8 @@ def has_matched_schedule(min_date_overlap, min_required_hours, min_time_overlap,
 
 
 def create_query_schedule(ui_schedule):
+    if ui_schedule is None:
+        return None
     schedule = json.loads(ui_schedule)
     result = {}
     for key, value in schedule.items():

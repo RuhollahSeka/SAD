@@ -16,6 +16,7 @@ from accounts.forms import CharitySignUpForm
 from accounts.models import *
 from projects.models import CooperationRequest, search_charity, search_benefactor, convert_str_to_date
 from accounts.log_util import Logger
+from accounts.search_util import create_query_schedule
 import random, string
 
 possible_characters = string.ascii_letters + string.digits
@@ -58,7 +59,7 @@ def all_user_projects(request):
 
 
 def add_ability_to_benefactor(request):
-    benefactor_id = request.POST.get('add_ability_benefactor_id')
+    benefactor_id = int(request.POST.get('add_ability_benefactor_id'))
     if request.user.id != benefactor_id:
         # TODO Return Error
         context = error_context_generate('Authentication Error', 'You Don\'t Have Permission to Change this Account!',
@@ -313,7 +314,7 @@ def signup(request):
         tmp_user.is_benefactor = True
         tmp_benefactor = Benefactor.objects.create(user=tmp_user, first_name=request.POST.get("first_name"),
                                                    last_name=request.POST.get("last_name"),
-                                                   age=request.POST.get("age"), gender=request.POST.get('gender'))
+                                                   age=int(request.POST.get("age")), gender=request.POST.get('gender'))
         tmp_benefactor.save()
         tmp_user.save()
         login(request, tmp_user)
@@ -459,7 +460,7 @@ def charity_dashboard(request):
         post = request.POST
         start_date = convert_str_to_date(post.get('start_date'))
         end_date = convert_str_to_date(post.get('end_date'))
-        weekly_schedule = json.loads(post.get('schedule'))
+        weekly_schedule = create_query_schedule(post.get('schedule'))
         schedule = [start_date, end_date, weekly_schedule]
         min_required_hours = float(post.get('min_required_hours'))
         min_date_overlap = float(post.get('min_date_overlap'))
@@ -718,7 +719,7 @@ def customize_user(request):
         if request.POST.get("gender") is not None:
             request.user.benefactor.gender = request.POST.get("gender")
         if request.POST.get("age") is not None:
-            request.user.benefactor.age = request.POST.get("age")
+            request.user.benefactor.age = int(request.POST.get("age"))
         request.user.benefactor.save()
     Logger.account_update(request.user, None, None)
     # TODO Fix Redirect
@@ -748,7 +749,7 @@ def add_benefactor_credit(request):
         return HttpResponse(template.render(context, request))
     # try:
     benefactor = get_object(Benefactor, user=request.user)
-    amount = int(request.POST.get('deposit_amount'))
+    amount = float(request.POST.get('deposit_amount'))
     benefactor.credit += amount
     benefactor.save()
     # FIXME Redirect to user profile view
