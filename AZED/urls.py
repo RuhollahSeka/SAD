@@ -19,6 +19,8 @@ from . import views
 
 
 
+
+
 urlpatterns = [
 
     path('accounts/', include('accounts.urls')),
@@ -52,8 +54,10 @@ urlpatterns = [
     path('admin/add_charity_comment/', views.admin_add_charity_comment, name='add_charity_comment'),
 
     path('admin/add_admin/', views.add_new_admin, name='add_admin'),
-    path('admin/add_tag/', views.admin_get_tags, name='admin_tag'),
 
+    path('admin/add_tag/', views.admin_add_ability_tag, name='add_tag'),
+    path('admin/edit_tag/tag_id=<int:tag_id>/', views.admin_edit_ability_tag, name='edit_tag'),
+    path('admin/delete_tag/tag_id=<int:tag_id>/', views.admin_delete_ability_tag, name='delete_tag'),
 
     path('admin/add_benefactor/', views.admin_add_benefactor, name='add_benefactor'),
     path('admin/edit_benefactor/uid=<int:uid>/', views.admin_edit_benefactor, name='edit_benefactor'),
@@ -74,6 +78,4 @@ urlpatterns = [
 
 
 ]
-
-
 
