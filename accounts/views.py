@@ -2,6 +2,7 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
+from AZED.views import check_valid
 from projects.models import FinancialProject, NonFinancialProject, Project, Log, FinancialContribution
 ####### Danial imports .Some of them may be redundant!!!
 
@@ -603,7 +604,7 @@ def recover_pwd(request, uid, rec_str):
             pass
         user.email_recover_string = generate_recover_string()
         user.password = password
-        # TODO successful password change
+        return HttpResponseRedirect(reverse('Home'))
 
 
 def user_profile(request):
@@ -708,32 +709,32 @@ def customize_user(request):
                                          'Your Account Has Been Marked as Deactivated!', '')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
-    if request.POST.get('password') is not None:
+    if check_valid(request.POST.get('password')):
         request.user.password = request.POST.get("password")
-    if request.POST.get('description') is not None:
+    if check_valid(request.POST.get('description')):
         request.user.description = request.POST.get("description")
-    if request.POST.get("province") is not None:
+    if check_valid(request.POST.get("province")):
         request.user.contact_info.province = request.POST.get("province")
-    if request.POST.get("city") is not None:
+    if check_valid(request.POST.get("city")):
         request.user.contact_info.city = request.POST.get("city")
-    if request.POST.get("address") is not None:
+    if check_valid(request.POST.get("address")):
         request.user.contact_info.address = request.POST.get("address")
-    if request.POST.get("phone_number") is not None:
+    if check_valid(request.POST.get("phone_number")):
         request.user.contact_info.phone_number = request.POST.get("phone_number")
     request.user.save()
     request.user.contact_info.save()
     if request.user.is_charity:
-        if request.POST.get("name") is not None:
+        if check_valid(request.POST.get("name")):
             request.user.charity.name = request.POST.get("name")
         request.user.charity.save()
     else:
-        if request.POST.get("first_name") is not None:
+        if check_valid(request.POST.get("first_name")):
             request.user.benefactor.first_name = request.POST.get("first_name")
-        if request.POST.get("last_name") is not None:
+        if check_valid(request.POST.get("last_name")):
             request.user.benefactor.last_name = request.POST.get("last_name")
-        if request.POST.get("gender") is not None:
+        if check_valid(request.POST.get("gender")):
             request.user.benefactor.gender = request.POST.get("gender")
-        if request.POST.get("age") is not None:
+        if check_valid(request.POST.get("age")):
             request.user.benefactor.age = int(request.POST.get("age"))
         request.user.benefactor.save()
     Logger.account_update(request.user, None, None)

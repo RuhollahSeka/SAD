@@ -16,6 +16,10 @@ from projects.models import Project, FinancialProject, CooperationRequest, Finan
 from projects.views import error_context_generate, get_object
 
 
+def check_valid(field):
+    return field is not None and len(field) > 0
+
+
 def handle_admin_security(request):
     user = request.user
     if not user.is_authenticated:
@@ -952,17 +956,17 @@ def admin_edit_charity(request, uid):
                                              'admin_benefactor')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        if request.POST.get('password') is not None:
+        if check_valid(request.POST.get('password')):
             user.password = request.POST.get("password")
-        if request.POST.get('description') is not None:
+        if check_valid(request.POST.get('description')):
             user.description = request.POST.get("description")
-        if request.POST.get("province") is not None:
+        if check_valid(request.POST.get("province")):
             user.contact_info.province = request.POST.get("province")
-        if request.POST.get("city") is not None:
+        if check_valid(request.POST.get("city")):
             user.contact_info.city = request.POST.get("city")
-        if request.POST.get("address") is not None:
+        if check_valid(request.POST.get("address")):
             user.contact_info.address = request.POST.get("address")
-        if request.POST.get("phone_number") is not None:
+        if check_valid(request.POST.get("phone_number")):
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
         user.contact_info.save()
