@@ -5,13 +5,15 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
-from AZED.views import check_valid
 from accounts.log_util import create_financial_project_report, create_non_financial_project_report, Logger
 from accounts.models import AbilityTag, Notification
 from accounts.search_util import create_query_schedule
 from projects.models import *
 from django.template import loader
 
+
+def check_valid(field):
+    return field is not None and len(field) > 0
 
 def get_object(obj_class, *args, **kwargs):
     try:

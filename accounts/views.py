@@ -2,7 +2,6 @@ from django.core.mail import EmailMessage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from AZED.views import check_valid
 from projects.models import FinancialProject, NonFinancialProject, Project, Log, FinancialContribution
 ####### Danial imports .Some of them may be redundant!!!
 
@@ -22,6 +21,10 @@ import random, string
 
 possible_characters = string.ascii_letters + string.digits
 ip = 'http://127.0.0.1:8000/accounts/'
+
+
+def check_valid(field):
+    return field is not None and len(field) > 0
 
 
 def generate_recover_string(length=32):
