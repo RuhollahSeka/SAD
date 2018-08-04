@@ -1,3 +1,4 @@
+from django.core.mail import EmailMessage
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -8,6 +9,8 @@ from django.views.generic import TemplateView
 from django.template import loader
 from rest_framework.response import Response
 
+from accounts.log_util import Logger
+from accounts.views import get_object, generate_recover_string
 from projects.models import FinancialProject, NonFinancialProject, Project, Log
 from accounts.models import *
 
@@ -52,8 +55,13 @@ def rest_login(request):
     data = JSONParser().parse(request)
     username = data.get('username')
     password = data.get('password')
-    user_queryset = User.objects.all().filter(username__iexact=username).filter(password__iexact=password)
-    if user_queryset.count() != 1:
+    tmp_user = User.objects.filter(username=username)
+    if len(tmp_user) == 0:
+        return Response([])
+    tmp_user = get_object(User, username=username)
+    if tmp_user.password != password:
+        return Response([])
+    if not tmp_user.is_active:
         return Response([])
     return Response([{}])
 
@@ -118,6 +126,13 @@ def rest_signup(request):
         user.save()
         charity = Charity(user=user, name=charity_name)
         charity.save()
+    code = generate_recover_string()
+    message = 'برای فعال شدن حساب خود بر روی لینک زیر کلیک کنید:' + '\n'
+    message += 'http://127.0.0.1:8000/' + 'activate/' + str(user.id) + '/' + code
+    user.activation_string = code
+    user.save()
+    email_message = EmailMessage('Activation Email', message, to=[user.email])
+    email_message.send()
     return Response({
         'success': True
     })
