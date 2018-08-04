@@ -1405,7 +1405,7 @@ def admin_add_ability_type(request):
         tags_str = request.POST.get('tags')
         if tags_str is None:
             # TODO Error Ability Tag
-                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_ability')
                 template = loader.get_template('accounts/error_page.html')
                 return HttpResponse(template.render(context, request))
         try:
@@ -1413,7 +1413,7 @@ def admin_add_ability_type(request):
         except:
             # TODO Error Ability Tag
             context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid List',
-                                             'admin_type')
+                                             'admin_ability')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         ability_type = get_object(AbilityType, name=request.POST.get('name'))
@@ -1424,14 +1424,14 @@ def admin_add_ability_type(request):
             tag = get_object(AbilityTag, name=tag_name)
             if tag is None:
                 # TODO Error Ability Tag
-                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_ability')
                 template = loader.get_template('accounts/error_page.html')
                 return HttpResponse(template.render(context, request))
             ability_type.tags.add(tag)
         ability_type.save()
-        return HttpResponseRedirect('admin_type')
+        return HttpResponseRedirect(reverse('admin_ability'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Creating Ability Type!', 'admin_type')
+        context = error_context_generate('Unexpected Error', 'Error in Creating Ability Type!', 'admin_ability')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1446,7 +1446,7 @@ def admin_edit_ability_type(request, type_id):
         tags_str = request.POST.get('tags')
         if tags_str is None:
             # TODO Error Ability Tag
-                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_type')
+                context = error_context_generate('Not Found', 'Could not Find one of Input Tags', 'admin_ability')
                 template = loader.get_template('accounts/error_page.html')
                 return HttpResponse(template.render(context, request))
         try:
@@ -1454,12 +1454,12 @@ def admin_edit_ability_type(request, type_id):
         except:
             # TODO Error Ability Tag
             context = error_context_generate('Malformed Data', 'Input Tags Data is Not a Valid List',
-                                             'admin_type')
+                                             'admin_ability')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         ability_type = get_object(AbilityType, id=type_id)
         if ability_type is None:
-            context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
+            context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_ability')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
         name = request.POST.get('name')
@@ -1479,9 +1479,9 @@ def admin_edit_ability_type(request, type_id):
                     return HttpResponse(template.render(context, request))
                 ability_type.tags.add(tag)
         ability_type.save()
-        return HttpResponseRedirect('admin_type')
+        return HttpResponseRedirect('admin_ability')
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Editing Ability Type!', 'admin_type')
+        context = error_context_generate('Unexpected Error', 'Error in Editing Ability Type!', 'admin_ability')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
@@ -1494,14 +1494,14 @@ def admin_delete_ability_type(request, type_id):
     ability_type = get_object(AbilityType, id=type_id)
     if ability_type is None:
         # TODO Error Ability Tag
-        context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_type')
+        context = error_context_generate('Not Found', 'Could not Find Requested Ability Type', 'admin_ability')
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
     try:
         ability_type.delete()
-        return HttpResponseRedirect('admin_type')
+        return HttpResponseRedirect(reverse('admin_ability'))
     except:
-        context = error_context_generate('Unexpected Error', 'Error in Deleting Ability Type!', 'admin_type')
+        context = error_context_generate('Unexpected Error', 'Error in Deleting Ability Type!', 'admin_ability')
         # TODO Raise Error
         template = loader.get_template('accounts/error_page.html')
         return HttpResponse(template.render(context, request))
