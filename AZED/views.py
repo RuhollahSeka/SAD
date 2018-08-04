@@ -812,17 +812,17 @@ def admin_edit_benefactor(request, uid):
                                              'admin_benefactor')
             template = loader.get_template('accounts/error_page.html')
             return HttpResponse(template.render(context, request))
-        if request.POST.get('password') is not None:
+        if request.POST.get('password') is not None and len(request.POST.get('password')) > 0:
             user.password = request.POST.get("password")
-        if request.POST.get('description') is not None:
+        if request.POST.get('description') is not None and len(request.POST.get('description')) > 0:
             user.description = request.POST.get("description")
-        if request.POST.get("province") is not None:
+        if request.POST.get("province") is not None and len(request.POST.get("province")) > 0:
             user.contact_info.province = request.POST.get("province")
-        if request.POST.get("city") is not None:
+        if request.POST.get("city") is not None and len(request.POST.get("city")) > 0:
             user.contact_info.city = request.POST.get("city")
-        if request.POST.get("address") is not None:
+        if request.POST.get("address") is not None and len(request.POST.get("address")) > 0:
             user.contact_info.address = request.POST.get("address")
-        if request.POST.get("phone_number") is not None:
+        if request.POST.get("phone_number") is not None and len(request.POST.get("phone_number")) > 0:
             user.contact_info.phone_number = request.POST.get("phone_number")
         user.save()
         user.contact_info.save()
@@ -830,9 +830,9 @@ def admin_edit_benefactor(request, uid):
             user.benefactor.first_name = request.POST.get("first_name")
         if request.POST.get("last_name") is not None and len(request.POST.get("last_name")) > 0:
             user.benefactor.last_name = request.POST.get("last_name")
-        if request.POST.get("gender") is not None:
+        if request.POST.get("gender") is not None and len(request.POST.get("gender")) > 0:
             user.benefactor.gender = request.POST.get("gender")
-        if request.POST.get("age") is not None:
+        if request.POST.get("age") is not None and len(request.POST.get("age")) > 0:
             user.benefactor.age = int(request.POST.get("age"))
         user.benefactor.save()
         Logger.account_update(user, None, None)
